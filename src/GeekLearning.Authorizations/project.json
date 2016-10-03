@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1-*",
+  "description": "A permission system implemented in .NET Core.",
+  "authors": [ "Geek Learning", "Arnaud Auroux", "Adrien Siffermann", "Cyprien Autexier" ],
+  "packOptions": {
+    "tags": [],
+    "projectUrl": "",
+    "licenseUrl": ""
+  },
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.EntityFrameworkCore": "1.0.1",
+    "Microsoft.EntityFrameworkCore.Relational": "1.0.1",
+    "System.ComponentModel.Annotations": "4.1.0"
+  },
+
+  "frameworks": {
+    "netstandard1.3": {},
+    "net461": {}
+  }
+}

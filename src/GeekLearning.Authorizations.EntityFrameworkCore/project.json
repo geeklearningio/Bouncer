@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1-*",
+  "description": "Entity Framework Core permission system implementation.",
+  "authors": [ "Geek Learning", "Arnaud Auroux", "Adrien Siffermann", "Cyprien Autexier" ],
+  "packOptions": {
+    "tags": [],
+    "projectUrl": "",
+    "licenseUrl": ""
+  },
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "GeekLearning.Authorizations": "*",
+    "Microsoft.EntityFrameworkCore": "1.0.1",
+    "Microsoft.EntityFrameworkCore.Relational": "1.0.1"
+  },
+
+  "frameworks": {
+    "netstandard1.3": {},
+    "net461": {}
+  }
+}
