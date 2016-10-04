@@ -1,15 +1,19 @@
 ﻿namespace GeekLearning.Authorizations.Data
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     public class RoleRight
     {
         public Guid RoleId { get; set; }
 
-        public Role Role { get; set; }
+        [ForeignKey("RoleId")]
+        public virtual Role Role { get; set; }
+       
+        public Guid RightId { get; set; }
 
-        public Right RightId { get; set; }
-
-        public Right Right { get; set; }
+        [ForeignKey("RightId")]
+        public virtual Right Right { get; set; }
     }
 }

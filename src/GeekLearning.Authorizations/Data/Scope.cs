@@ -8,6 +8,7 @@
 
     public class Scope : Audit
     {
+        [Key]
         public Guid Id { get; set; }
 
         [Required]
@@ -20,8 +21,8 @@
 
         public bool IsDeletable { get; set; }
 
-        public virtual ICollection<Scope> Parents { get; set; }
+        public virtual ICollection<ScopeHierarchy> Parents { get; set; }
 
-        public virtual ICollection<Scope> Children { get; set; }
+        public virtual ICollection<ScopeHierarchy> Children { get; set; }
     }
 }

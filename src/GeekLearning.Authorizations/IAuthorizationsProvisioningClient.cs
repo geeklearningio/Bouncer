@@ -1,26 +1,24 @@
 ﻿namespace GeekLearning.Authorizations
 {
-    using Data;
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     public interface IAuthorizationsProvisioningClient
     {
-        Task CreateScopeAsync(string name, string description, params string[] parents);
+        Task CreateScopeAsync(string scopeKey, string description, params string[] parents);
 
-        Task DeleteScopeAsync(string name);
+        Task DeleteScopeAsync(string scopeKey);
 
-        Task CreateRightAsync(string name);
+        Task CreateRightAsync(string rightKey);
 
-        Task DeleteRightAsync(string name);
+        Task DeleteRightAsync(string rightKey);
 
-        Task CreateRoleAsync(string name, string[] rights);
+        Task CreateRoleAsync(string roleKey, string[] rights);
         
-        Task DeleteRoleAsync(string name);
+        Task DeleteRoleAsync(string roleKey);
 
-        Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
+        Task AffectRoleToPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey);
 
-        Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
+        Task UnaffectRoleFromPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey);
     }
 }

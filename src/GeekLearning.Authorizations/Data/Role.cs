@@ -11,6 +11,7 @@
             this.Rights = new HashSet<RoleRight>();
         }
 
+        [Key]
         public Guid Id { get; set; }
 
         [Required]
@@ -19,6 +20,6 @@
 
         public bool IsDeletable { get; set; }
 
-        public ICollection<RoleRight> Rights { get; set; }
+        public virtual ICollection<RoleRight> Rights { get; set; }
     }
 }

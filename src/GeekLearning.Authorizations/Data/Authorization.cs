@@ -1,27 +1,33 @@
 ﻿namespace GeekLearning.Authorizations.Data
 {
     using System;
+    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     public class Authorization : Audit
     {
+        [Key]
         public Guid Id { get; set; }
 
         public bool IsDeletable { get; set; }
-
+        
         public Guid RoleId { get; set; }
 
         [Required]
-        public Role Role { get; set; }
+        [ForeignKey("RoleId")]
+        public virtual Role Role { get; set; }
 
         public Guid ScopeId { get; set; }
 
         [Required]
-        public Scope Scope { get; set; }
+        [ForeignKey("ScopeId")]
+        public virtual Scope Scope { get; set; }
 
         public Guid PrincipalId { get; set; }
 
         [Required]
-        public Principal Principal { get; set; }
+        [ForeignKey("PrincipalId")]
+        public virtual Principal Principal { get; set; }
     }
 }
