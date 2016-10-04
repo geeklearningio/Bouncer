@@ -6,6 +6,11 @@
 
     public class Role : Audit
     {
+        public Role()
+        {
+            this.Rights = new HashSet<RoleRight>();
+        }
+
         public Guid Id { get; set; }
 
         [Required]

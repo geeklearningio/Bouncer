@@ -21,6 +21,6 @@
         /// <summary>
         /// Liste des périmètre dont le perimètre courrant hérite
         /// </summary>
-        public ICollection<string> InheritFrom => new HashSet<string>();
+        public ICollection<string> Parents => new HashSet<string>();
     }
 }

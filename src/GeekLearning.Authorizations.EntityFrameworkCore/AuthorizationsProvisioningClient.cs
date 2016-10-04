@@ -1,7 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
     using System;
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore;
     using Exceptions;
@@ -18,32 +18,7 @@
             this.currentPrincipalId = currentPrincipalId;
         }
 
-        public async Task AddRightsToRoleAsync(string name, string[] rights)
-        {
-            Data.Role role = await this.context.Set<Data.Role>().FirstOrDefaultAsync(r => r.Name == name);
-            if (role == null)
-            {
-                throw new EntityNotFoundException(name);
-            }
-
-            foreach (var right in rights)
-            {
-                role.Rights.Add(new Data.RoleRight
-                {
-                    Role = role,
-                    Right = new Data.Right
-                    {
-                        Name = right,
-                        CreationBy = this.currentPrincipalId,
-                        ModificationBy = this.currentPrincipalId
-                    }   
-                });
-            }
-
-            await this.context.SaveChangesAsync();
-        }
-
-        public async Task AffectRoleToPrincipalAsync(string roleName, Guid principalId, string scopeName)
+        public async Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
         {
             Data.Role role = await this.context.Set<Data.Role>().FirstOrDefaultAsync(r => r.Name == roleName);
             if (role == null)
@@ -69,76 +44,147 @@
             await this.context.SaveChangesAsync();
         }
 
+        public async Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
+        {
+            Data.Role role = await this.context.Set<Data.Role>().FirstOrDefaultAsync(r => r.Name == roleName);
+            if (role != null)
+            {
+                Data.Scope scope = await this.context.Set<Data.Scope>().FirstOrDefaultAsync(s => s.Name == scopeName);
+                if (scope != null)
+                {
+                    var authorization = await this.context.Set<Data.Authorization>()
+                                                          .FirstOrDefaultAsync(a => a.PrincipalId == principalId &&
+                                                                                    a.RoleId == role.Id &&
+                                                                                    a.ScopeId == scope.Id);
+                    if (authorization != null)
+                    {
+                        this.context.Set<Data.Authorization>().Remove(authorization);
+
+                        await this.context.SaveChangesAsync();
+                    }
+                }
+            }
+        }
+
         public async Task CreateRightAsync(string name)
         {
-            this.context.Set<Data.Right>().Add(new Data.Right
+            var right = await this.context.Set<Data.Right>().FirstOrDefaultAsync(r => r.Name == name);
+            if (right == null)
             {
-                Name = name,
-                CreationBy = this.currentPrincipalId,
-                ModificationBy = this.currentPrincipalId
-            });
+                var rightEntity = this.context.Set<Data.Right>().Add(new Data.Right
+                {
+                    Name = name,
+                    CreationBy = this.currentPrincipalId,
+                    ModificationBy = this.currentPrincipalId
+                });
+
+                await this.context.SaveChangesAsync();
+            }
+        }
+
+        public async Task CreateRoleAsync(string name, string[] rights)
+        {
+            var role = await this.context.Set<Data.Role>()
+                                         .Include(r => r.Rights)
+                                         .FirstOrDefaultAsync(r => r.Name == name);
+            if (role == null)
+            {
+                role = new Data.Role
+                {
+                    Name = name,
+                    CreationBy = this.currentPrincipalId,
+                    ModificationBy = this.currentPrincipalId
+                };
+
+                this.context.Set<Data.Role>().Add(role);
+            }
+
+            if (rights != null)
+            {
+                foreach (var rightName in rights.Except(role.Rights.Select(rr => rr.Right.Name)))
+                {
+                    await this.CreateRightAsync(rightName);
+
+                    var right = await this.context.Set<Data.Right>().FirstAsync(r => r.Name == rightName);
+                    role.Rights.Add(new Data.RoleRight
+                    {
+                        Right = right,
+                        Role = role
+                    });
+                }
+            }
 
             await this.context.SaveChangesAsync();
         }
 
-        public Task CreateRoleAsync(string name, string[] rights)
+        public async Task CreateScopeAsync(string name, string description, params string[] parents)
         {
-            throw new NotImplementedException();
+            var scope = await this.context.Set<Data.Scope>()
+                                          .Include(s => s.Parents)
+                                          .FirstOrDefaultAsync(s => s.Name == name);
+
+            if (scope == null)
+            {
+                scope = new Data.Scope
+                {
+                    Name = name,
+                    Description = description
+                };
+
+                this.context.Set<Data.Scope>().Add(scope);
+            }
+
+            if (parents != null)
+            {
+                foreach (var parentName in parents.Except(scope.Parents.Select(sp => sp.Name)))
+                {
+                    await this.CreateScopeAsync(parentName, parentName);
+
+                    var parentScope = await this.context.Set<Data.Scope>().FirstAsync(s => s.Name == parentName);
+                    scope.Parents.Add(parentScope);
+                }
+            }
+
+            await this.context.SaveChangesAsync();
         }
 
-        public Task CreateScopeAsync(string name, string description, params string[] parentnames)
+        public async Task DeleteRightAsync(string name)
         {
-            throw new NotImplementedException();
+            var right = await this.context.Set<Data.Right>().FirstOrDefaultAsync(r => r.Name == name);
+            if (right != null)
+            {
+                this.context.Set<Data.Right>().Remove(right);
+
+                await this.context.SaveChangesAsync();
+            }
         }
 
-        public Task DeleteRightAsync(string name)
+        public async Task DeleteRoleAsync(string name)
         {
-            throw new NotImplementedException();
+            var role = await this.context.Set<Data.Role>()
+                                         .Include(r => r.Rights)
+                                         .FirstOrDefaultAsync(r => r.Name == name);
+            if (role != null)
+            {
+                this.context.Set<Data.RoleRight>().RemoveRange(role.Rights);
+                this.context.Set<Data.Role>().Remove(role);
+
+                await this.context.SaveChangesAsync();
+            }
         }
 
-        public Task DeleteRoleAsync(string name)
+        public async Task DeleteScopeAsync(string name)
         {
-            throw new NotImplementedException();
-        }
+            var scope = await this.context.Set<Data.Scope>()
+                                          .Include(r => r.Children)
+                                          .FirstOrDefaultAsync(r => r.Name == name);
+            if (scope != null)
+            {
+                this.context.Set<Data.Scope>().RemoveRange(scope.Children);
+                this.context.Set<Data.Scope>().Remove(scope);
 
-        public Task DeleteScopeAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Model.Right>> GetRightsForRoleAsync(string rolename)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Model.Scope> GetSecurityScopeAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RemoveRightsFromRoleAsync(string name, string[] rights)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RenameRightAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RenameRoleAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RenameScopeAsync(string name, string description)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UnaffectRoleFromPrincipalAsync(string roleName, Guid principalId, string scopeName)
-        {
-            throw new NotImplementedException();
+                await this.context.SaveChangesAsync();
+            }
         }
     }
 }
