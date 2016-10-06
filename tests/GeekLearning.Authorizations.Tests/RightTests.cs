@@ -7,21 +7,33 @@ using Xunit;
 
 namespace GeekLearning.Authorizations.Tests
 {
-    public class RightTests : IClassFixture<AuthorizationsFixture>
+    public class RightTests
     {
-        private AuthorizationsFixture authorizationsFixture;
-
-        public RightTests(AuthorizationsFixture authorizationsFixture)
-        {
-            this.authorizationsFixture = authorizationsFixture;
-        }
-
         [Fact]
         public async Task CreateRight_ShouldBeOk()
         {
-            await this.authorizationsFixture.AuthorizationsProvisioningClient.CreateRightAsync("right1");
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRightAsync("right1");
 
-            Assert.NotNull(this.authorizationsFixture.Context.Set<Right>().FirstOrDefault(r => r.Name == "right1"));
+                Assert.NotNull(authorizationsFixture.Context.Set<Right>().FirstOrDefault(r => r.Name == "right1"));
+            }
+        }
+
+
+        [Fact]
+        public async Task DeleteRight_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                authorizationsFixture.Context.Set<Right>().Add(new Right { Name = "right1" });
+
+                authorizationsFixture.Context.SaveChanges();
+
+                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRightAsync("right1");
+
+                Assert.Null(authorizationsFixture.Context.Set<Right>().FirstOrDefault(r => r.Name == "right1"));
+            }
         }
     }
 }

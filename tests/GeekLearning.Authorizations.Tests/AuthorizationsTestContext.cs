@@ -10,18 +10,18 @@ namespace GeekLearning.Authorizations.Tests
 {
     public class AuthorizationsTestContext : DbContext
     {
-        public Guid CurrentUserId => Guid.NewGuid();
+        public Guid CurrentUserId { get; private set; }
 
         public AuthorizationsTestContext(DbContextOptions options) : base(options)
         {
+            CurrentUserId = Guid.NewGuid();
         }
 
         public void Seed()
         {
-            this.Set<UserTest>().Add(new UserTest
-            {
-                Id = CurrentUserId
-            });
+            this.Set<UserTest>().Add(new UserTest { Id = CurrentUserId });
+
+            this.Set<Data.Principal>().Add(new Data.Principal { Id = CurrentUserId });
 
             this.SaveChanges();
         }

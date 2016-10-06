@@ -32,11 +32,17 @@
                 throw new EntityNotFoundException(scopeKey);
             }
 
+            Data.Principal principal = await this.context.Set<Data.Principal>().FirstOrDefaultAsync(s => s.Id == principalId);
+            if (principal == null)
+            {
+                throw new EntityNotFoundException($"Principal '{principalId}'");
+            }
+
             this.context.Set<Data.Authorization>().Add(new Data.Authorization
             {
                 Role = role,
                 Scope = scope,
-                PrincipalId = principalId,
+                Principal = principal,
                 CreationBy = this.currentPrincipalId,
                 ModificationBy = this.currentPrincipalId
             });
@@ -136,13 +142,23 @@
 
             if (parents != null)
             {
-                //foreach (var parentName in parents.Except(scope.Parents.Select(sp => sp.Name)))
-                //{
-                //    await this.CreateScopeAsync(parentName, parentName);
+                if (scope.Parents != null)
+                {
+                    parents = parents.Except(scope.Parents.Select(sp => sp.Parent.Name)).ToArray();
+                }
 
-                //    var parentScope = await this.context.Set<Data.Scope>().FirstAsync(s => s.Name == parentName);
-                //    scope.Parents.Add(parentScope);
-                //}
+                foreach (var parentName in parents)
+                {
+                    await this.CreateScopeAsync(parentName, parentName);
+
+                    var parentScope = await this.context.Set<Data.Scope>().FirstOrDefaultAsync(s => s.Name == parentName);
+
+                    this.context.Set<Data.ScopeHierarchy>().Add(new Data.ScopeHierarchy
+                    {
+                        Child = scope,
+                        Parent = parentScope
+                    });
+                }
             }
 
             await this.context.SaveChangesAsync();
@@ -180,7 +196,22 @@
                                           .FirstOrDefaultAsync(r => r.Name == scopeKey);
             if (scope != null)
             {
-                //this.context.Set<Data.Scope>().RemoveRange(scope.Children);
+                var childrenScopes = await this.context.Set<Data.Scope>()
+                                               .Join(
+                                                   this.context.Set<Data.ScopeHierarchy>(),
+                                                   s => s.Name,
+                                                   sh => sh.Parent.Name,
+                                                   (s, sh) => new { Scope = s, ScopeHierarchy = sh })
+                                               .Where(r => r.ScopeHierarchy.Parent.Name == scopeKey)
+                                               .Select(r => r.ScopeHierarchy.Child)
+                                               .ToListAsync();
+
+                this.context.Set<Data.Scope>().RemoveRange(childrenScopes);
+                this.context.Set<Data.ScopeHierarchy>()
+                            .RemoveRange(
+                                await this.context.Set<Data.ScopeHierarchy>()
+                                                  .Where(sh => sh.Parent.Name == scopeKey)
+                                                  .ToListAsync());
                 this.context.Set<Data.Scope>().Remove(scope);
 
                 await this.context.SaveChangesAsync();

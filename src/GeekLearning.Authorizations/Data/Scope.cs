@@ -8,6 +8,12 @@
 
     public class Scope : Audit
     {
+        public Scope()
+        {
+            Parents = new HashSet<ScopeHierarchy>();
+            Children = new HashSet<ScopeHierarchy>();
+        }
+
         [Key]
         public Guid Id { get; set; }
 

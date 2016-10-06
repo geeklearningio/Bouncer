@@ -23,7 +23,7 @@
             var connectionString = connectionStringBuilder.ToString();
             var connection = new SqliteConnection(connectionString);
 
-            builder.UseSqlite(connection);
+            builder.UseSqlite(connection);            
 
             Context = new AuthorizationsTestContext(builder.Options);
 
