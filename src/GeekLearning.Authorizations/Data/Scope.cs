@@ -19,7 +19,7 @@
         [StringLength(Constants.ColumnDescriptionLength)]
         public string Description { get; set; }
 
-        public bool IsDeletable { get; set; }
+        public bool IsDeletable { get; set; } = true;
 
         public virtual ICollection<ScopeHierarchy> Parents { get; set; }
 

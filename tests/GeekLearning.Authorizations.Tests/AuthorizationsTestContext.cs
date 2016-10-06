@@ -12,6 +12,10 @@ namespace GeekLearning.Authorizations.Tests
     {
         public Guid CurrentUserId => Guid.NewGuid();
 
+        public AuthorizationsTestContext(DbContextOptions options) : base(options)
+        {
+        }
+
         public void Seed()
         {
             this.Set<UserTest>().Add(new UserTest
@@ -20,15 +24,6 @@ namespace GeekLearning.Authorizations.Tests
             });
 
             this.SaveChanges();
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = ":memory:" };
-            var connectionString = connectionStringBuilder.ToString();
-            var connection = new SqliteConnection(connectionString);
-
-            optionsBuilder.UseSqlite(connection);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

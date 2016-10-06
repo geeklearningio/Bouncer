@@ -8,6 +8,6 @@
         [Key]
         public Guid Id { get; set; }
 
-        public bool IsDeletable { get; set; }
+        public bool IsDeletable { get; set; } = true;
     }
 }

@@ -2,20 +2,14 @@
 {
     using Data;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Metadata;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
     public static class AuthorizationContextExtensions
     {
         public static void AddAuthorizationContext(this ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Scope>(entity =>
-            {
-                entity.ToTable("Scopes");
-                entity.Property(e => e.IsDeletable).HasDefaultValue(true);
-                entity.Property(e => e.Id).HasDefaultValueSql("newid()");
-                entity.Property(e => e.CreationDate).HasDefaultValueSql("getutcdate()");
-                entity.Property(e => e.ModificationDate).HasDefaultValueSql("getutcdate()");
-            });
+            modelBuilder.Entity<Scope>(entity => entity.ToTable("Scopes"));
 
             modelBuilder.Entity<ScopeHierarchy>(entity =>
             {
@@ -26,30 +20,18 @@
             modelBuilder.Entity<ScopeHierarchy>()
                         .HasOne(pt => pt.Parent)
                         .WithMany(p => p.Children)
-                        .HasForeignKey(pt => pt.ParentId);
+                        .HasForeignKey(pt => pt.ParentId)
+                        .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ScopeHierarchy>()
                         .HasOne(pt => pt.Child)
                         .WithMany(t => t.Parents)
-                        .HasForeignKey(pt => pt.ChildId);
+                        .HasForeignKey(pt => pt.ChildId)
+                        .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.ToTable("Roles");
-                entity.Property(e => e.IsDeletable).HasDefaultValue(true);
-                entity.Property(e => e.Id).HasDefaultValueSql("newid()");
-                entity.Property(e => e.CreationDate).HasDefaultValueSql("getutcdate()");
-                entity.Property(e => e.ModificationDate).HasDefaultValueSql("getutcdate()");
-            });
+            modelBuilder.Entity<Role>(entity => entity.ToTable("Roles"));
 
-            modelBuilder.Entity<Right>(entity =>
-            {
-                entity.ToTable("Right");
-                entity.Property(e => e.IsDeletable).HasDefaultValue(true);
-                entity.Property(e => e.Id).HasDefaultValueSql("newid()");
-                entity.Property(e => e.CreationDate).HasDefaultValueSql("getutcdate()");
-                entity.Property(e => e.ModificationDate).HasDefaultValueSql("getutcdate()");
-            });
+            modelBuilder.Entity<Right>(entity => entity.ToTable("Rights"));
 
             modelBuilder.Entity<RoleRight>(entity =>
             {
@@ -67,22 +49,9 @@
                         .WithMany(t => t.Roles)
                         .HasForeignKey(pt => pt.RightId);
 
-            modelBuilder.Entity<Principal>(entity =>
-            {
-                entity.ToTable("Principals");
-                entity.Property(e => e.IsDeletable).HasDefaultValue(true);
-                entity.Property(e => e.CreationDate).HasDefaultValueSql("getutcdate()");
-                entity.Property(e => e.ModificationDate).HasDefaultValueSql("getutcdate()");
-            });
+            modelBuilder.Entity<Principal>(entity => entity.ToTable("Principals"));
 
-            modelBuilder.Entity<Authorization>(entity =>
-            {
-                entity.ToTable("Authorizations");
-                entity.Property(e => e.IsDeletable).HasDefaultValue(true);
-                entity.Property(e => e.Id).HasDefaultValueSql("newid()");
-                entity.Property(e => e.CreationDate).HasDefaultValueSql("getutcdate()");
-                entity.Property(e => e.ModificationDate).HasDefaultValueSql("getutcdate()");
-            });
+            modelBuilder.Entity<Authorization>(entity => entity.ToTable("Authorizations"));
         }
 
         public static PropertyBuilder<TProperty> AddPrincipalRelationship<TProperty>(this PropertyBuilder<TProperty> propertyBuilder)

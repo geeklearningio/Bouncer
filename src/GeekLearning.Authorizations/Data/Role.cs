@@ -18,7 +18,7 @@
         [StringLength(Constants.ColumnNameLength)]
         public string Name { get; set; }
 
-        public bool IsDeletable { get; set; }
+        public bool IsDeletable { get; set; } = true;
 
         public virtual ICollection<RoleRight> Rights { get; set; }
     }
