@@ -11,7 +11,7 @@
         public AuthorizationsTestContext Context { get; private set; }
 
         public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient =>
-            new AuthorizationsProvisioningClient<AuthorizationsTestContext>(Context, Context.CurrentUserId);
+            new AuthorizationsProvisioningClient<AuthorizationsTestContext>(Context, new PrincipalIdProvider(Context));
 
         public IAuthorizationsClient AuthorizationsClient { get; private set; }            
 
@@ -32,7 +32,7 @@
             
             Context.Seed();
 
-            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(Context, Context.CurrentUserId);
+            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(Context, new PrincipalIdProvider(Context));
         }
 
         public AuthorizationsFixture(RightsResult rightsResult) : this()

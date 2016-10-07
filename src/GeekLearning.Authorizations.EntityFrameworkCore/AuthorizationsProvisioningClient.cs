@@ -10,12 +10,12 @@
     {
         private readonly TContext context;
 
-        private readonly Guid currentPrincipalId;
+        private readonly IPrincipalIdProvider principalIdProvider;
 
-        public AuthorizationsProvisioningClient(TContext context, Guid currentPrincipalId)
+        public AuthorizationsProvisioningClient(TContext context, IPrincipalIdProvider principalIdProvider)
         {
             this.context = context;
-            this.currentPrincipalId = currentPrincipalId;
+            this.principalIdProvider = principalIdProvider;
         }
 
         public async Task AffectRoleToPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey)
@@ -43,8 +43,8 @@
                 Role = role,
                 Scope = scope,
                 Principal = principal,
-                CreationBy = this.currentPrincipalId,
-                ModificationBy = this.currentPrincipalId
+                CreationBy = this.principalIdProvider.PrincipalId,
+                ModificationBy = this.principalIdProvider.PrincipalId
             });
 
             await this.context.SaveChangesAsync();
@@ -80,8 +80,8 @@
                 var rightEntity = this.context.Set<Data.Right>().Add(new Data.Right
                 {
                     Name = rightKey,
-                    CreationBy = this.currentPrincipalId,
-                    ModificationBy = this.currentPrincipalId
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
                 });
 
                 await this.context.SaveChangesAsync();
@@ -98,8 +98,8 @@
                 role = new Data.Role
                 {
                     Name = roleKey,
-                    CreationBy = this.currentPrincipalId,
-                    ModificationBy = this.currentPrincipalId
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
                 };
 
                 this.context.Set<Data.Role>().Add(role);

@@ -13,12 +13,12 @@
     {
         private readonly TContext context;
 
-        private readonly Guid currentPrincipalId;
+        private readonly IPrincipalIdProvider principalIdProvider;
 
-        public AuthorizationsClient(TContext context, Guid currentPrincipalId)
+        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider)
         {
             this.context = context;
-            this.currentPrincipalId = currentPrincipalId;
+            this.principalIdProvider = principalIdProvider;
         }
 
         public async Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren = false)
@@ -30,7 +30,7 @@
             com.CommandText = $"select {function}(@scopeName,@principalId)";
             com.CommandType = CommandType.Text;
             com.Parameters.Add(new SqlParameter("@scopeName", scopeKey));
-            com.Parameters.Add(new SqlParameter("@principalId", this.currentPrincipalId));
+            com.Parameters.Add(new SqlParameter("@principalId", this.principalIdProvider.PrincipalId));
 
             var reader = await com.ExecuteReaderAsync();
 
