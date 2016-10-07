@@ -1,4 +1,5 @@
 ﻿using GeekLearning.Authorizations.Data;
+using GeekLearning.Authorizations.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +22,10 @@ namespace GeekLearning.Authorizations.Tests
                                                 "Description scope 1",
                                                 new string[] { "scopeParent1", "scopeParent2" });
 
-                var scope = authorizationsFixture.Context.Set<Scope>()
-                                                              .Include(r => r.Parents)
-                                                              .Include(r => r.Children)
-                                                              .FirstOrDefault(r => r.Name == "scope1");
+                var scope = authorizationsFixture.Context.Scopes()
+                                                         .Include(r => r.Parents)
+                                                         .Include(r => r.Children)
+                                                         .FirstOrDefault(r => r.Name == "scope1");
                 Assert.NotNull(scope);
 
                 var parentKeys = scope.Parents.Select(r => r.Parent.Name);
@@ -54,20 +55,20 @@ namespace GeekLearning.Authorizations.Tests
                         Child = new Scope { Name = "scopeChild2", Description = "Scope Child 2" }
                     });
 
-                authorizationsFixture.Context.Set<Scope>().Add(parent);
+                authorizationsFixture.Context.Scopes().Add(parent);
 
                 authorizationsFixture.Context.SaveChanges();
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
 
-                Assert.Null(authorizationsFixture.Context.Set<Scope>()
+                Assert.Null(authorizationsFixture.Context.Scopes()
                                                          .FirstOrDefault(r => r.Name == "scope1"));
-                Assert.Null(authorizationsFixture.Context.Set<Scope>()
+                Assert.Null(authorizationsFixture.Context.Scopes()
                                                          .FirstOrDefault(r => r.Name == "scopeChild1"));
-                Assert.Null(authorizationsFixture.Context.Set<Scope>()
+                Assert.Null(authorizationsFixture.Context.Scopes()
                                                          .FirstOrDefault(r => r.Name == "scopeChild2"));
 
-                Assert.False(authorizationsFixture.Context.Set<ScopeHierarchy>().Any());
+                Assert.False(authorizationsFixture.Context.ScopeHierarchies().Any());
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using GeekLearning.Authorizations.Data;
+using GeekLearning.Authorizations.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +16,9 @@ namespace GeekLearning.Authorizations.Tests
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Set<Role>().Add(new Role { Name = "role1" });
+                authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
 
-                authorizationsFixture.Context.Set<Scope>().Add(new Scope { Name = "scope1", Description = "Scope 1"});
+                authorizationsFixture.Context.Scopes().Add(new Scope { Name = "scope1", Description = "Scope 1"});
 
                 authorizationsFixture.Context.SaveChanges();
 
@@ -27,7 +28,7 @@ namespace GeekLearning.Authorizations.Tests
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
 
-                var authorization = authorizationsFixture.Context.Set<Authorization>()
+                var authorization = authorizationsFixture.Context.Authorizations()
                                                                  .Include(a => a.Scope)
                                                                  .Include(a => a.Role)
                                                                  .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId);

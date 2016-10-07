@@ -9,12 +9,16 @@
     {
         public static void AddAuthorizationContext(this ModelBuilder modelBuilder, string schema = null)
         {
-            modelBuilder.Entity<Scope>(entity => entity.MapToTable("Scopes", schema));
+            modelBuilder.Entity<Scope>(entity =>
+            {
+                entity.MapToTable("Scope", schema);
+                entity.HasIndex(s => s.Name).IsUnique();
+            });
 
             modelBuilder.Entity<ScopeHierarchy>(entity =>
             {
-                entity.MapToTable("ScopeHierarchies", schema);
-                entity.HasKey(x => new { x.ParentId, x.ChildId });
+                entity.MapToTable("ScopeHierarchy", schema);
+                entity.HasKey(sh => new { sh.ParentId, sh.ChildId });
             });
 
             modelBuilder.Entity<ScopeHierarchy>()
@@ -29,29 +33,73 @@
                         .HasForeignKey(pt => pt.ChildId)
                         .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Role>(entity => entity.MapToTable("Roles"));
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasIndex(r => r.Name).IsUnique();
+                entity.MapToTable("Role");
+            });
 
-            modelBuilder.Entity<Right>(entity => entity.MapToTable("Rights"));
+            modelBuilder.Entity<Right>(entity =>
+            {
+                entity.MapToTable("Right");
+                entity.HasIndex(r => r.Name).IsUnique();
+            });
 
             modelBuilder.Entity<RoleRight>(entity =>
             {
-                entity.MapToTable("RoleRights", schema);
-                entity.HasKey(x => new { x.RoleId, x.RightId });
+                entity.MapToTable("RoleRight", schema);
+                entity.HasKey(rr => new { rr.RoleId, rr.RightId });
             });
 
-            modelBuilder.Entity<RoleRight>()
-                        .HasOne(pt => pt.Role)
-                        .WithMany(p => p.Rights)
-                        .HasForeignKey(pt => pt.RoleId);
+            modelBuilder.Entity<Principal>(entity => entity.MapToTable("Principal", schema));
 
-            modelBuilder.Entity<RoleRight>()
-                        .HasOne(pt => pt.Right)
-                        .WithMany(t => t.Roles)
-                        .HasForeignKey(pt => pt.RightId);
+            modelBuilder.Entity<Authorization>(entity =>
+            {
+                entity.MapToTable("Authorization", schema);
+                entity.HasIndex(a => new { a.RoleId, a.ScopeId, a.PrincipalId }).IsUnique();
+            });
+        }
 
-            modelBuilder.Entity<Principal>(entity => entity.MapToTable("Principals", schema));
+        public static DbSet<Authorization> Authorizations<TContext>(this TContext context)
+            where TContext : DbContext
+        {
+            return context.Set<Authorization>();
+        }
 
-            modelBuilder.Entity<Authorization>(entity => entity.MapToTable("Authorizations", schema));
+        public static DbSet<Principal> Principals<TContext>(this TContext context)
+            where TContext : DbContext
+        {
+            return context.Set<Principal>();
+        }
+
+        public static DbSet<Right> Rights<TContext>(this TContext context)
+            where TContext : DbContext
+        {
+            return context.Set<Right>();
+        }
+
+        public static DbSet<Role> Roles<TContext>(this TContext context)
+            where TContext : DbContext
+        {
+            return context.Set<Role>();
+        }
+
+        public static DbSet<RoleRight> RoleRights<TContext>(this TContext context)
+            where TContext : DbContext
+        {
+            return context.Set<RoleRight>();
+        }
+
+        public static DbSet<Scope> Scopes<TContext>(this TContext context)
+           where TContext : DbContext
+        {
+            return context.Set<Scope>();
+        }
+
+        public static DbSet<ScopeHierarchy> ScopeHierarchies<TContext>(this TContext context)
+           where TContext : DbContext
+        {
+            return context.Set<ScopeHierarchy>();
         }
 
         public static PropertyBuilder<TProperty> AddPrincipalRelationship<TProperty>(this PropertyBuilder<TProperty> propertyBuilder)
@@ -59,7 +107,7 @@
             return propertyBuilder.HasAnnotation("ForeignKey", "Principal");
         }
 
-        internal static EntityTypeBuilder<TEntity> MapToTable<TEntity>(this EntityTypeBuilder<TEntity> builder, string tableName, string schema = null)
+        private static EntityTypeBuilder<TEntity> MapToTable<TEntity>(this EntityTypeBuilder<TEntity> builder, string tableName, string schema = null)
             where TEntity : class
         {
             if (schema == null)

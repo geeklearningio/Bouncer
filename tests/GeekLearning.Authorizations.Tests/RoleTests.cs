@@ -1,4 +1,5 @@
 ﻿using GeekLearning.Authorizations.Data;
+using GeekLearning.Authorizations.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,10 +21,10 @@ namespace GeekLearning.Authorizations.Tests
                                                 "role1",
                                                 new string[] { "right1", "right2" });
 
-                var role = authorizationsFixture.Context.Set<Role>()
-                                                             .Include(r => r.Rights)
-                                                             .ThenInclude(rr => rr.Right)
-                                                             .FirstOrDefault(r => r.Name == "role1");
+                var role = authorizationsFixture.Context.Roles()
+                                                        .Include(r => r.Rights)
+                                                        .ThenInclude(rr => rr.Right)
+                                                        .FirstOrDefault(r => r.Name == "role1");
                 Assert.NotNull(role);
 
                 var rightKeys = role.Rights.Select(r => r.Right.Name);
@@ -37,13 +38,13 @@ namespace GeekLearning.Authorizations.Tests
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Set<Role>().Add(new Role { Name = "role1" });
+                authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
 
                 authorizationsFixture.Context.SaveChanges();
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRoleAsync("role1");
 
-                Assert.Null(authorizationsFixture.Context.Set<Role>().FirstOrDefault(r => r.Name == "role1"));
+                Assert.Null(authorizationsFixture.Context.Roles().FirstOrDefault(r => r.Name == "role1"));
             }
         }
     }

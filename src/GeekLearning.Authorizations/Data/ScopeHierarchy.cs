@@ -11,14 +11,16 @@ namespace GeekLearning.Authorizations.Data
     {
         public Guid ParentId { get; set; }
 
-        [ForeignKey("ParentId")]
-        [Required]
-        public virtual Scope Parent { get; set; }
-
         public Guid ChildId { get; set; }
 
-        [ForeignKey("ChildId")]
         [Required]
+        [ForeignKey(nameof(ParentId))]
+        [InverseProperty(nameof(Scope.Parents))]
+        public virtual Scope Parent { get; set; }
+
+        [Required]
+        [ForeignKey(nameof(ChildId))]
+        [InverseProperty(nameof(Scope.Children))]
         public virtual Scope Child { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using GeekLearning.Authorizations.Data;
+using GeekLearning.Authorizations.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace GeekLearning.Authorizations.Tests
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateRightAsync("right1");
 
-                Assert.NotNull(authorizationsFixture.Context.Set<Right>().FirstOrDefault(r => r.Name == "right1"));
+                Assert.NotNull(authorizationsFixture.Context.Rights().FirstOrDefault(r => r.Name == "right1"));
             }
         }
 
@@ -26,13 +27,13 @@ namespace GeekLearning.Authorizations.Tests
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Set<Right>().Add(new Right { Name = "right1" });
+                authorizationsFixture.Context.Rights().Add(new Right { Name = "right1" });
 
                 authorizationsFixture.Context.SaveChanges();
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRightAsync("right1");
 
-                Assert.Null(authorizationsFixture.Context.Set<Right>().FirstOrDefault(r => r.Name == "right1"));
+                Assert.Null(authorizationsFixture.Context.Rights().FirstOrDefault(r => r.Name == "right1"));
             }
         }
     }

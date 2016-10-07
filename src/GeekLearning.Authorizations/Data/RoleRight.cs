@@ -7,13 +7,15 @@
     public class RoleRight
     {
         public Guid RoleId { get; set; }
-
-        [ForeignKey("RoleId")]
-        public virtual Role Role { get; set; }
        
         public Guid RightId { get; set; }
 
-        [ForeignKey("RightId")]
+        [ForeignKey(nameof(RoleId))]
+        [InverseProperty(nameof(Data.Role.Rights))]
+        public virtual Role Role { get; set; }
+
+        [ForeignKey(nameof(RightId))]
+        [InverseProperty(nameof(Data.Right.Roles))]
         public virtual Right Right { get; set; }
     }
 }

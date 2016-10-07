@@ -5,7 +5,10 @@
   "packOptions": {
     "tags": [],
     "projectUrl": "",
-    "licenseUrl": ""
+    "licenseUrl": "",
+    "files": {
+      "include": [ "Sql\\**\\*" ]
+    }
   },
 
   "dependencies": {
@@ -19,5 +22,11 @@
   "frameworks": {
     "netstandard1.3": {},
     "net461": {}
+  },
+
+  "scripts": {
+    "postcompile": [
+      "dotnet pack --no-build --configuration %compile:Configuration%"
+    ]
   }
 }

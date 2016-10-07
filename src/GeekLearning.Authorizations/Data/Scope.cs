@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -27,8 +28,10 @@
 
         public bool IsDeletable { get; set; } = true;
 
+        [InverseProperty(nameof(ScopeHierarchy.Parent))]
         public virtual ICollection<ScopeHierarchy> Parents { get; set; }
 
+        [InverseProperty(nameof(ScopeHierarchy.Child))]
         public virtual ICollection<ScopeHierarchy> Children { get; set; }
     }
 }
