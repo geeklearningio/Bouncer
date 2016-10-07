@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>GeekLearning.Authorizations.EntityFrameworkCore</id>
+    <version>0.0.1</version>
+    <authors>Geek Learning,Arnaud Auroux,Adrien Siffermann,Cyprien Autexier</authors>
+    <owners>Geek Learning,Arnaud Auroux,Adrien Siffermann,Cyprien Autexier</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Entity Framework Core permission system implementation.</description>
+    <tags></tags>
+    <contentFiles>
+      <!-- Include Assets as Content -->
+      <files include="**/Sql/*.*" buildAction="EmbeddedResource" />
+    </contentFiles>
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.1">
+        <dependency id="NETStandard.Library" version="[1.6.0, )" />
+        <dependency id="GeekLearning.Authorizations" version="[0.0.1, )" />
+        <dependency id="Microsoft.EntityFrameworkCore" version="[1.0.1, )" />
+        <dependency id="Microsoft.EntityFrameworkCore.Relational" version="[1.0.1, )" />
+        <dependency id="Newtonsoft.Json" version="[9.0.1, )" />
+        <dependency id="System.Data.SqlClient" version="[4.1.0, )" />
+      </group>
+      <group targetFramework=".NETStandard1.3">
+        <dependency id="NETStandard.Library" version="[1.6.0, )" />
+        <dependency id="GeekLearning.Authorizations" version="[0.0.1, )" />
+        <dependency id="Microsoft.EntityFrameworkCore" version="[1.0.1, )" />
+        <dependency id="Microsoft.EntityFrameworkCore.Relational" version="[1.0.1, )" />
+        <dependency id="Newtonsoft.Json" version="[9.0.1, )" />
+        <dependency id="System.Data.SqlClient" version="[4.1.0, )" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
