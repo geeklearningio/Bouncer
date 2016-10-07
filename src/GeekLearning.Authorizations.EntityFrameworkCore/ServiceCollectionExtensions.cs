@@ -5,7 +5,7 @@
 
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddACL<TContext>(this IServiceCollection services)
+        public static IServiceCollection AddDbContextACL<TContext>(this IServiceCollection services)
             where TContext : DbContext 
         {
             services.AddTransient<IAuthorizationsClient, AuthorizationsClient<TContext>>();
