@@ -23,11 +23,5 @@
   "frameworks": {
     "netstandard1.3": {},
     "net461": {}
-  },
-
-  "scripts": {
-    "postcompile": [
-      "dotnet pack --no-build --configuration %compile:Configuration%"
-    ]
   }
 }
