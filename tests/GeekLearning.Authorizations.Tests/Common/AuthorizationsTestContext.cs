@@ -1,13 +1,9 @@
-﻿using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using GeekLearning.Authorizations.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Authorizations.Tests
+﻿namespace GeekLearning.Authorizations.Tests
 {
+    using Microsoft.EntityFrameworkCore;
+    using GeekLearning.Authorizations.EntityFrameworkCore;
+    using System;
+
     public class AuthorizationsTestContext : DbContext
     {
         public Guid CurrentUserId { get; private set; }

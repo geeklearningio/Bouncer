@@ -1,13 +1,11 @@
-﻿using GeekLearning.Authorizations.Data;
-using GeekLearning.Authorizations.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
-
-namespace GeekLearning.Authorizations.Tests
+﻿namespace GeekLearning.Authorizations.Tests
 {
+    using GeekLearning.Authorizations.Data;
+    using GeekLearning.Authorizations.EntityFrameworkCore;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Xunit;
+
     public class RightTests
     {
         [Fact]

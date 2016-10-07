@@ -5,14 +5,14 @@
 
     public class RightsResult
     {
-        public IDictionary<string, IList<Right>> RightsPerContext => new Dictionary<string, IList<Right>>();
+        public IDictionary<string, ScopeRights> RightsPerScope { get; set; } = new Dictionary<string, ScopeRights>();
 
         public bool HasRightOnScope(string right, string scope)
         {
-            IList<Right> rightsForScope;
-            if (RightsPerContext.TryGetValue(scope, out rightsForScope))
+            ScopeRights rightsForScope;
+            if (RightsPerScope.TryGetValue(scope, out rightsForScope))
             {
-                return rightsForScope.Any(r => r.Key == right);                
+                return rightsForScope.InheritedRightKeys.Contains(right);
             }
 
             return false;

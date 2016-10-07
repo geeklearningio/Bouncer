@@ -16,7 +16,8 @@
     "GeekLearning.Authorizations": "*",
     "Microsoft.EntityFrameworkCore": "1.0.1",
     "Microsoft.EntityFrameworkCore.Relational": "1.0.1",
-    "Newtonsoft.Json": "9.0.1"
+    "Newtonsoft.Json": "9.0.1",
+    "System.Data.SqlClient": "4.1.0"
   },
 
   "frameworks": {

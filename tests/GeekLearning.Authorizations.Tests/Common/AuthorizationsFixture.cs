@@ -4,6 +4,7 @@
     using GeekLearning.Authorizations.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Data.Sqlite;
+    using Model;
 
     public sealed class AuthorizationsFixture : IDisposable
     {
@@ -12,8 +13,7 @@
         public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient =>
             new AuthorizationsProvisioningClient<AuthorizationsTestContext>(Context, Context.CurrentUserId);
 
-        public IAuthorizationsClient AuthorizationsClient =>
-            new AuthorizationsClient<AuthorizationsTestContext>(Context, Context.CurrentUserId);
+        public IAuthorizationsClient AuthorizationsClient { get; private set; }            
 
         public AuthorizationsFixture()
         {
@@ -31,6 +31,13 @@
             Context.Database.EnsureCreated();
             
             Context.Seed();
+
+            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(Context, Context.CurrentUserId);
+        }
+
+        public AuthorizationsFixture(RightsResult rightsResult) : this()
+        {
+            this.AuthorizationsClient = new AuthorizationsTestClient(rightsResult);
         }
 
         public void Dispose()
