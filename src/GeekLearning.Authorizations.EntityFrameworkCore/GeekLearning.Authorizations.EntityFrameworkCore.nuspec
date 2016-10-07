@@ -10,7 +10,7 @@
     <tags></tags>
     <contentFiles>
       <!-- Include Assets as Content -->
-      <files include="**/Sql/*.*" buildAction="EmbeddedResource" />
+      <files include="Sql/**/*.*" buildAction="EmbeddedResource" />
     </contentFiles>
     <dependencies>
       <group targetFramework=".NETFramework4.6.1">
