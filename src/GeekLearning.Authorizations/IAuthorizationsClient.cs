@@ -11,7 +11,7 @@
         /// <param name="scopeKey"></param>
         /// <param name="withChildren"></param>
         /// <returns></returns>
-        Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren);
+        Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren = false);
 
         Task<bool> HasRightAsync(string rightKey, string scopeKey);
     }
