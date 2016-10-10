@@ -28,11 +28,16 @@
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                           .AffectRoleToPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
 
                 var authorization = authorizationsFixture.Context.Authorizations()
                                                                  .Include(a => a.Scope)
                                                                  .Include(a => a.Role)
-                                                                 .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId);
+                                                                 .SingleOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId);
 
                 Assert.NotNull(authorization);
                 Assert.Equal("role1", authorization.Role.Name);

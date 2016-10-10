@@ -38,16 +38,23 @@
                 throw new EntityNotFoundException($"Principal '{principalId}'");
             }
 
-            this.context.Set<Data.Authorization>().Add(new Data.Authorization
+            if (await this.context.Set<Data.Authorization>()
+                                  .AnyAsync(
+                                    a => a.Role.Name == roleKey &&
+                                         a.PrincipalId == principalId &&
+                                         a.Scope.Name == scopeKey) == false)
             {
-                Role = role,
-                Scope = scope,
-                Principal = principal,
-                CreationBy = this.principalIdProvider.PrincipalId,
-                ModificationBy = this.principalIdProvider.PrincipalId
-            });
+                this.context.Set<Data.Authorization>().Add(new Data.Authorization
+                {
+                    Role = role,
+                    Scope = scope,
+                    Principal = principal,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                });
 
-            await this.context.SaveChangesAsync();
+                await this.context.SaveChangesAsync();
+            }
         }
 
         public async Task UnaffectRoleFromPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey)
