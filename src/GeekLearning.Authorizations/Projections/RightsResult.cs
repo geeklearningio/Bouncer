@@ -3,6 +3,7 @@
     using GeekLearning.Authorizations.Model;
     using System;
     using System.Data.Common;
+    using System.Linq;
     using System.Threading.Tasks;
 
     public static class RightsResultProjections
@@ -31,8 +32,8 @@
 
                 right.ScopeHierarchy = reader["ScopeHierarchy"] as string;
 
-                rightsResult.RightsPerScope[right.ScopeName] = right;
-            }            
+                rightsResult.RightsPerScopeInternal[right.ScopeName] = right;
+            }
 
             return rightsResult;
         }

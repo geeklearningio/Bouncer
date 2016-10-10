@@ -1,11 +1,48 @@
 ﻿namespace GeekLearning.Authorizations.Model
 {
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
 
     public class RightsResult
     {
-        public IDictionary<string, ScopeRights> RightsPerScope { get; set; } = new Dictionary<string, ScopeRights>();
+        public RightsResult()
+        {
+        }
+
+        public RightsResult(IEnumerable<ScopeRights> scopeRights)
+        {
+            this.RightsPerScopeInternal = scopeRights.ToDictionary(sr => sr.ScopeName);
+        }
+
+        internal IDictionary<string, ScopeRights> RightsPerScopeInternal { get; set; } = new Dictionary<string, ScopeRights>();
+
+        private IReadOnlyDictionary<string, ScopeRights> rightsPerScope;
+        public IReadOnlyDictionary<string, ScopeRights> RightsPerScope
+        {
+            get
+            {
+                return this.rightsPerScope ?? (this.rightsPerScope = new ReadOnlyDictionary<string, ScopeRights>(this.RightsPerScopeInternal));
+            }
+        }
+
+        private IEnumerable<string> scopesWithRights;
+        public IEnumerable<string> ScopesWithRights
+        {
+            get
+            {
+                return this.scopesWithRights ?? (this.scopesWithRights = ComputeScopedRights());
+            }
+        }
+
+        private IEnumerable<string> ComputeScopedRights()
+        {
+            return this.RightsPerScope
+                       .Values
+                       .SelectMany(sr => sr.ScopeHierarchy.Split('/'))
+                       .Distinct()
+                       .ToList();                                        
+        }
 
         public bool HasRightOnScope(string right, string scope)
         {
@@ -16,6 +53,11 @@
             }
 
             return false;
+        }
+
+        public bool HasAnyRightUnderScope(string scope)
+        {
+            return this.ScopesWithRights.Contains(scope);
         }
     }
 }
