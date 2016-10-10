@@ -8,6 +8,7 @@
     using System.Data.Common;
     using System.Data.SqlClient;
     using GeekLearning.Authorizations.Projections;
+    using Microsoft.EntityFrameworkCore.Storage;
 
     public class AuthorizationsClient
         <TContext> : IAuthorizationsClient where TContext : DbContext
@@ -24,27 +25,17 @@
 
         public async Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren = false)
         {
-            RightsResult rightsResult = new RightsResult();
-            DbConnection dbConnection = this.context.Database.GetDbConnection();
-
-            try
+            var function = withChildren ? "Authorizations.GetRightsForScopeAndChildren" : "Authorizations.GetInheritedRightsForScope";
+            
+            using (RelationalDataReader dataReader = await this.context.Database.ExecuteSqlCommandExtAsync(
+                                                                                    $"select * from {function}(@scopeName,@principalId)",
+                                                                                    parameters: new object[]
+                                                                                    {
+                                                                                        new SqlParameter("@scopeName", scopeKey),
+                                                                                        new SqlParameter("@principalId", this.principalIdProvider.PrincipalId)
+                                                                                    }))
             {
-                DbCommand com = dbConnection.CreateCommand();
-                var function = withChildren ? "Authorizations.GetRightsForScopeAndChildren" : "Authorizations.GetInheritedRightsForScope";
-                com.CommandText = $"select * from {function}(@scopeName,@principalId)";
-                com.CommandType = CommandType.Text;
-                com.Parameters.Add(new SqlParameter("@scopeName", scopeKey));
-                com.Parameters.Add(new SqlParameter("@principalId", this.principalIdProvider.PrincipalId));
-
-                await dbConnection.OpenAsync();
-
-                var reader = await com.ExecuteReaderAsync();
-
-                return await reader.ToRightsResultAsync();
-            }
-            finally
-            {
-                dbConnection.Close();
+                return await dataReader.ToRightsResultAsync();
             }
         }
 

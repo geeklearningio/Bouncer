@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Projections
 {
     using GeekLearning.Authorizations.Model;
+    using Microsoft.EntityFrameworkCore.Storage;
     using System;
     using System.Data.Common;
     using System.Linq;
@@ -8,9 +9,11 @@
 
     public static class RightsResultProjections
     {
-        public static async Task<RightsResult> ToRightsResultAsync(this DbDataReader reader)
+        public static async Task<RightsResult> ToRightsResultAsync(this RelationalDataReader relationalReader)
         {
             RightsResult rightsResult = new RightsResult();
+
+            var reader = relationalReader.DbDataReader;
 
             while (await reader.ReadAsync())
             {
