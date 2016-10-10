@@ -29,7 +29,7 @@
             {                
                 DbCommand com = dbConnection.CreateCommand();
                 var function = withChildren ? "Authorizations.GetRightsForScopeAndChildren" : "Authorizations.GetInheritedRightsForScope";
-                com.CommandText = $"select {function}(@scopeName,@principalId)";
+                com.CommandText = $"select * from {function}(@scopeName,@principalId)";
                 com.CommandType = CommandType.Text;
                 com.Parameters.Add(new SqlParameter("@scopeName", scopeKey));
                 com.Parameters.Add(new SqlParameter("@principalId", this.principalIdProvider.PrincipalId));
