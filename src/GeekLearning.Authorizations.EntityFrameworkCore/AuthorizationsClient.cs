@@ -25,8 +25,10 @@
         public async Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren = false)
         {
             RightsResult rightsResult = new RightsResult();
-            using (DbConnection dbConnection = this.context.Database.GetDbConnection())
-            {                
+            DbConnection dbConnection = this.context.Database.GetDbConnection();
+
+            try
+            {
                 DbCommand com = dbConnection.CreateCommand();
                 var function = withChildren ? "Authorizations.GetRightsForScopeAndChildren" : "Authorizations.GetInheritedRightsForScope";
                 com.CommandText = $"select * from {function}(@scopeName,@principalId)";
@@ -39,6 +41,10 @@
                 var reader = await com.ExecuteReaderAsync();
 
                 return await reader.ToRightsResultAsync();
+            }
+            finally
+            {
+                dbConnection.Close();
             }
         }
 
