@@ -20,6 +20,8 @@
                                                 "Description scope 1",
                                                 new string[] { "scopeParent1", "scopeParent2" });
 
+                await authorizationsFixture.Context.SaveChangesAsync();
+
                 var scope = authorizationsFixture.Context.Scopes()
                                                          .Include(r => r.Parents)
                                                          .Include(r => r.Children)
@@ -58,6 +60,8 @@
                 authorizationsFixture.Context.SaveChanges();
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
 
                 Assert.Null(authorizationsFixture.Context.Scopes()
                                                          .FirstOrDefault(r => r.Name == "scope1"));

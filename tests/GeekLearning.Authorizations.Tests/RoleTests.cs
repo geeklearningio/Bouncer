@@ -19,6 +19,8 @@
                                                 "role1",
                                                 new string[] { "right1", "right2" });
 
+                await authorizationsFixture.Context.SaveChangesAsync();
+
                 var role = authorizationsFixture.Context.Roles()
                                                         .Include(r => r.Rights)
                                                         .ThenInclude(rr => rr.Right)
@@ -38,9 +40,11 @@
             {
                 authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
 
-                authorizationsFixture.Context.SaveChanges();
+                await authorizationsFixture.Context.SaveChangesAsync();
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRoleAsync("role1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
 
                 Assert.Null(authorizationsFixture.Context.Roles().FirstOrDefault(r => r.Name == "role1"));
             }

@@ -17,22 +17,35 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                authorizationsFixture.Context.Scopes().Add(new Scope { Name = "scope1", Description = "Scope 1" });
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");
+
+                //await authorizationsFixture.AuthorizationsProvisioningClient
+                //                          .AffectRoleToPrincipalOnScopeAsync(
+                //                               "role1",
+                //                               authorizationsFixture.Context.CurrentUserId,
+                //                               "scope1");
+
+                //await authorizationsFixture.Context.SaveChangesAsync();
+
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                           .AffectRoleToPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                           .UnaffectRoleFromPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                           .AffectRoleToPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
 
                 authorizationsFixture.Context.SaveChanges();
-
-                await authorizationsFixture.AuthorizationsProvisioningClient
-                                           .AffectRoleToPrincipalOnScopeAsync(
-                                                "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
-                                                "scope1");
-                await authorizationsFixture.AuthorizationsProvisioningClient
-                                           .AffectRoleToPrincipalOnScopeAsync(
-                                                "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
-                                                "scope1");
 
                 var authorization = authorizationsFixture.Context.Authorizations()
                                                                  .Include(a => a.Scope)
@@ -50,11 +63,17 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });                
 
-                authorizationsFixture.Context.Scopes().Add(new Scope { Name = "scope1", Description = "Scope 1" });
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");                
 
-                authorizationsFixture.Context.SaveChanges();
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                           .AffectRoleToPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
 
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                            .AffectRoleToPrincipalOnScopeAsync(
@@ -67,6 +86,8 @@
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
 
                 var authorization = authorizationsFixture.Context.Authorizations()
                                                                  .Include(a => a.Scope)
