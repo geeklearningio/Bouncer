@@ -52,8 +52,6 @@
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
-
-                await this.context.SaveChangesAsync();
             }
         }
 
@@ -72,8 +70,6 @@
                     if (authorization != null)
                     {
                         this.context.Set<Data.Authorization>().Remove(authorization);
-
-                        await this.context.SaveChangesAsync();
                     }
                 }
             }
@@ -90,8 +86,6 @@
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
-
-                await this.context.SaveChangesAsync();
             }
         }
 
@@ -126,8 +120,6 @@
                     });
                 }
             }
-
-            await this.context.SaveChangesAsync();
         }
 
         public async Task CreateScopeAsync(string scopeKey, string description, params string[] parents)
@@ -167,8 +159,6 @@
                     });
                 }
             }
-
-            await this.context.SaveChangesAsync();
         }
 
         public async Task DeleteRightAsync(string rightKey)
@@ -177,8 +167,6 @@
             if (right != null)
             {
                 this.context.Set<Data.Right>().Remove(right);
-
-                await this.context.SaveChangesAsync();
             }
         }
 
@@ -191,8 +179,6 @@
             {
                 this.context.Set<Data.RoleRight>().RemoveRange(role.Rights);
                 this.context.Set<Data.Role>().Remove(role);
-
-                await this.context.SaveChangesAsync();
             }
         }
 
@@ -220,8 +206,6 @@
                                                   .Where(sh => sh.Parent.Name == scopeKey)
                                                   .ToListAsync());
                 this.context.Set<Data.Scope>().Remove(scope);
-
-                await this.context.SaveChangesAsync();
             }
         }
     }
