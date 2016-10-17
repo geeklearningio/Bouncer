@@ -49,9 +49,9 @@
                                                                             a.RoleId == role.Id &&
                                                                             a.ScopeId == scope.Id);
 
-            if (localAuthorization != null && authorization == null)
+            if (localAuthorization != null)
             {
-                localAuthorization.State = EntityState.Added;
+                localAuthorization.State = authorization == null ? EntityState.Added : EntityState.Unchanged;
             }
             else if (authorization == null)
             {

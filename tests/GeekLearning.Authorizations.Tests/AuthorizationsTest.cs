@@ -21,13 +21,13 @@
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");
 
-                //await authorizationsFixture.AuthorizationsProvisioningClient
-                //                          .AffectRoleToPrincipalOnScopeAsync(
-                //                               "role1",
-                //                               authorizationsFixture.Context.CurrentUserId,
-                //                               "scope1");
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                          .AffectRoleToPrincipalOnScopeAsync(
+                                               "role1",
+                                               authorizationsFixture.Context.CurrentUserId,
+                                               "scope1");
 
-                //await authorizationsFixture.Context.SaveChangesAsync();
+                await authorizationsFixture.Context.SaveChangesAsync();
 
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                            .AffectRoleToPrincipalOnScopeAsync(
@@ -63,6 +63,13 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
+                // Test removing non existing authorization
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                           .UnaffectRoleFromPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
+
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });                
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");                
@@ -75,12 +82,12 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
+                // Test removing local existing authorization
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
-
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
@@ -89,12 +96,9 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                var authorization = authorizationsFixture.Context.Authorizations()
-                                                                 .Include(a => a.Scope)
-                                                                 .Include(a => a.Role)
-                                                                 .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId);
-
-                Assert.Null(authorization);
+                Assert.Null(authorizationsFixture.Context
+                                                 .Authorizations()
+                                                 .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId));
             }
         }
 
