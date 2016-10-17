@@ -4,9 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Data.Entity.Extensions;
     using Exceptions;
-    using Microsoft.EntityFrameworkCore.ChangeTracking;
 
     public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
     {
