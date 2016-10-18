@@ -167,11 +167,15 @@
 
                     var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentName);
 
-                    this.context.Set<Data.ScopeHierarchy>().Add(new Data.ScopeHierarchy
+                    var scopeHierarchy = await this.GetEntityAsync<Data.ScopeHierarchy>(sh => sh.ChildId == scope.Id && sh.ParentId == parentScope.Id);
+                    if (scopeHierarchy == null)
                     {
-                        Child = scope,
-                        Parent = parentScope
-                    });
+                        this.context.Set<Data.ScopeHierarchy>().Add(new Data.ScopeHierarchy
+                        {
+                            Child = scope,
+                            Parent = parentScope
+                        });
+                    }
                 }
             }
         }
