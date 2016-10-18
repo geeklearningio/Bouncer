@@ -47,6 +47,10 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
+                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
+
+                authorizationsFixture.Context.SaveChanges();
+
                 var parent = new Scope { Name = "scope1", Description = "Scope 1" };
 
                 parent.Children.Add(
