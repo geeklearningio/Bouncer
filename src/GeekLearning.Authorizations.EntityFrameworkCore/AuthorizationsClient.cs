@@ -25,10 +25,11 @@
 
         public async Task<RightsResult> GetRightsAsync(string scopeKey, Guid? principalIdOverride = null, bool withChildren = false)
         {
-            var function = withChildren ? "Authorizations.GetRightsForScopeAndChildren" : "Authorizations.GetInheritedRightsForScope";
+            var function = withChildren ? "select * from Authorizations.GetRightsForScopeAndChildren(@scopeName,@principalId)" :
+                                          "select Authorizations.GetInheritedRightsForScope(@scopeName,@principalId)";
             
             using (RelationalDataReader dataReader = await this.context.Database.ExecuteSqlCommandExtAsync(
-                                                                                    $"select * from {function}(@scopeName,@principalId)",
+                                                                                    function,
                                                                                     parameters: new object[]
                                                                                     {
                                                                                         new SqlParameter("@scopeName", scopeKey),
