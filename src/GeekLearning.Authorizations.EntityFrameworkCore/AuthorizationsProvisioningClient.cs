@@ -153,7 +153,9 @@
                 scope = new Data.Scope
                 {
                     Name = scopeKey,
-                    Description = description
+                    Description = description,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
                 };
 
                 this.context.Set<Data.Scope>().Add(scope);
