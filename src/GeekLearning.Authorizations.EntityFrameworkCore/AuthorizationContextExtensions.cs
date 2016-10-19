@@ -35,13 +35,13 @@
 
             modelBuilder.Entity<Role>(entity =>
             {
+                entity.MapToTable("Role", schema);
                 entity.HasIndex(r => r.Name).IsUnique();
-                entity.MapToTable("Role");
             });
 
             modelBuilder.Entity<Right>(entity =>
             {
-                entity.MapToTable("Right");
+                entity.MapToTable("Right", schema);
                 entity.HasIndex(r => r.Name).IsUnique();
             });
 
