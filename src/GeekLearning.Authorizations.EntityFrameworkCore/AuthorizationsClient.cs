@@ -23,7 +23,7 @@
             this.principalIdProvider = principalIdProvider;
         }
 
-        public async Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren = false)
+        public async Task<RightsResult> GetRightsAsync(string scopeKey, Guid? principalIdOverride = null, bool withChildren = false)
         {
             var function = withChildren ? "Authorizations.GetRightsForScopeAndChildren" : "Authorizations.GetInheritedRightsForScope";
             
@@ -32,16 +32,18 @@
                                                                                     parameters: new object[]
                                                                                     {
                                                                                         new SqlParameter("@scopeName", scopeKey),
-                                                                                        new SqlParameter("@principalId", this.principalIdProvider.PrincipalId)
+                                                                                        new SqlParameter("@principalId", principalIdOverride ?? this.principalIdProvider.PrincipalId)
                                                                                     }))
             {
                 return await dataReader.ToRightsResultAsync();
             }
         }
 
-        public Task<bool> HasRightAsync(string rightKey, string scopeKey)
+        public async Task<bool> HasRightAsync(string rightKey, string scopeKey, Guid? principalIdOverride = null)
         {
-            throw new NotImplementedException();
+            RightsResult result = await this.GetRightsAsync(scopeKey, principalIdOverride);
+
+            return result.HasRightOnScope(rightKey, scopeKey);
         }
     }
 }

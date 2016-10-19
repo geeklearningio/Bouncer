@@ -1,18 +1,13 @@
 ﻿namespace GeekLearning.Authorizations
 {
     using Model;
+    using System;
     using System.Threading.Tasks;
 
     public interface IAuthorizationsClient
     {
-        /// <summary>
-        /// Configure the client the get rights for the specified scope.
-        /// </summary>
-        /// <param name="scopeKey"></param>
-        /// <param name="withChildren"></param>
-        /// <returns></returns>
-        Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren = false);
+        Task<RightsResult> GetRightsAsync(string scopeKey, Guid? principalIdOverride = null, bool withChildren = false);
 
-        Task<bool> HasRightAsync(string rightKey, string scopeKey);
+        Task<bool> HasRightAsync(string rightKey, string scopeKey, Guid? principalIdOverride = null);
     }
 }

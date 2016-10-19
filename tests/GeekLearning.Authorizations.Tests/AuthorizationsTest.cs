@@ -143,6 +143,8 @@
                 Assert.True(result.HasAnyRightUnderScope("Scope1"));
                 Assert.True(result.HasAnyRightUnderScope("Scope1_Child1"));
                 Assert.True(result.HasAnyRightUnderScope("Scope2"));
+
+                Assert.True(await authorizationsFixture.AuthorizationsClient.HasRightAsync("right3", "Scope1_Child1"));
             }
         }
     }

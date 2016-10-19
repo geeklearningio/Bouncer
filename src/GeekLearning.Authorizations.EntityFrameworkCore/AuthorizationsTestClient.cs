@@ -13,14 +13,16 @@
             this.rightsResult = rightsResult;
         }
 
-        public Task<RightsResult> GetRightsAsync(string scopeKey, bool withChildren = false)
+        public Task<RightsResult> GetRightsAsync(string scopeKey, Guid? principalIdOverride = null, bool withChildren = false)
         {
             return Task.FromResult(this.rightsResult);
         }
 
-        public Task<bool> HasRightAsync(string rightKey, string scopeKey)
+        public async Task<bool> HasRightAsync(string rightKey, string scopeKey, Guid? principalIdOverride = null)
         {
-            throw new NotImplementedException();
+            RightsResult result = await this.GetRightsAsync(scopeKey, principalIdOverride);
+
+            return result.HasRightOnScope(rightKey, scopeKey);
         }
     }
 }
