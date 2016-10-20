@@ -2,9 +2,16 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class ScopeRights
     {
+        public ScopeRights()
+        {
+            this.InheritedRightKeys = Enumerable.Empty<string>();
+            this.ExplicitRightKeys = Enumerable.Empty<string>();
+        }
+
         public Guid ScopeId { get; set; }
 
         public string ScopeName { get; set; }
