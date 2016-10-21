@@ -113,7 +113,7 @@
                     ScopeName = "Scope1",
                     InheritedRightKeys = new string[] { "right1", "right2" },
                     ExplicitRightKeys = new string[] { "right1", "right2" },
-                    ScopeHierarchy = "Scope1"
+                    ScopeHierarchies = new List<string> { "Scope1" }
                 },
                 new ScopeRights
                 {
@@ -121,7 +121,7 @@
                     ScopeName = "Scope1_Child1",
                     InheritedRightKeys = new string[] { "right1", "right2", "right3" },
                     ExplicitRightKeys = new string[] { "right3" },
-                    ScopeHierarchy = "Scope1/Scope1_Child1"
+                    ScopeHierarchies = new List<string> { "Scope1/Scope1_Child1" }
                 },
                 new ScopeRights
                 {
@@ -129,7 +129,7 @@
                     ScopeName = "Scope2_Child1",
                     InheritedRightKeys = new string[] { "right4" },
                     ExplicitRightKeys = new string[] { "right4" },
-                    ScopeHierarchy = "Scope2/Scope2_Child1"
+                    ScopeHierarchies = new List<string> { "Scope2/Scope2_Child1" }
                 }
             });
 

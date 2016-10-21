@@ -39,9 +39,9 @@
         {
             return this.RightsPerScope
                        .Values
-                       .SelectMany(sr => sr.ScopeHierarchy.Split('/'))
+                       .SelectMany(sr => sr.ScopeHierarchies.SelectMany(sh => sh.Split('/')))
                        .Distinct()
-                       .ToList();                                        
+                       .ToList();
         }
 
         public bool HasRightOnScope(string right, string scope)

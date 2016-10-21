@@ -20,6 +20,6 @@
 
         public IEnumerable<string> ExplicitRightKeys { get; set; }
 
-        public string ScopeHierarchy { get; set; }
+        public IEnumerable<string> ScopeHierarchies { get; set; }
     }
 }
