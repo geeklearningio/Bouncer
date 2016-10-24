@@ -73,6 +73,7 @@
 
             return rights
                 .Select(r => IterateThroughParents(r, rights))
+                .Where(r => r.InheritedRightKeys.Any())
                 .ToList();
         }
 
