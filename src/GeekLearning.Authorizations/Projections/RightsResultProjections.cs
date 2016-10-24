@@ -69,11 +69,19 @@
                     InheritedRightKeys = new List<string>(),
                     ScopeHierarchies = new List<string>(),
                 })
-                .ToList();
+                .ToDictionary(r => r.ScopeId, r => r);
 
-            return rights
-                .Select(r => IterateThroughParents(r, rights))
-                .Where(r => r.InheritedRightKeys.Any())
+            foreach (var right in rights)
+            {
+                if (!right.Value.ParentsIterationDone)
+                {
+                    IterateThroughParents(right.Value, rights);
+                }
+            }
+
+            return rights                
+                .Where(r => r.Value.InheritedRightKeys.Any())
+                .Select(r => r.Value)
                 .ToList();
         }
 
@@ -88,17 +96,24 @@
             return rightsResult;
         }
 
-        private static ScopeRightsWithParents IterateThroughParents(ScopeRightsWithParents right, List<ScopeRightsWithParents> rights)
+        private static void IterateThroughParents(ScopeRightsWithParents right, Dictionary<Guid, ScopeRightsWithParents> rights)
         {
             if (right.ParentsIterationDone)
             {
-                return right;
+                return;
             }
 
-            var parents = rights
-                .Where(s => right.ParentIds.Contains(s.ScopeId))
-                .Select(s => IterateThroughParents(s, rights))
-                .ToList();
+            var parents = new List<ScopeRightsWithParents>();
+            foreach (var parentId in right.ParentIds)
+            {
+                var parent = rights[parentId];
+                if (!parent.ParentsIterationDone)
+                {
+                    IterateThroughParents(parent, rights);
+                }
+
+                parents.Add(parent);
+            }
 
             right.InheritedRightKeys = right.ExplicitRightKeys
                 .Concat(parents.SelectMany(p => p.InheritedRightKeys))
@@ -117,7 +132,6 @@
             }
 
             right.ParentsIterationDone = true;
-            return right;
         }
 
         private class PrincipalScopeRight
