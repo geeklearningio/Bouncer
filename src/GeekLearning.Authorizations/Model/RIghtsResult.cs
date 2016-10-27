@@ -59,5 +59,13 @@
         {
             return this.ScopesWithRights.Contains(scope);
         }
+
+        public bool HasRightUnderScope(string scope, string right)
+        {
+            return this.RightsPerScope
+                       .Values
+                       .Where(rs => rs.InheritedRightKeys.Contains(right) && rs.ScopeHierarchies.Any(sh => sh.Contains(scope)))
+                       .Any();
+        }
     }
 }
