@@ -20,6 +20,7 @@
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope2", "Scope 2");
 
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                           .AffectRoleToPrincipalOnScopeAsync(
@@ -44,17 +45,23 @@
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                                           .AffectRoleToPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope2");
 
                 authorizationsFixture.Context.SaveChanges();
 
-                var authorization = authorizationsFixture.Context.Authorizations()
-                                                                 .Include(a => a.Scope)
-                                                                 .Include(a => a.Role)
-                                                                 .SingleOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId);
-
-                Assert.NotNull(authorization);
-                Assert.Equal("role1", authorization.Role.Name);
-                Assert.Equal("scope1", authorization.Scope.Name);
+                var authorizations = authorizationsFixture.Context.Authorizations()
+                                                                  .Include(a => a.Scope)
+                                                                  .Include(a => a.Role)
+                                                                  .Where(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId)
+                                                                  .ToList();
+                
+                Assert.True(authorizations.Any(a => a.Role.Name == "role1"));
+                Assert.True(authorizations.Any(s => s.Scope.Name == "scope1"));
+                Assert.True(authorizations.Any(s => s.Scope.Name == "scope2"));
             }
         }
 
@@ -70,9 +77,9 @@
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });                
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");                
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");
 
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                            .AffectRoleToPrincipalOnScopeAsync(
