@@ -10,9 +10,9 @@
             where TContext : DbContext
             where TPrincipalIdProvider : class, IPrincipalIdProvider
         {
-            services.AddTransient<IPrincipalIdProvider, TPrincipalIdProvider>();
-            services.AddTransient<IAuthorizationsClient, AuthorizationsClient<TContext>>();
-            services.AddTransient<IAuthorizationsProvisioningClient, AuthorizationsProvisioningClient<TContext>>();
+            services.AddScoped<IPrincipalIdProvider, TPrincipalIdProvider>();
+            services.AddScoped<IAuthorizationsClient, AuthorizationsClient<TContext>>();
+            services.AddScoped<IAuthorizationsProvisioningClient, AuthorizationsProvisioningClient<TContext>>();
         
             return services;
         }

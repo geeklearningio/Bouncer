@@ -7,8 +7,8 @@ namespace GeekLearning.Authorizations.AspNetCore
     {
         public static IServiceCollection AddAclAuthorizationHandlers(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IAuthorizationHandler, AclTreeAuthorizationHandler>();
-            serviceCollection.AddSingleton<IAuthorizationHandler, AclDirectAuthorizationHandler>();
+            serviceCollection.AddScoped<IAuthorizationHandler, AclTreeAuthorizationHandler>();
+            serviceCollection.AddScoped<IAuthorizationHandler, AclDirectAuthorizationHandler>();
 
             return serviceCollection;
         }

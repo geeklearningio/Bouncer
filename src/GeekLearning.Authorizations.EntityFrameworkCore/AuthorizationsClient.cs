@@ -28,20 +28,6 @@
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
 
-            //if (!withChildren)
-            //{
-            //    using (RelationalDataReader dataReader = await this.context.Database.ExecuteSqlCommandExtAsync(
-            //        $"select * from Authorizations.GetRightsForScope(@scopeName, @principalId)",
-            //        parameters: new object[]
-            //        {
-            //            new SqlParameter("@scopeName", scopeKey),
-            //            new SqlParameter("@principalId", principalId)
-            //        }))
-            //    {
-            //        return await dataReader.FromInheritedResultToRightsResultAsync();
-            //    }
-            //}           
-
             if (flatResultsCache.ContainsKey(principalId))
             {
                 return flatResultsCache[principalId].GetResultForScopeName(scopeKey, withChildren);
