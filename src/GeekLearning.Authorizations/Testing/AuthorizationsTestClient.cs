@@ -8,9 +8,9 @@
     {
         private readonly RightsResult rightsResult;
 
-        private readonly IUserRightsProviderService userRightsProvisioningService;
+        private readonly UserRightsProviderService userRightsProvisioningService;
 
-        public AuthorizationsTestClient(IUserRightsProviderService userRightsProvisioningService)
+        public AuthorizationsTestClient(UserRightsProviderService userRightsProvisioningService)
         {
             this.userRightsProvisioningService = userRightsProvisioningService;
         }
