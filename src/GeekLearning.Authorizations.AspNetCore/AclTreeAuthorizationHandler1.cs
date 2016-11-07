@@ -9,7 +9,7 @@
 
         public AclTreeAuthorizationHandler(IAuthorizationsClient authorizationClient)
         {
-            this.authorizationClient = authorizationClient;
+            this.authorizationClient = authorizationClient; 
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AclTreeAuthorizationRequirement requirement)

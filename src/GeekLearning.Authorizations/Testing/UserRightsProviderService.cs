@@ -2,7 +2,7 @@
 {
     using GeekLearning.Authorizations.Model;
 
-    public class UserRightsProvisioningService : IUserRightsProvisioningService
+    public class UserRightsProviderService : IUserRightsProviderService
     {
         public RightsResult CurrentRights { get; set; }
     }

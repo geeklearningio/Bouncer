@@ -7,7 +7,7 @@
         public AclAuthorizationRequirement(string right, string scope)
         {
             this.Right = right;
-            this.Scope = scope;
+            this.Scope = scope; 
         }
 
         public string Right { get; set; }

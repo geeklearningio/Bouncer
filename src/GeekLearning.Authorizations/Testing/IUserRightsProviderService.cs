@@ -2,7 +2,7 @@
 
 namespace GeekLearning.Authorizations.Testing
 {
-    public interface IUserRightsProvisioningService
+    public interface IUserRightsProviderService
     {
         RightsResult CurrentRights { get; set; }
     }

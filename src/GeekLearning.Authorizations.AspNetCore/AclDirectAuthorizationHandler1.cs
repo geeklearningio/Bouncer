@@ -9,7 +9,7 @@
 
         public AclDirectAuthorizationHandler(IAuthorizationsClient authorizationClient)
         {
-            this.authorizationClient = authorizationClient;
+            this.authorizationClient = authorizationClient; 
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AclDirectAuthorizationRequirement requirement)

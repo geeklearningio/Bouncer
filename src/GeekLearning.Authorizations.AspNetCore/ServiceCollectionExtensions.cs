@@ -9,7 +9,7 @@ namespace GeekLearning.Authorizations.AspNetCore
         {
             serviceCollection.AddScoped<IAuthorizationHandler, AclTreeAuthorizationHandler>();
             serviceCollection.AddScoped<IAuthorizationHandler, AclDirectAuthorizationHandler>();
-
+             
             return serviceCollection;
         }
     }

@@ -11,7 +11,7 @@
 
         public static AuthorizationPolicyBuilder RequireRightUnderScope(this AuthorizationPolicyBuilder builder, string rightKey, string scopeKey)
         {
-            return builder.AddRequirements(new AclTreeAuthorizationRequirement(rightKey, scopeKey));
+            return builder.AddRequirements(new AclTreeAuthorizationRequirement(rightKey, scopeKey)); 
         }
     }
 }
