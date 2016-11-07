@@ -1,10 +1,11 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using System;
     using GeekLearning.Authorizations.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Data.Sqlite;
+    using Microsoft.EntityFrameworkCore;
     using Model;
+    using System;
+    using Testing;
 
     public sealed class AuthorizationsFixture : IDisposable
     {

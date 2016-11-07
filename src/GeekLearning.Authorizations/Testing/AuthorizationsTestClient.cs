@@ -1,4 +1,4 @@
-﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
+﻿namespace GeekLearning.Authorizations.Testing
 {
     using System;
     using System.Threading.Tasks;
@@ -6,7 +6,14 @@
 
     public class AuthorizationsTestClient : IAuthorizationsClient
     {
-        private RightsResult rightsResult;
+        private readonly RightsResult rightsResult;
+
+        private readonly IUserRightsProvisioningService userRightsProvisioningService;
+
+        public AuthorizationsTestClient(IUserRightsProvisioningService userRightsProvisioningService)
+        {
+            this.userRightsProvisioningService = userRightsProvisioningService;
+        }
 
         public AuthorizationsTestClient(RightsResult rightsResult)
         {
@@ -15,7 +22,7 @@
 
         public Task<RightsResult> GetRightsAsync(string scopeKey, Guid? principalIdOverride = null, bool withChildren = false)
         {
-            return Task.FromResult(this.rightsResult);
+            return Task.FromResult(this.rightsResult ?? this.userRightsProvisioningService.CurrentRights);
         }
 
         public async Task<bool> HasRightAsync(string rightKey, string scopeKey, Guid? principalIdOverride = null)
