@@ -10,7 +10,7 @@
     using Xunit;
     using GeekLearning.Authorizations.Model;
 
-    public class AuthorizationsTest
+    public class AuthorizationsContextTest
     {
         [Fact]
         public async Task AffectRoleOnScope_ShouldBeOk()

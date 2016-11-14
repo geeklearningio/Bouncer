@@ -15,7 +15,19 @@
             this.RightsPerScopeInternal = scopeRights.ToDictionary(sr => sr.ScopeName);
         }
 
-        internal IDictionary<string, ScopeRights> RightsPerScopeInternal { get; set; } = new Dictionary<string, ScopeRights>();
+        private IDictionary<string, ScopeRights> rightsPerScopeInternal = new Dictionary<string, ScopeRights>();
+        internal IDictionary<string, ScopeRights> RightsPerScopeInternal
+        {
+            get
+            {
+                return this.rightsPerScopeInternal;
+            }
+            set
+            {
+                this.rightsPerScopeInternal = value;
+                this.rightsPerScope = null;
+            }
+        } 
 
         private IReadOnlyDictionary<string, ScopeRights> rightsPerScope;
         public IReadOnlyDictionary<string, ScopeRights> RightsPerScope

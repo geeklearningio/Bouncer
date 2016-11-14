@@ -9,14 +9,15 @@
 
     public sealed class AuthorizationsFixture : IDisposable
     {
+        private UserRightsProviderService userRightsProviderService = new UserRightsProviderService();
+
         public AuthorizationsTestContext Context { get; private set; }
 
-        public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient =>
-            new AuthorizationsProvisioningClient<AuthorizationsTestContext>(Context, new PrincipalIdProvider(Context));
+        public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient { get; private set; }
 
         public IAuthorizationsClient AuthorizationsClient { get; private set; }            
 
-        public AuthorizationsFixture()
+        public AuthorizationsFixture(bool mockProvisioning = false)
         {
             var builder = new DbContextOptionsBuilder<AuthorizationsTestContext>();
 
@@ -33,12 +34,21 @@
             
             Context.Seed();
 
+            if (mockProvisioning)
+            {
+                this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningTestClient(this.userRightsProviderService);
+            }
+            else
+            {
+                this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningClient<AuthorizationsTestContext>(Context, new PrincipalIdProvider(Context));
+            }
+
             this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(Context, new PrincipalIdProvider(Context));
         }
 
-        public AuthorizationsFixture(RightsResult rightsResult) : this()
+        public AuthorizationsFixture(RightsResult rightsResult, bool mockProvisioning = false) : this(mockProvisioning)
         {
-            this.AuthorizationsClient = new AuthorizationsTestClient(rightsResult);
+            this.AuthorizationsClient = new AuthorizationsTestClient(this.userRightsProviderService, rightsResult);
         }
 
         public void Dispose()

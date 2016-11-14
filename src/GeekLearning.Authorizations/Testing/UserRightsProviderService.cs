@@ -4,6 +4,6 @@
 
     public class UserRightsProviderService
     {
-        public RightsResult CurrentRights { get; set; }
+        public RightsResult CurrentRights { get; set; } = new RightsResult();
     }
 }
