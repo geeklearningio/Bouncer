@@ -1,11 +1,11 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using GeekLearning.Authorizations.Data;
-    using GeekLearning.Authorizations.EntityFrameworkCore;
+    using Data;
+    using EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
-    using Microsoft.EntityFrameworkCore;
 
     public class ScopeTests
     {

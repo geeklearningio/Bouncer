@@ -1,10 +1,9 @@
 ﻿namespace GeekLearning.Authorizations.Projections
 {
-    using GeekLearning.Authorizations.Model;
+    using Model;
     using Microsoft.EntityFrameworkCore.Storage;
     using System;
     using System.Collections.Generic;
-    using System.Data.Common;
     using System.Linq;
     using System.Threading.Tasks;
 

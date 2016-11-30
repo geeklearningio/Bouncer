@@ -1,14 +1,9 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using GeekLearning.Authorizations.Data;
-    using GeekLearning.Authorizations.EntityFrameworkCore;
-    using System;
-    using System.Collections.Generic;
+    using Model;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.EntityFrameworkCore;
     using Xunit;
-    using GeekLearning.Authorizations.Model;
 
     public class AuthorizationsInMemoryTest
     {

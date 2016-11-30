@@ -15,23 +15,24 @@
 
         public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient { get; private set; }
 
-        public IAuthorizationsClient AuthorizationsClient { get; private set; }            
+        public IAuthorizationsClient AuthorizationsClient { get; private set; }
 
         public AuthorizationsFixture(bool mockProvisioning = false)
         {
             var builder = new DbContextOptionsBuilder<AuthorizationsTestContext>();
 
-            var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = ":memory:" };
+            var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = "TestDatabase.db" };
             var connectionString = connectionStringBuilder.ToString();
             var connection = new SqliteConnection(connectionString);
 
-            builder.UseSqlite(connection);            
+            builder.UseSqlite(connection);
 
             Context = new AuthorizationsTestContext(builder.Options);
 
+            Context.Database.EnsureDeleted();
             Context.Database.OpenConnection();
             Context.Database.EnsureCreated();
-            
+
             Context.Seed();
 
             if (mockProvisioning)

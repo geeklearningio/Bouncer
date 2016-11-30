@@ -9,14 +9,13 @@
   },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "Microsoft.EntityFrameworkCore": "1.0.1",
-    "Microsoft.EntityFrameworkCore.Relational": "1.0.1",
-    "System.ComponentModel.Annotations": "4.1.0"
+    "NETStandard.Library": "1.6.1",
+    "Microsoft.EntityFrameworkCore": "1.1.0",
+    "Microsoft.EntityFrameworkCore.Relational": "1.1.0",
+    "System.ComponentModel.Annotations": "4.3.0"
   },
 
   "frameworks": {
-    "netstandard1.3": {},
-    "net461": {}
+    "netstandard1.3": {}
   }
 }

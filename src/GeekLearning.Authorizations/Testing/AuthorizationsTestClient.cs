@@ -1,8 +1,8 @@
 ﻿namespace GeekLearning.Authorizations.Testing
 {
+    using Model;
     using System;
     using System.Threading.Tasks;
-    using Model;
 
     public class AuthorizationsTestClient : IAuthorizationsClient
     {

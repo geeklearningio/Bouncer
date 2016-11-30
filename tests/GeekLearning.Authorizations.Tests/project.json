@@ -3,21 +3,21 @@
 
   "dependencies": {
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
-    "GeekLearning.Authorizations": "0.0.1-*",
-    "GeekLearning.Authorizations.EntityFrameworkCore": "0.0.1-*",
     "xunit": "2.2.0-beta2-build3300",
     "xunit.runner.console": "2.1.0",
     "xunit.runner.visualstudio": "2.1.0",
-    "Microsoft.EntityFrameworkCore.Sqlite": "1.0.1",
-    "Microsoft.Data.Sqlite": "1.0.0"
+    "Microsoft.EntityFrameworkCore.Sqlite": "1.1.0",
+
+    "GeekLearning.Authorizations": "*",
+    "GeekLearning.Authorizations.EntityFrameworkCore": "*"
   },
 
   "frameworks": {
-    "netcoreapp1.0": {
+    "netcoreapp1.1": {
       "dependencies": {
         "Microsoft.NETCore.App": {
           "type": "platform",
-          "version": "1.0.1"
+          "version": "1.1.0"
         }
       }
     }

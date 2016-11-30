@@ -2,7 +2,6 @@
 {
     using Data;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Metadata;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
     public static class AuthorizationContextExtensions
@@ -27,18 +26,6 @@
                 entity.MapToTable("ScopeHierarchy", schemaName);
                 entity.HasKey(sh => new { sh.ParentId, sh.ChildId });
             });
-
-            modelBuilder.Entity<ScopeHierarchy>()
-                        .HasOne(pt => pt.Parent)
-                        .WithMany(p => p.Children)
-                        .HasForeignKey(pt => pt.ParentId)
-                        .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ScopeHierarchy>()
-                        .HasOne(pt => pt.Child)
-                        .WithMany(t => t.Parents)
-                        .HasForeignKey(pt => pt.ChildId)
-                        .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Role>(entity =>
             {

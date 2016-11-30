@@ -1,10 +1,10 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
+    using Exceptions;
+    using Microsoft.EntityFrameworkCore;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.EntityFrameworkCore;
-    using Exceptions;
 
     public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
     {
@@ -231,8 +231,13 @@
 
         private async Task<TEntity> GetEntityAsync<TEntity>(Func<TEntity, bool> predicate) where TEntity : class
         {
-            return this.context.ChangeTracker.Entries<TEntity>().Select(e => e.Entity).FirstOrDefault(predicate) ??
-                   await this.context.Set<TEntity>().FirstOrDefaultAsync(e => predicate(e));
+            var local = this.context.ChangeTracker.Entries<TEntity>().Select(e => e.Entity).FirstOrDefault(predicate);
+            if (local != null)
+            {
+                return local;
+            }
+
+            return await this.context.Set<TEntity>().FirstOrDefaultAsync(e => predicate(e));
         }
     }
 }

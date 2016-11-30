@@ -1,10 +1,10 @@
 ﻿namespace GeekLearning.Authorizations.Testing
 {
+    using Model;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Model;
-    using System.Collections.Generic;
 
     public class AuthorizationsProvisioningTestClient : IAuthorizationsProvisioningClient
     {

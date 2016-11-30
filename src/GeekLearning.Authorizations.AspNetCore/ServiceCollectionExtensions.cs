@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
-namespace GeekLearning.Authorizations.AspNetCore
+﻿namespace GeekLearning.Authorizations.AspNetCore
 {
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.Extensions.DependencyInjection;
 
     public static class ServiceCollectionExtensions

@@ -1,13 +1,9 @@
 ﻿namespace Microsoft.EntityFrameworkCore
 {
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
-    using Microsoft.EntityFrameworkCore.Internal;
-    using Microsoft.EntityFrameworkCore.Storage;
+    using Infrastructure;
+    using Internal;
+    using Storage;
     using Microsoft.Extensions.DependencyInjection;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 

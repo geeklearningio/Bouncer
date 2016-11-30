@@ -9,13 +9,13 @@
   },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "Microsoft.AspNetCore.Authorization": "1.0.0",
+    "NETStandard.Library": "1.6.1",
+    "Microsoft.AspNetCore.Authorization": "1.1.0",
+
     "GeekLearning.Authorizations": "*"
   },
 
   "frameworks": {
-    "netstandard1.3": {},
-    "net461": {}
+    "netstandard1.3": {}
   }
 }

@@ -1,6 +1,6 @@
 ﻿namespace GeekLearning.Authorizations.Testing
 {
-    using GeekLearning.Authorizations.Model;
+    using Model;
 
     public class UserRightsProviderService
     {

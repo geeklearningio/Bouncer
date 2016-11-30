@@ -1,7 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using Microsoft.EntityFrameworkCore;
     using GeekLearning.Authorizations.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore;
     using System;
 
     public class AuthorizationsTestContext : DbContext
@@ -19,7 +19,7 @@
 
             this.Set<Data.Principal>().Add(new Data.Principal { Id = CurrentUserId });
 
-            this.SaveChanges();
+            var result = this.SaveChanges();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,5 +36,8 @@
                       .AddPrincipalRelationship();
             });
         }
+
+        public virtual DbSet<Data.Principal> Principals { get; set; }
+
     }
 }

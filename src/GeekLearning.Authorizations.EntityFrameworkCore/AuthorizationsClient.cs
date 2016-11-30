@@ -1,15 +1,13 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
     using Microsoft.EntityFrameworkCore;
-    using System;
-    using System.Threading.Tasks;
-    using System.Data;
-    using Model;
-    using System.Data.Common;
-    using System.Data.SqlClient;
-    using GeekLearning.Authorizations.Projections;
     using Microsoft.EntityFrameworkCore.Storage;
+    using Model;
+    using Projections;
+    using System;
     using System.Collections.Generic;
+    using System.Data.SqlClient;
+    using System.Threading.Tasks;
 
     public class AuthorizationsClient
         <TContext> : IAuthorizationsClient where TContext : DbContext

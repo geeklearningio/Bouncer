@@ -22,6 +22,7 @@
 
         [Required]
         [ForeignKey(nameof(ScopeId))]
+        [InverseProperty(nameof(Data.Scope.Authorizations))]
         public virtual Scope Scope { get; set; }
 
         public Guid PrincipalId { get; set; }
