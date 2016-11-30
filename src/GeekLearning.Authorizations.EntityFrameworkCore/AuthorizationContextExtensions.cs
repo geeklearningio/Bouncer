@@ -7,17 +7,17 @@
 
     public static class AuthorizationContextExtensions
     {
-        public static void AddAuthorizationContext(this ModelBuilder modelBuilder, string schema = null)
+        public static void AddAuthorizationContext(this ModelBuilder modelBuilder, ModelBuilderOptions options = null)
         {
             modelBuilder.Entity<Scope>(entity =>
             {
-                entity.MapToTable("Scope", schema);
+                entity.MapToTable("Scope", options?.SchemaName);
                 entity.HasIndex(s => s.Name).IsUnique();
             });
 
             modelBuilder.Entity<ScopeHierarchy>(entity =>
             {
-                entity.MapToTable("ScopeHierarchy", schema);
+                entity.MapToTable("ScopeHierarchy", options?.SchemaName);
                 entity.HasKey(sh => new { sh.ParentId, sh.ChildId });
             });
 
@@ -35,27 +35,27 @@
 
             modelBuilder.Entity<Role>(entity =>
             {
-                entity.MapToTable("Role", schema);
+                entity.MapToTable("Role", options?.SchemaName);
                 entity.HasIndex(r => r.Name).IsUnique();
             });
 
             modelBuilder.Entity<Right>(entity =>
             {
-                entity.MapToTable("Right", schema);
+                entity.MapToTable("Right", options?.SchemaName);
                 entity.HasIndex(r => r.Name).IsUnique();
             });
 
             modelBuilder.Entity<RoleRight>(entity =>
             {
-                entity.MapToTable("RoleRight", schema);
+                entity.MapToTable("RoleRight", options?.SchemaName);
                 entity.HasKey(rr => new { rr.RoleId, rr.RightId });
             });
 
-            modelBuilder.Entity<Principal>(entity => entity.MapToTable("Principal", schema));
+            modelBuilder.Entity<Principal>(entity => entity.MapToTable("Principal", options?.SchemaName));
 
             modelBuilder.Entity<Authorization>(entity =>
             {
-                entity.MapToTable("Authorization", schema);
+                entity.MapToTable("Authorization", options?.SchemaName);
                 entity.HasIndex(a => new { a.RoleId, a.ScopeId, a.PrincipalId }).IsUnique();
             });
         }
