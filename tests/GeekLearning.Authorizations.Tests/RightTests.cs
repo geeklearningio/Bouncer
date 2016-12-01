@@ -11,7 +11,7 @@
         [Fact]
         public async Task CreateRight_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var authorizationsFixture = new AuthorizationsFixture(nameof(CreateRight_ShouldBeOk)))
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateRightAsync("right1");
 
@@ -25,7 +25,7 @@
         [Fact]
         public async Task DeleteRight_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var authorizationsFixture = new AuthorizationsFixture(nameof(DeleteRight_ShouldBeOk)))
             {
                 authorizationsFixture.Context.Rights().Add(new Right { Name = "right1" });
 

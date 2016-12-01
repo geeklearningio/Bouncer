@@ -17,23 +17,24 @@
 
         public IAuthorizationsClient AuthorizationsClient { get; private set; }
 
-        public AuthorizationsFixture(bool mockProvisioning = false)
+        public AuthorizationsFixture(string databaseName, bool mockProvisioning = false)
         {
             var builder = new DbContextOptionsBuilder<AuthorizationsTestContext>();
 
-            var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = "TestDatabase.db" };
+            databaseName = $"{ databaseName ?? "TestDatabase"}.db";
+
+            var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = databaseName };
             var connectionString = connectionStringBuilder.ToString();
             var connection = new SqliteConnection(connectionString);
 
             builder.UseSqlite(connection);
 
-            Context = new AuthorizationsTestContext(builder.Options);
+            this.Context = new AuthorizationsTestContext(builder.Options);
 
-            Context.Database.EnsureDeleted();
-            Context.Database.OpenConnection();
-            Context.Database.EnsureCreated();
+            this.Context.Database.OpenConnection();
+            this.Context.Database.EnsureCreated();
 
-            Context.Seed();
+            this.Context.Seed();
 
             if (mockProvisioning)
             {
@@ -41,19 +42,21 @@
             }
             else
             {
-                this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningClient<AuthorizationsTestContext>(Context, new PrincipalIdProvider(Context));
+                this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningClient<AuthorizationsTestContext>(this.Context, new PrincipalIdProvider(this.Context));
             }
 
-            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(Context, new PrincipalIdProvider(Context));
+            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(this.Context, new PrincipalIdProvider(this.Context));
         }
 
-        public AuthorizationsFixture(RightsResult rightsResult, bool mockProvisioning = false) : this(mockProvisioning)
+        public AuthorizationsFixture(RightsResult rightsResult, string databaseName, bool mockProvisioning = false) : this(databaseName, mockProvisioning)
         {
             this.AuthorizationsClient = new AuthorizationsTestClient(this.userRightsProviderService, rightsResult);
         }
 
         public void Dispose()
         {
+            this.Context.Database.CloseConnection();
+            this.Context.Database.EnsureDeleted();
             this.Context.Dispose();
         }
     }

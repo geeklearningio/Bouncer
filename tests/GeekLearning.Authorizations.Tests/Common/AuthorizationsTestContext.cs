@@ -19,7 +19,7 @@
 
             this.Set<Data.Principal>().Add(new Data.Principal { Id = CurrentUserId });
 
-            var result = this.SaveChanges();
+            this.SaveChanges();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,8 +36,5 @@
                       .AddPrincipalRelationship();
             });
         }
-
-        public virtual DbSet<Data.Principal> Principals { get; set; }
-
     }
 }

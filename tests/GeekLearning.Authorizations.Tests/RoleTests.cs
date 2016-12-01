@@ -12,7 +12,7 @@
         [Fact]
         public async Task CreateRole_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var authorizationsFixture = new AuthorizationsFixture(nameof(CreateRole_ShouldBeOk)))
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                             .CreateRoleAsync(
@@ -36,7 +36,7 @@
         [Fact]
         public async Task DeleteRole_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var authorizationsFixture = new AuthorizationsFixture(nameof(DeleteRole_ShouldBeOk)))
             {
                 authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
 
