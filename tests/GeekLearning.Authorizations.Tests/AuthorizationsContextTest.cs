@@ -14,7 +14,7 @@
         [Fact]
         public async Task AffectRoleOnScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture(nameof(AffectRoleOnScope_ShouldBeOk)))
+            using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
@@ -67,7 +67,7 @@
         [Fact]
         public async Task UnaffectRoleOnScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture(nameof(UnaffectRoleOnScope_ShouldBeOk)))
+            using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 // Test removing non existing authorization
                 await authorizationsFixture.AuthorizationsProvisioningClient
@@ -139,7 +139,7 @@
                 }
             });
 
-            using (var authorizationsFixture = new AuthorizationsFixture(rightsResult, nameof(GetRightsOnScope_ShouldBeOk)))
+            using (var authorizationsFixture = new AuthorizationsFixture(rightsResult))
             {
                 var result = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("Scope1_Child1", withChildren: true);
 

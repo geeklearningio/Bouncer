@@ -12,7 +12,7 @@
         [Fact]
         public async Task CreateScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture(nameof(CreateScope_ShouldBeOk)))
+            using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient
                                             .CreateScopeAsync(
@@ -45,7 +45,7 @@
         [Fact]
         public async Task DeleteScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture(nameof(DeleteScope_ShouldBeOk)))
+            using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
 

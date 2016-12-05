@@ -1,6 +1,6 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using GeekLearning.Authorizations.EntityFrameworkCore;
+    using EntityFrameworkCore;
     using Microsoft.Data.Sqlite;
     using Microsoft.EntityFrameworkCore;
     using Model;
@@ -17,21 +17,20 @@
 
         public IAuthorizationsClient AuthorizationsClient { get; private set; }
 
-        public AuthorizationsFixture(string databaseName, bool mockProvisioning = false)
+        public AuthorizationsFixture(bool mockProvisioning = false)
         {
             var builder = new DbContextOptionsBuilder<AuthorizationsTestContext>();
 
-            databaseName = $"{ databaseName ?? "TestDatabase"}.db";
-
-            var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = databaseName };
+            var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = ":memory:" };
             var connectionString = connectionStringBuilder.ToString();
             var connection = new SqliteConnection(connectionString);
+
+            connection.Open();
 
             builder.UseSqlite(connection);
 
             this.Context = new AuthorizationsTestContext(builder.Options);
 
-            this.Context.Database.OpenConnection();
             this.Context.Database.EnsureCreated();
 
             this.Context.Seed();
@@ -48,7 +47,7 @@
             this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(this.Context, new PrincipalIdProvider(this.Context));
         }
 
-        public AuthorizationsFixture(RightsResult rightsResult, string databaseName, bool mockProvisioning = false) : this(databaseName, mockProvisioning)
+        public AuthorizationsFixture(RightsResult rightsResult, bool mockProvisioning = false) : this(mockProvisioning)
         {
             this.AuthorizationsClient = new AuthorizationsTestClient(this.userRightsProviderService, rightsResult);
         }

@@ -10,7 +10,7 @@
         [Fact]
         public async Task AffectRoleOnScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture(new RightsResult(), nameof(AffectRoleOnScope_ShouldBeOk), mockProvisioning: true))
+            using (var authorizationsFixture = new AuthorizationsFixture(new RightsResult(), mockProvisioning: true))
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
