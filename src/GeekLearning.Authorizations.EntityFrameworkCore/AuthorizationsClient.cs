@@ -5,6 +5,7 @@
     using Microsoft.EntityFrameworkCore.Storage;
     using Model;
     using System;
+    using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
         private readonly IAuthorizationsCacheClient cacheClient;
+        private readonly Dictionary<Guid, IEnumerable<ScopeRights>> scopeRightsScopedCache = new Dictionary<Guid, IEnumerable<ScopeRights>>();
 
         public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, IAuthorizationsCacheClient cacheClient)
         {
@@ -26,10 +28,16 @@
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
 
-            var fromCache = await this.cacheClient.GetRightsAsync(principalId);
-            if (fromCache != null)
+            if (scopeRightsScopedCache.ContainsKey(principalId))
             {
-                return fromCache.GetResultForScopeName(scopeKey, withChildren);
+                return this.scopeRightsScopedCache[principalId].GetResultForScopeName(scopeKey, withChildren);
+            }
+
+            var rightsFromCache = await this.cacheClient.GetRightsAsync(principalId);
+            if (rightsFromCache != null)
+            {
+                this.scopeRightsScopedCache.Add(principalId, rightsFromCache);
+                return rightsFromCache.GetResultForScopeName(scopeKey, withChildren);
             }
 
             using (RelationalDataReader dataReader = await this.context.Database.ExecuteSqlCommandExtAsync(
@@ -41,7 +49,7 @@
             {
                 var rights = await dataReader.FromFlatResultToRightsResultAsync();
                 await this.cacheClient.StoreRightsAsync(principalId, rights);
-
+                this.scopeRightsScopedCache.Add(principalId, rightsFromCache);
                 return rights.GetResultForScopeName(scopeKey, withChildren);
             }
         }

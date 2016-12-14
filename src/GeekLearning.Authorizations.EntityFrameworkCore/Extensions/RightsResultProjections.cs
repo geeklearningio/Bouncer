@@ -85,6 +85,11 @@
 
         public static RightsResult GetResultForScopeName(this IEnumerable<ScopeRights> originalRights, string scopeKey, bool withChildren)
         {
+            if (originalRights == null)
+            {
+                return new RightsResult();
+            }
+
             if (withChildren)
             {
                 return new RightsResult(originalRights
