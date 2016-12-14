@@ -83,19 +83,19 @@
                 .ToList();
         }
 
-        public static RightsResult GetResultForScopeName(this RightsResult originalRightsResult, string scopeKey, bool withChildren)
+        public static RightsResult GetResultForScopeName(this IEnumerable<ScopeRights> originalRights, string scopeKey, bool withChildren)
         {
             if (withChildren)
             {
-                return new RightsResult(originalRightsResult.RightsPerScope
-                    .Values
+                return new RightsResult(originalRights
                     .Where(r => r.ScopeHierarchies.Any(sh => sh.Contains(scopeKey)))
                     .ToList());
             }
 
-            if (originalRightsResult.RightsPerScope.ContainsKey(scopeKey))
+            var right = originalRights.FirstOrDefault(r => r.ScopeName == scopeKey);
+            if (right != null)
             {
-                return new RightsResult(new List<ScopeRights> { originalRightsResult.RightsPerScope[scopeKey] });
+                return new RightsResult(new List<ScopeRights> { right });
             }
 
             return new RightsResult();

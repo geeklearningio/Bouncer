@@ -40,10 +40,9 @@
                 }))
             {
                 var rights = await dataReader.FromFlatResultToRightsResultAsync();
-                var rightsResult = new RightsResult(rights);
-                await this.cacheClient.StoreRightsAsync(principalId, rightsResult);
+                await this.cacheClient.StoreRightsAsync(principalId, rights);
 
-                return rightsResult.GetResultForScopeName(scopeKey, withChildren);
+                return rights.GetResultForScopeName(scopeKey, withChildren);
             }
         }
 

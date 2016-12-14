@@ -3,13 +3,14 @@
     using Model;
     using Newtonsoft.Json;
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     public class DefaultAuthorizationsCacheClient : IAuthorizationsCacheClient
     {
-        public Task<RightsResult> GetRightsAsync(Guid principalId)
+        public Task<IEnumerable<ScopeRights>> GetRightsAsync(Guid principalId)
         {
-            return Task.FromResult<RightsResult>(null);
+            return Task.FromResult<IEnumerable<ScopeRights>>(null);
         }
 
         public Task RemoveRightsAsync(Guid principalId)
@@ -17,10 +18,9 @@
             return Task.CompletedTask;
         }
 
-        public Task StoreRightsAsync(Guid principalId, RightsResult rightsResult)
+        public Task StoreRightsAsync(Guid principalId, IEnumerable<ScopeRights> rights)
         {
-            var toStore = JsonConvert.SerializeObject(rightsResult);
-            return Task.FromResult(toStore);
+            return Task.CompletedTask;
         }
     }
 }
