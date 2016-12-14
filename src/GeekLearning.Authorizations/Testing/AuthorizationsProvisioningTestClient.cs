@@ -19,17 +19,17 @@
 
         public Task AffectRoleToPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey)
         {
-            var scopeRights = this.userRightsProvisioningService.CurrentRights.RightsPerScopeInternal[scopeKey];
+            var scopeRights = this.userRightsProvisioningService.CurrentRights.RightsPerScope[scopeKey];
             List<string> inheritedRights = new List<string>(scopeRights.InheritedRightKeys);
             inheritedRights.AddRange(this.roleRights[roleKey]);
 
-            this.userRightsProvisioningService.CurrentRights.RightsPerScopeInternal[scopeKey] = new ScopeRights
+            this.userRightsProvisioningService.CurrentRights.ReplaceScopeRights(scopeKey, new ScopeRights
             {
                 ScopeId = scopeRights.ScopeId,
                 ScopeName = scopeRights.ScopeName,
                 ScopeHierarchies = scopeRights.ScopeHierarchies,
                 InheritedRightKeys = inheritedRights.Distinct().ToList()
-            };
+            });
 
             return Task.CompletedTask;
         }
@@ -73,7 +73,7 @@
                 InheritedRightKeys = inheritedRights.Distinct().ToList()
             };
 
-            this.userRightsProvisioningService.CurrentRights.RightsPerScopeInternal[scopeKey] = scopeRights;                
+            this.userRightsProvisioningService.CurrentRights.ReplaceScopeRights(scopeKey, scopeRights);                
 
             return Task.CompletedTask;
         }
@@ -97,11 +97,11 @@
 
         public Task UnaffectRoleFromPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey)
         {
-            if (this.userRightsProvisioningService.CurrentRights.RightsPerScopeInternal.ContainsKey(scopeKey) &&
+            if (this.userRightsProvisioningService.CurrentRights.RightsPerScope.ContainsKey(scopeKey) &&
                 this.roleRights.ContainsKey(roleKey))
             {
                 var scopeRights = this.userRightsProvisioningService.CurrentRights
-                                                                    .RightsPerScopeInternal
+                                                                    .RightsPerScope
                                                                     .Select(r => r.Value)
                                                                     .ToList();
                 foreach (var scopeRight in scopeRights)

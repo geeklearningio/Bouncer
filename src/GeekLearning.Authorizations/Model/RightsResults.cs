@@ -6,39 +6,27 @@
 
     public class RightsResult
     {
+        private IDictionary<string, ScopeRights> rightsPerScopeInternal = new Dictionary<string, ScopeRights>();
+        private IReadOnlyDictionary<string, ScopeRights> rightsPerScope = null;
+        private IEnumerable<string> scopesWithRights = null;
+
         public RightsResult()
         {
         }
 
         public RightsResult(IEnumerable<ScopeRights> scopeRights)
         {
-            this.RightsPerScopeInternal = scopeRights.ToDictionary(sr => sr.ScopeName);
+            this.rightsPerScopeInternal = scopeRights.ToDictionary(sr => sr.ScopeName);
         }
 
-        private IDictionary<string, ScopeRights> rightsPerScopeInternal = new Dictionary<string, ScopeRights>();
-        internal IDictionary<string, ScopeRights> RightsPerScopeInternal
-        {
-            get
-            {
-                return this.rightsPerScopeInternal;
-            }
-            set
-            {
-                this.rightsPerScopeInternal = value;
-                this.rightsPerScope = null;
-            }
-        } 
-
-        private IReadOnlyDictionary<string, ScopeRights> rightsPerScope;
         public IReadOnlyDictionary<string, ScopeRights> RightsPerScope
         {
             get
             {
-                return this.rightsPerScope ?? (this.rightsPerScope = new ReadOnlyDictionary<string, ScopeRights>(this.RightsPerScopeInternal));
+                return this.rightsPerScope ?? (this.rightsPerScope = new ReadOnlyDictionary<string, ScopeRights>(this.rightsPerScopeInternal));
             }
         }
 
-        private IEnumerable<string> scopesWithRights;
         public IEnumerable<string> ScopesWithRights
         {
             get
@@ -78,6 +66,13 @@
                        .Values
                        .Where(rs => rs.InheritedRightKeys.Contains(right) && rs.ScopeHierarchies.Any(sh => sh.Contains(scope)))
                        .Any();
+        }
+
+        internal void ReplaceScopeRights(string key, ScopeRights scopeRights)
+        {
+            this.rightsPerScopeInternal[key] = scopeRights;
+            this.rightsPerScope = null;
+            this.scopesWithRights = null;
         }
     }
 }

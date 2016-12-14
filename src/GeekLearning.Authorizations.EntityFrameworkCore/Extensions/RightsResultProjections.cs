@@ -1,4 +1,4 @@
-﻿namespace GeekLearning.Authorizations.Projections
+﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
     using Model;
     using Microsoft.EntityFrameworkCore.Storage;
@@ -11,13 +11,12 @@
     {
         public static async Task<RightsResult> FromInheritedResultToRightsResultAsync(this RelationalDataReader relationalReader)
         {
-            RightsResult rightsResult = new RightsResult();
-
+            var scopeRights = new List<ScopeRights>();
             var reader = relationalReader.DbDataReader;
 
             while (await reader.ReadAsync())
             {
-                ScopeRights right = new ScopeRights();
+                var right = new ScopeRights();
 
                 right.ScopeId = Guid.Parse(reader["ScopeId"].ToString());
                 right.ScopeName = reader["ScopeName"] as string;
@@ -35,10 +34,10 @@
 
                 right.ScopeHierarchies = new List<string> { reader["ScopeHierarchy"] as string };
 
-                rightsResult.RightsPerScopeInternal[right.ScopeName] = right;
+                scopeRights.Add(right);
             }
 
-            return rightsResult;
+            return new RightsResult(scopeRights);
         }
 
         public async static Task<List<ScopeRightsWithParents>> FromFlatResultToRightsResultAsync(this RelationalDataReader relationalReader)
@@ -78,33 +77,28 @@
                 }
             }
 
-            return rights                
+            return rights
                 .Where(r => r.Value.InheritedRightKeys.Any())
                 .Select(r => r.Value)
                 .ToList();
         }
 
-        public static RightsResult GetResultForScopeName(this IEnumerable<ScopeRightsWithParents> rights, string scopeKey, bool withChildren)
+        public static RightsResult GetResultForScopeName(this RightsResult originalRightsResult, string scopeKey, bool withChildren)
         {
-            var rightsResult = new RightsResult();
-
             if (withChildren)
             {
-                foreach (var right in rights.Where(r => r.ScopeHierarchies.Any(sh => sh.Contains(scopeKey))))
-                {
-                    rightsResult.RightsPerScopeInternal[right.ScopeName] = right;
-                }
-            }
-            else
-            {
-                var right = rights.FirstOrDefault(r => r.ScopeName == scopeKey);
-                if (right != null)
-                {
-                    rightsResult.RightsPerScopeInternal[right.ScopeName] = right;
-                }
+                return new RightsResult(originalRightsResult.RightsPerScope
+                    .Values
+                    .Where(r => r.ScopeHierarchies.Any(sh => sh.Contains(scopeKey)))
+                    .ToList());
             }
 
-            return rightsResult;
+            if (originalRightsResult.RightsPerScope.ContainsKey(scopeKey))
+            {
+                return new RightsResult(new List<ScopeRights> { originalRightsResult.RightsPerScope[scopeKey] });
+            }
+
+            return new RightsResult();
         }
 
         private static void IterateThroughParents(ScopeRightsWithParents right, Dictionary<Guid, ScopeRightsWithParents> rights)

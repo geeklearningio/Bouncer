@@ -1,11 +1,10 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
+    using Caching;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Storage;
     using Model;
-    using Projections;
     using System;
-    using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
 
@@ -14,21 +13,23 @@
     {
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
-        private readonly Dictionary<Guid, List<ScopeRightsWithParents>> flatResultsCache = new Dictionary<Guid, List<ScopeRightsWithParents>>();
+        private readonly IAuthorizationsCacheClient cacheClient;
 
-        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider)
+        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, IAuthorizationsCacheClient cacheClient)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
+            this.cacheClient = cacheClient;
         }
 
         public async Task<RightsResult> GetRightsAsync(string scopeKey, Guid? principalIdOverride = null, bool withChildren = false)
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
 
-            if (flatResultsCache.ContainsKey(principalId))
+            var fromCache = await this.cacheClient.GetRightsAsync(principalId);
+            if (fromCache != null)
             {
-                return flatResultsCache[principalId].GetResultForScopeName(scopeKey, withChildren);
+                return fromCache.GetResultForScopeName(scopeKey, withChildren);
             }
 
             using (RelationalDataReader dataReader = await this.context.Database.ExecuteSqlCommandExtAsync(
@@ -39,15 +40,16 @@
                 }))
             {
                 var rights = await dataReader.FromFlatResultToRightsResultAsync();
-                flatResultsCache.Add(principalId, rights);
-                return rights.GetResultForScopeName(scopeKey, withChildren);
+                var rightsResult = new RightsResult(rights);
+                await this.cacheClient.StoreRightsAsync(principalId, rightsResult);
+
+                return rightsResult.GetResultForScopeName(scopeKey, withChildren);
             }
         }
 
         public async Task<bool> HasRightAsync(string rightKey, string scopeKey, Guid? principalIdOverride = null)
         {
             RightsResult result = await this.GetRightsAsync(scopeKey, principalIdOverride);
-
             return result.HasRightOnScope(rightKey, scopeKey);
         }
     }
