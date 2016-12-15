@@ -7,9 +7,9 @@
 
     public interface IAuthorizationsCacheClient
     {
-        Task StoreRightsAsync(Guid principalId, IEnumerable<ScopeRights> rights);
+        Task StoreRightsAsync(Guid principalId, IEnumerable<ScopeRightsWithParents> rights);
 
-        Task<IEnumerable<ScopeRights>> GetRightsAsync(Guid principalId);
+        Task<IEnumerable<ScopeRightsWithParents>> GetRightsAsync(Guid principalId);
 
         Task RemoveRightsAsync(Guid principalId);
     }

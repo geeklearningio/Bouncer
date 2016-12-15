@@ -36,8 +36,9 @@
             var rightsFromCache = await this.cacheClient.GetRightsAsync(principalId);
             if (rightsFromCache != null)
             {
-                this.scopeRightsScopedCache.Add(principalId, rightsFromCache);
-                return rightsFromCache.GetResultForScopeName(scopeKey, withChildren);
+                var rights = rightsFromCache.ParseInheritedRights();
+                this.scopeRightsScopedCache.Add(principalId, rights);
+                return rights.GetResultForScopeName(scopeKey, withChildren);
             }
 
             using (RelationalDataReader dataReader = await this.context.Database.ExecuteSqlCommandExtAsync(
@@ -47,9 +48,12 @@
                     new SqlParameter("@principalId", principalId)
                 }))
             {
-                var rights = await dataReader.FromFlatResultToRightsResultAsync();
-                await this.cacheClient.StoreRightsAsync(principalId, rights);
-                this.scopeRightsScopedCache.Add(principalId, rightsFromCache);
+                var rightsWithParents = await dataReader.FromFlatResultToRightsResultAsync();
+                await this.cacheClient.StoreRightsAsync(principalId, rightsWithParents);
+
+                var rights = rightsWithParents.ParseInheritedRights();
+
+                this.scopeRightsScopedCache.Add(principalId, rights);
                 return rights.GetResultForScopeName(scopeKey, withChildren);
             }
         }

@@ -40,7 +40,7 @@
             return new RightsResult(scopeRights);
         }
 
-        public async static Task<List<ScopeRightsWithParents>> FromFlatResultToRightsResultAsync(this RelationalDataReader relationalReader)
+        public async static Task<IEnumerable<ScopeRightsWithParents>> FromFlatResultToRightsResultAsync(this RelationalDataReader relationalReader)
         {
             var principalScopeRights = new List<PrincipalScopeRight>();
             var reader = relationalReader.DbDataReader;
@@ -56,7 +56,7 @@
                 principalScopeRights.Add(right);
             }
 
-            var rights = principalScopeRights
+            return principalScopeRights
                 .GroupBy(psr => psr.ScopeId)
                 .Select(g => new ScopeRightsWithParents
                 {
@@ -67,17 +67,22 @@
                     InheritedRightKeys = new List<string>(),
                     ScopeHierarchies = new List<string>(),
                 })
-                .ToDictionary(r => r.ScopeId, r => r);
+                .ToList();
+        }
 
-            foreach (var right in rights)
+        public static IEnumerable<ScopeRights> ParseInheritedRights(this IEnumerable<ScopeRightsWithParents> rights)
+        {
+            var indexedRights = rights.ToDictionary(r => r.ScopeId, r => r);
+
+            foreach (var right in indexedRights)
             {
                 if (!right.Value.ParentsIterationDone)
                 {
-                    IterateThroughParents(right.Value, rights);
+                    IterateThroughParents(right.Value, indexedRights);
                 }
             }
 
-            return rights
+            return indexedRights
                 .Where(r => r.Value.InheritedRightKeys.Any())
                 .Select(r => r.Value)
                 .ToList();
@@ -106,7 +111,7 @@
             return new RightsResult();
         }
 
-        private static void IterateThroughParents(ScopeRightsWithParents right, Dictionary<Guid, ScopeRightsWithParents> rights)
+        private static void IterateThroughParents(ScopeRightsWithParents right, IReadOnlyDictionary<Guid, ScopeRightsWithParents> rights)
         {
             if (right.ParentsIterationDone)
             {

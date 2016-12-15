@@ -8,9 +8,9 @@
 
     public class DefaultAuthorizationsCacheClient : IAuthorizationsCacheClient
     {
-        public Task<IEnumerable<ScopeRights>> GetRightsAsync(Guid principalId)
+        public Task<IEnumerable<ScopeRightsWithParents>> GetRightsAsync(Guid principalId)
         {
-            return Task.FromResult<IEnumerable<ScopeRights>>(null);
+            return Task.FromResult<IEnumerable<ScopeRightsWithParents>>(null);
         }
 
         public Task RemoveRightsAsync(Guid principalId)
@@ -18,7 +18,7 @@
             return Task.CompletedTask;
         }
 
-        public Task StoreRightsAsync(Guid principalId, IEnumerable<ScopeRights> rights)
+        public Task StoreRightsAsync(Guid principalId, IEnumerable<ScopeRightsWithParents> rights)
         {
             return Task.CompletedTask;
         }

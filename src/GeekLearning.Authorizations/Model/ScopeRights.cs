@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Authorizations.Model
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -16,10 +17,12 @@
 
         public string ScopeName { get; set; }
 
+        [JsonIgnore]
         public IEnumerable<string> InheritedRightKeys { get; set; }
 
         public IEnumerable<string> ExplicitRightKeys { get; set; }
 
+        [JsonIgnore]
         public IEnumerable<string> ScopeHierarchies { get; set; }
     }
 }
