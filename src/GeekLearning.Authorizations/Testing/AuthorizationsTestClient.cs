@@ -3,6 +3,7 @@
     using Model;
     using System;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     public class AuthorizationsTestClient : IAuthorizationsClient
     {
@@ -29,6 +30,11 @@
             RightsResult result = await this.GetRightsAsync(scopeKey, principalIdOverride);
 
             return result.HasRightOnScope(rightKey, scopeKey);
+        }
+
+        public Task<IEnumerable<string>> GetParentScopes(string scopeKey)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -57,7 +57,7 @@
                                                                   .Include(a => a.Role)
                                                                   .Where(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId)
                                                                   .ToList();
-                
+
                 Assert.True(authorizations.Any(a => a.Role.Name == "role1"));
                 Assert.True(authorizations.Any(s => s.Scope.Name == "scope1"));
                 Assert.True(authorizations.Any(s => s.Scope.Name == "scope2"));
@@ -152,6 +152,29 @@
                 Assert.True(result.HasRightUnderScope("Scope1", "right3"));
 
                 Assert.True(await authorizationsFixture.AuthorizationsClient.HasRightAsync("right3", "Scope1_Child1"));
+            }
+        }
+
+        [Fact]
+        public async Task GetParentScopes_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                string[] parentScopesTest = new string[] { "ScopeParent1", "ScopeParent2", "ScopeParent3" };
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                    .CreateScopeAsync(
+                        "scope1",
+                        "scope1",
+                        parentScopesTest);
+
+                authorizationsFixture.Context.SaveChanges();
+
+                var parentScopes = await authorizationsFixture.AuthorizationsClient.GetParentScopes("scope1");
+
+                for (int i = 0; i < parentScopesTest.Length; i++)
+                {
+                    Assert.Equal(parentScopesTest[i], parentScopes.ElementAt(i));
+                }
             }
         }
     }
