@@ -11,6 +11,6 @@
 
         Task<bool> HasRightAsync(string rightKey, string scopeKey, Guid? principalIdOverride = null);
 
-        Task<IEnumerable<string>> GetParentScopes(string scopeKey);
+        Task<IEnumerable<string>> GetParentScopesAsync(string scopeKey);
     }
 }

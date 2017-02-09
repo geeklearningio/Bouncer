@@ -65,7 +65,7 @@
             return result.HasRightOnScope(rightKey, scopeKey);
         }
 
-        public Task<IEnumerable<string>> GetParentScopes(string scopeKey)
+        public Task<IEnumerable<string>> GetParentScopesAsync(string scopeKey)
         {
             return this.context
                 .Scopes()

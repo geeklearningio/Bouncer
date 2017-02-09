@@ -169,7 +169,7 @@
 
                 authorizationsFixture.Context.SaveChanges();
 
-                var parentScopes = await authorizationsFixture.AuthorizationsClient.GetParentScopes("scope1");
+                var parentScopes = await authorizationsFixture.AuthorizationsClient.GetParentScopesAsync("scope1");
 
                 for (int i = 0; i < parentScopesTest.Length; i++)
                 {
