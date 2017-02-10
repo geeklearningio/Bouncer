@@ -117,7 +117,7 @@
                 {
                     ScopeId = Guid.NewGuid(),
                     ScopeName = "Scope1",
-                    InheritedRightKeys = new string[] { "right1", "right2" },
+                    RightKeys = new string[] { "right1", "right2" },
                     ExplicitRightKeys = new string[] { "right1", "right2" },
                     ScopeHierarchies = new List<string> { "Scope1" }
                 },
@@ -125,7 +125,7 @@
                 {
                     ScopeId = Guid.NewGuid(),
                     ScopeName = "Scope1_Child1",
-                    InheritedRightKeys = new string[] { "right1", "right2", "right3" },
+                    RightKeys = new string[] { "right1", "right2", "right3" },
                     ExplicitRightKeys = new string[] { "right3" },
                     ScopeHierarchies = new List<string> { "Scope1/Scope1_Child1" }
                 },
@@ -133,7 +133,7 @@
                 {
                     ScopeId = Guid.NewGuid(),
                     ScopeName = "Scope2_Child1",
-                    InheritedRightKeys = new string[] { "right4" },
+                    RightKeys = new string[] { "right4" },
                     ExplicitRightKeys = new string[] { "right4" },
                     ScopeHierarchies = new List<string> { "Scope2/Scope2_Child1" }
                 }
@@ -152,29 +152,6 @@
                 Assert.True(result.HasRightUnderScope("Scope1", "right3"));
 
                 Assert.True(await authorizationsFixture.AuthorizationsClient.HasRightAsync("right3", "Scope1_Child1"));
-            }
-        }
-
-        [Fact]
-        public async Task GetParentScopes_ShouldBeOk()
-        {
-            using (var authorizationsFixture = new AuthorizationsFixture())
-            {
-                string[] parentScopesTest = new string[] { "ScopeParent1", "ScopeParent2", "ScopeParent3" };
-                await authorizationsFixture.AuthorizationsProvisioningClient
-                    .CreateScopeAsync(
-                        "scope1",
-                        "scope1",
-                        parentScopesTest);
-
-                authorizationsFixture.Context.SaveChanges();
-
-                var parentScopes = await authorizationsFixture.AuthorizationsClient.GetParentScopesAsync("scope1");
-
-                for (int i = 0; i < parentScopesTest.Length; i++)
-                {
-                    Assert.Equal(parentScopesTest[i], parentScopes.ElementAt(i));
-                }
             }
         }
     }

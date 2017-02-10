@@ -35,21 +35,34 @@
             }
         }
 
-        private IEnumerable<string> ComputeScopedRights()
-        {
-            return this.RightsPerScope
-                       .Values
-                       .SelectMany(sr => sr.ScopeHierarchies.SelectMany(sh => sh.Split('/')))
-                       .Distinct()
-                       .ToList();
-        }
-
         public bool HasRightOnScope(string right, string scope)
         {
             ScopeRights rightsForScope;
             if (RightsPerScope.TryGetValue(scope, out rightsForScope))
             {
+                return rightsForScope.RightKeys.Contains(right);
+            }
+
+            return false;
+        }
+
+        public bool HasInheritedRightOnScope(string right, string scope)
+        {
+            ScopeRights rightsForScope;
+            if (RightsPerScope.TryGetValue(scope, out rightsForScope))
+            {
                 return rightsForScope.InheritedRightKeys.Contains(right);
+            }
+
+            return false;
+        }
+
+        public bool HasExplicitRightOnScope(string right, string scope)
+        {
+            ScopeRights rightsForScope;
+            if (RightsPerScope.TryGetValue(scope, out rightsForScope))
+            {
+                return rightsForScope.ExplicitRightKeys.Contains(right);
             }
 
             return false;
@@ -64,7 +77,7 @@
         {
             return this.RightsPerScope
                        .Values
-                       .Where(rs => rs.InheritedRightKeys.Contains(right) && rs.ScopeHierarchies.Any(sh => sh.Contains(scope)))
+                       .Where(rs => rs.RightKeys.Contains(right) && rs.ScopeHierarchies.Any(sh => sh.Contains(scope)))
                        .Any();
         }
 
@@ -73,6 +86,15 @@
             this.rightsPerScopeInternal[key] = scopeRights;
             this.rightsPerScope = null;
             this.scopesWithRights = null;
+        }
+
+        private IEnumerable<string> ComputeScopedRights()
+        {
+            return this.RightsPerScope
+                       .Values
+                       .SelectMany(sr => sr.ScopeHierarchies.SelectMany(sh => sh.Split('/')))
+                       .Distinct()
+                       .ToList();
         }
     }
 }
