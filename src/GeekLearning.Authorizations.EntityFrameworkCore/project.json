@@ -1,0 +1,27 @@
+{
+  "version": "0.0.1-*",
+  "description": "Entity Framework Core permission system implementation.",
+  "authors": [ "Geek Learning", "Arnaud Auroux", "Adrien Siffermann", "Cyprien Autexier" ],
+  "packOptions": {
+    "tags": [],
+    "projectUrl": "",
+    "licenseUrl": "",
+    "files": {
+      "include": [ "Sql\\**\\*" ]
+    }
+  },
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.1",
+    "Microsoft.EntityFrameworkCore": "1.1.0",
+    "Microsoft.EntityFrameworkCore.Relational": "1.1.0",
+    "System.Data.SqlClient": "4.3.0",
+    "Newtonsoft.Json": "9.0.1",
+
+    "GeekLearning.Authorizations": "*"
+  },
+
+  "frameworks": {
+    "netstandard1.3": {}
+  }
+}
