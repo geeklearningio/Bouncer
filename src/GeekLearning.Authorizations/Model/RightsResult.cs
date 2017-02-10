@@ -68,6 +68,17 @@
             return false;
         }
 
+        public bool HasAnyExplicitRightOnScope(string scope)
+        {
+            ScopeRights rightsForScope;
+            if (RightsPerScope.TryGetValue(scope, out rightsForScope))
+            {
+                return rightsForScope.ExplicitRightKeys.Any();
+            }
+
+            return false;
+        }
+
         public bool HasAnyRightUnderScope(string scope)
         {
             return this.ScopesWithRights.Contains(scope);

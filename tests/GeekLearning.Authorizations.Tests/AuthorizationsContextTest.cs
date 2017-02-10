@@ -119,6 +119,7 @@
                     ScopeName = "Scope1",
                     RightKeys = new string[] { "right1", "right2" },
                     ExplicitRightKeys = new string[] { "right1", "right2" },
+                    InheritedRightKeys = new string[] {},
                     ScopeHierarchies = new List<string> { "Scope1" }
                 },
                 new ScopeRights
@@ -127,6 +128,7 @@
                     ScopeName = "Scope1_Child1",
                     RightKeys = new string[] { "right1", "right2", "right3" },
                     ExplicitRightKeys = new string[] { "right3" },
+                    InheritedRightKeys = new string[] { "right1", "right2" },
                     ScopeHierarchies = new List<string> { "Scope1/Scope1_Child1" }
                 },
                 new ScopeRights
@@ -135,7 +137,17 @@
                     ScopeName = "Scope2_Child1",
                     RightKeys = new string[] { "right4" },
                     ExplicitRightKeys = new string[] { "right4" },
+                    InheritedRightKeys = new string[] {},
                     ScopeHierarchies = new List<string> { "Scope2/Scope2_Child1" }
+                },
+                new ScopeRights
+                {
+                    ScopeId = Guid.NewGuid(),
+                    ScopeName = "Scope1_Child2",
+                    RightKeys = new string[] { "right1", "right2" },
+                    ExplicitRightKeys = new string[] {},
+                    InheritedRightKeys = new string[] { "right1", "right2" },
+                    ScopeHierarchies = new List<string> { "Scope1/Scope1_Child2" }
                 }
             });
 
@@ -150,6 +162,8 @@
                 Assert.True(result.HasAnyRightUnderScope("Scope1_Child1"));
                 Assert.True(result.HasAnyRightUnderScope("Scope2"));
                 Assert.True(result.HasRightUnderScope("Scope1", "right3"));
+                Assert.False(result.HasAnyExplicitRightOnScope("Scope1_Child2"));
+                Assert.True(result.HasInheritedRightOnScope("right1", "Scope1_Child2"));
 
                 Assert.True(await authorizationsFixture.AuthorizationsClient.HasRightAsync("right3", "Scope1_Child1"));
             }
