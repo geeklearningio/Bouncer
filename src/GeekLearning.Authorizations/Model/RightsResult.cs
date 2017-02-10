@@ -73,7 +73,9 @@
             ScopeRights rightsForScope;
             if (RightsPerScope.TryGetValue(scope, out rightsForScope))
             {
-                return rightsForScope.ExplicitRightKeys.Any();
+                return rightsForScope.ExplicitRightKeys
+                    .Except(rightsForScope.InheritedRightKeys)
+                    .Any();
             }
 
             return false;
