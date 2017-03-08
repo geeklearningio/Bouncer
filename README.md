@@ -4,7 +4,7 @@
 # Geek Learning Advanced Authorization Library
 
 This library provides all you need to setup a fine grained authorization model. It plugs right into 
-aspnet core authorization model so can start quickly and feel at home.
+ASP.NET Core authorization model so can start quickly and feel at home.
 
 ## Features
 
@@ -15,7 +15,7 @@ aspnet core authorization model so can start quickly and feel at home.
 ## Supported right repositories
 
 The library currently supports:
-* Azure SQL Server storage
+* SQL Server with EF Core
 
 We consider providing an extensibility point to enable support of additional rights repositories
 
