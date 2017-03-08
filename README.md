@@ -10,6 +10,7 @@ ASP.NET Core authorization model so can start quickly and feel at home.
 
 * Hierachical scope based rights provisionning
 * Item level security
+* Default `AuthorizationHandler` and `IAuthorizationRequirement` to plug ASP.NET Core Authorize attributes
 * ...
 
 ## Supported right repositories
