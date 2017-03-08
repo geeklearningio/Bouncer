@@ -9,6 +9,7 @@
     {
         public ScopeRights()
         {
+            this.RightKeys = Enumerable.Empty<string>();
             this.InheritedRightKeys = Enumerable.Empty<string>();
             this.ExplicitRightKeys = Enumerable.Empty<string>();
         }
@@ -16,6 +17,9 @@
         public Guid ScopeId { get; set; }
 
         public string ScopeName { get; set; }
+
+        [JsonIgnore]
+        public IEnumerable<string> RightKeys { get; set; }
 
         [JsonIgnore]
         public IEnumerable<string> InheritedRightKeys { get; set; }
