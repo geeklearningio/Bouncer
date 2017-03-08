@@ -86,7 +86,7 @@
             return this.ScopesWithRights.Contains(scope);
         }
 
-        public bool HasRightUnderScope(string scope, string right)
+        public bool HasRightUnderScope(string right, string scope)
         {
             return this.RightsPerScope
                        .Values
