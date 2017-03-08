@@ -161,7 +161,7 @@
                 Assert.True(result.HasAnyRightUnderScope("Scope1"));
                 Assert.True(result.HasAnyRightUnderScope("Scope1_Child1"));
                 Assert.True(result.HasAnyRightUnderScope("Scope2"));
-                Assert.True(result.HasRightUnderScope("Scope1", "right3"));
+                Assert.True(result.HasRightUnderScope("right3", "Scope1"));
                 Assert.False(result.HasAnyExplicitRightOnScope("Scope1_Child2"));
                 Assert.True(result.HasInheritedRightOnScope("right1", "Scope1_Child2"));
 

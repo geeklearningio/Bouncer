@@ -15,7 +15,7 @@
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AclTreeAuthorizationRequirement requirement)
         {
             var results = await this.authorizationClient.GetRightsAsync(requirement.Scope, withChildren: true);
-            if (results.HasRightUnderScope(requirement.Scope, requirement.Right))
+            if (results.HasRightUnderScope(requirement.Right, requirement.Scope))
             {
                 context.Succeed(requirement);
             }
