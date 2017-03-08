@@ -20,7 +20,7 @@
         public Task AffectRoleToPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey)
         {
             var scopeRights = this.userRightsProvisioningService.CurrentRights.RightsPerScope[scopeKey];
-            List<string> inheritedRights = new List<string>(scopeRights.InheritedRightKeys);
+            List<string> inheritedRights = new List<string>(scopeRights.RightKeys);
             inheritedRights.AddRange(this.roleRights[roleKey]);
 
             this.userRightsProvisioningService.CurrentRights.ReplaceScopeRights(scopeKey, new ScopeRights
@@ -28,7 +28,7 @@
                 ScopeId = scopeRights.ScopeId,
                 ScopeName = scopeRights.ScopeName,
                 ScopeHierarchies = scopeRights.ScopeHierarchies,
-                InheritedRightKeys = inheritedRights.Distinct().ToList()
+                RightKeys = inheritedRights.Distinct().ToList()
             });
 
             return Task.CompletedTask;
@@ -52,7 +52,7 @@
             List<string> parentHierarchies = new List<string>();
             foreach (var parent in parents)
             {
-                inheritedRights.AddRange(this.userRightsProvisioningService.CurrentRights.RightsPerScope[parent].InheritedRightKeys);
+                inheritedRights.AddRange(this.userRightsProvisioningService.CurrentRights.RightsPerScope[parent].RightKeys);
                 parentHierarchies.AddRange(this.userRightsProvisioningService.CurrentRights.RightsPerScope[parent].ScopeHierarchies);
             }
 
@@ -70,7 +70,7 @@
             {
                 ScopeName = scopeKey,
                 ScopeHierarchies = scopeHierarchies,
-                InheritedRightKeys = inheritedRights.Distinct().ToList()
+                RightKeys = inheritedRights.Distinct().ToList()
             };
 
             this.userRightsProvisioningService.CurrentRights.ReplaceScopeRights(scopeKey, scopeRights);                
@@ -106,7 +106,7 @@
                                                                     .ToList();
                 foreach (var scopeRight in scopeRights)
                 {
-                    scopeRight.InheritedRightKeys = scopeRight.InheritedRightKeys.Except(this.roleRights[roleKey]);
+                    scopeRight.RightKeys = scopeRight.RightKeys.Except(this.roleRights[roleKey]);
                 }
 
                 this.userRightsProvisioningService.CurrentRights = new RightsResult(scopeRights);

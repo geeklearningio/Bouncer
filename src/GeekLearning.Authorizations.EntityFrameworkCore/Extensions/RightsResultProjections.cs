@@ -23,7 +23,7 @@
                 var inheritedRights = reader["InheritedRights"] as string;
                 if (inheritedRights != null)
                 {
-                    right.InheritedRightKeys = inheritedRights.Split(',');
+                    right.RightKeys = inheritedRights.Split(',');
                 }
 
                 var explicitRights = reader["ExplicitRights"] as string;
@@ -64,7 +64,7 @@
                     ParentIds = g.Where(psr => psr.ParentScopeId.HasValue).Select(psr => psr.ParentScopeId.Value).ToList(),
                     ScopeName = g.First().ScopeName,
                     ExplicitRightKeys = g.Where(psr => !string.IsNullOrEmpty(psr.RightName)).Select(psr => psr.RightName).ToList(),
-                    InheritedRightKeys = new List<string>(),
+                    RightKeys = new List<string>(),
                     ScopeHierarchies = new List<string>(),
                 })
                 .ToList();
@@ -83,7 +83,7 @@
             }
 
             return indexedRights
-                .Where(r => r.Value.InheritedRightKeys.Any())
+                .Where(r => r.Value.RightKeys.Any())
                 .Select(r => r.Value)
                 .ToList();
         }
@@ -130,10 +130,14 @@
                 parents.Add(parent);
             }
 
-            right.InheritedRightKeys = right.ExplicitRightKeys
-                .Concat(parents.SelectMany(p => p.InheritedRightKeys))
+            right.InheritedRightKeys = parents.SelectMany(p => p.RightKeys)
                 .Distinct()
                 .ToList();
+
+            right.RightKeys = right.ExplicitRightKeys
+               .Concat(right.InheritedRightKeys)
+               .Distinct()
+               .ToList();
 
             if (parents.Any())
             {

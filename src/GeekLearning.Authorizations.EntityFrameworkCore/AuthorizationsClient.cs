@@ -64,15 +64,5 @@
             RightsResult result = await this.GetRightsAsync(scopeKey, principalIdOverride);
             return result.HasRightOnScope(rightKey, scopeKey);
         }
-
-        public Task<IEnumerable<string>> GetParentScopesAsync(string scopeKey)
-        {
-            return this.context
-                .Scopes()
-                .Where(s => s.Name == scopeKey)
-                .Include(s => s.Parents)
-                .FirstOrDefaultAsync()
-                .ContinueWith(t => t?.Result?.Parents?.Select(p => p.Parent.Name).ToList().AsEnumerable());
-        }
     }
 }
