@@ -4,6 +4,7 @@
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Threading.Tasks;
 
     public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
@@ -229,15 +230,20 @@
             }
         }
 
-        private async Task<TEntity> GetEntityAsync<TEntity>(Func<TEntity, bool> predicate) where TEntity : class
+        private async Task<TEntity> GetEntityAsync<TEntity>(Expression<Func<TEntity, bool>> expression) where TEntity : class
         {
-            var local = this.context.ChangeTracker.Entries<TEntity>().Select(e => e.Entity).FirstOrDefault(predicate);
+            var predicate = expression.Compile();
+            var local = this.context.ChangeTracker
+                .Entries<TEntity>()
+                .Select(e => e.Entity)
+                .FirstOrDefault(predicate);
+
             if (local != null)
             {
                 return local;
             }
 
-            return await this.context.Set<TEntity>().FirstOrDefaultAsync(e => predicate(e));
+            return await this.context.Set<TEntity>().FirstOrDefaultAsync(expression);
         }
     }
 }
