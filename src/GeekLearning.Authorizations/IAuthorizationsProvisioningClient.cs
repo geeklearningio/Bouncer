@@ -5,20 +5,20 @@
 
     public interface IAuthorizationsProvisioningClient
     {
-        Task CreateScopeAsync(string scopeKey, string description, params string[] parents);
+        Task CreateScopeAsync(string scopeName, string description, params string[] parents);
 
-        Task DeleteScopeAsync(string scopeKey);
+        Task DeleteScopeAsync(string scopeName);
 
-        Task CreateRightAsync(string rightKey);
+        Task CreateRightAsync(string rightName);
 
-        Task DeleteRightAsync(string rightKey);
+        Task DeleteRightAsync(string rightName);
 
-        Task CreateRoleAsync(string roleKey, string[] rights);
+        Task CreateRoleAsync(string roleName, string[] rightNames);
         
-        Task DeleteRoleAsync(string roleKey);
+        Task DeleteRoleAsync(string roleName);
 
-        Task AffectRoleToPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey);
+        Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
 
-        Task UnaffectRoleFromPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey);
+        Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
     }
 }

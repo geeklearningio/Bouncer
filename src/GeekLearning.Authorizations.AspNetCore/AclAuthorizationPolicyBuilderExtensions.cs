@@ -4,14 +4,14 @@
 
     public static class AclAuthorizationPolicyBuilderExtensions
     {
-        public static AuthorizationPolicyBuilder RequireRightOnScope(this AuthorizationPolicyBuilder builder, string rightKey, string scopeKey)
+        public static AuthorizationPolicyBuilder RequireRightOnScope(this AuthorizationPolicyBuilder builder, string rightName, string scopeName)
         {
-            return builder.AddRequirements(new AclDirectAuthorizationRequirement(rightKey, scopeKey));
+            return builder.AddRequirements(new AclDirectAuthorizationRequirement(rightName, scopeName));
         }
 
-        public static AuthorizationPolicyBuilder RequireRightUnderScope(this AuthorizationPolicyBuilder builder, string rightKey, string scopeKey)
+        public static AuthorizationPolicyBuilder RequireRightUnderScope(this AuthorizationPolicyBuilder builder, string rightName, string scopeName)
         {
-            return builder.AddRequirements(new AclTreeAuthorizationRequirement(rightKey, scopeKey)); 
+            return builder.AddRequirements(new AclTreeAuthorizationRequirement(rightName, scopeName)); 
         }
     }
 }

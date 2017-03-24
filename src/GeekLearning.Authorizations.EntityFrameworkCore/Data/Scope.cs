@@ -1,4 +1,4 @@
-﻿namespace GeekLearning.Authorizations.Data
+﻿namespace GeekLearning.Authorizations.EntityFrameworkCore.Data
 {
     using System;
     using System.Collections.Generic;

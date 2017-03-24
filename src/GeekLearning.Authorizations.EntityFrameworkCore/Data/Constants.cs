@@ -1,4 +1,4 @@
-﻿namespace GeekLearning.Authorizations
+﻿namespace GeekLearning.Authorizations.EntityFrameworkCore.Data
 {
     public class Constants
     {

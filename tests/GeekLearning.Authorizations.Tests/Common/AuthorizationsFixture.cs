@@ -3,21 +3,11 @@
     using EntityFrameworkCore;
     using Microsoft.Data.Sqlite;
     using Microsoft.EntityFrameworkCore;
-    using Model;
     using System;
-    using Testing;
 
     public sealed class AuthorizationsFixture : IDisposable
     {
-        private UserRightsProviderService userRightsProviderService = new UserRightsProviderService();
-
-        public AuthorizationsTestContext Context { get; private set; }
-
-        public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient { get; private set; }
-
-        public IAuthorizationsClient AuthorizationsClient { get; private set; }
-
-        public AuthorizationsFixture(bool mockProvisioning = false)
+        public AuthorizationsFixture()
         {
             var builder = new DbContextOptionsBuilder<AuthorizationsTestContext>();
 
@@ -30,27 +20,24 @@
             builder.UseSqlite(connection);
 
             this.Context = new AuthorizationsTestContext(builder.Options);
-
             this.Context.Database.EnsureCreated();
-
             this.Context.Seed();
 
-            if (mockProvisioning)
-            {
-                this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningTestClient(this.userRightsProviderService);
-            }
-            else
-            {
-                this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningClient<AuthorizationsTestContext>(this.Context, new PrincipalIdProvider(this.Context));
-            }
+            this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningClient<AuthorizationsTestContext>(
+                this.Context, 
+                new PrincipalIdProvider(this.Context));
 
-            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(this.Context, new PrincipalIdProvider(this.Context), new Caching.DefaultAuthorizationsCacheClient());
+            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(
+                this.Context, 
+                new PrincipalIdProvider(this.Context), 
+                new EntityFrameworkCore.Caching.AuthorizationsCacheProvider<AuthorizationsTestContext>(this.Context));
         }
 
-        public AuthorizationsFixture(RightsResult rightsResult, bool mockProvisioning = false) : this(mockProvisioning)
-        {
-            this.AuthorizationsClient = new AuthorizationsTestClient(this.userRightsProviderService, rightsResult);
-        }
+        public AuthorizationsTestContext Context { get; private set; }
+
+        public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient { get; private set; }
+
+        public IAuthorizationsClient AuthorizationsClient { get; private set; }
 
         public void Dispose()
         {

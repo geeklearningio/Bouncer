@@ -52,6 +52,11 @@
                 entity.MapToTable("Authorization", schemaName);
                 entity.HasIndex(a => new { a.RoleId, a.ScopeId, a.PrincipalId }).IsUnique();
             });
+
+            modelBuilder.Entity<ModelModificationDate>(entity =>
+            {
+                entity.MapToTable("ModelModificationDate", schemaName);
+            });
         }
 
         public static DbSet<Authorization> Authorizations<TContext>(this TContext context)
@@ -94,6 +99,12 @@
            where TContext : DbContext
         {
             return context.Set<ScopeHierarchy>();
+        }
+
+        public static DbSet<ModelModificationDate> ModelModificationDates<TContext>(this TContext context)
+            where TContext : DbContext
+        {
+            return context.Set<ModelModificationDate>();
         }
 
         public static PropertyBuilder<TProperty> AddPrincipalRelationship<TProperty>(this PropertyBuilder<TProperty> propertyBuilder)
