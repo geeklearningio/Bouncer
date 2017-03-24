@@ -10,7 +10,6 @@
 
     public class AuthorizationsCacheProvider<TContext> : IAuthorizationsCacheProvider where TContext : DbContext
     {
-        private const string CachedModelModificationDateKey = "CachedModelModificationDate";
         private readonly TContext context;
         private readonly IMemoryCache memoryCache;
 
@@ -102,26 +101,22 @@
             TCacheableObject cacheableObject;
             if (this.memoryCache != null)
             {
-                var cachedModelModificationDate = this.memoryCache.Get<Data.ModelModificationDate>(CachedModelModificationDateKey);
+                cacheableObject = this.memoryCache.Get<TCacheableObject>(cacheKey);
                 var databaseModelModificationDate = await SharedQueries.GetModelModificationDateAsync(this.context);
 
-                if (cachedModelModificationDate != null
-                    && getModificationDate(databaseModelModificationDate) <= getModificationDate(cachedModelModificationDate))
+                if (cacheableObject != null
+                    && getModificationDate(databaseModelModificationDate) <= cacheableObject.CacheValuesDateTime)
                 {
-                    cacheableObject = this.memoryCache.Get<TCacheableObject>(cacheKey);
-                    if (cacheableObject != null)
-                    {
-                        return cacheableObject;
-                    }
+                    return cacheableObject;
                 }
 
                 cacheableObject = await queryCacheableObject();
+                cacheableObject.CacheValuesDateTime = getModificationDate(databaseModelModificationDate);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                     .SetPriority(CacheItemPriority.NeverRemove);
 
                 this.memoryCache.Set(cacheKey, cacheableObject, cacheEntryOptions);
-                this.memoryCache.Set(CachedModelModificationDateKey, databaseModelModificationDate, cacheEntryOptions);
 
                 return cacheableObject;
             }
