@@ -1,10 +1,11 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore.Caching
 {
-    using Newtonsoft.Json;
+    using System;
 
     public interface ICacheableObject
     {
-        [JsonIgnore]
         string CacheKey { get; }
+
+        DateTime CacheValuesDateTime { get; set; }
     }
 }
