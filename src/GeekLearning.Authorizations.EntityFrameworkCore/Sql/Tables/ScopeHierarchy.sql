@@ -6,3 +6,15 @@
     CONSTRAINT [FK_ScopeHierarchy_ParentScope] FOREIGN KEY ([ParentId]) REFERENCES [Authorizations].[Scope] ([Id])
 );
 
+
+
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_ScopeHierarchy_ChildId]
+    ON [Authorizations].[ScopeHierarchy]([ChildId] ASC)
+    INCLUDE([ParentId]);
+
+
+

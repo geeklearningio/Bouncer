@@ -19,3 +19,17 @@
 
 
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Authorization_ScopeId_PrincipalId]
+    ON [Authorizations].[Authorization]([ScopeId] ASC, [PrincipalId] ASC)
+    INCLUDE([RoleId]);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Authorization_PrincipalId]
+    ON [Authorizations].[Authorization]([PrincipalId] ASC)
+    INCLUDE([RoleId], [ScopeId]);
+

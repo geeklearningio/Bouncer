@@ -2,7 +2,7 @@
 {
     public class AclTreeAuthorizationRequirement : AclAuthorizationRequirement
     {
-        public AclTreeAuthorizationRequirement(string right, string scope) : base(right, scope)
+        public AclTreeAuthorizationRequirement(string rightName, string scopeName) : base(rightName, scopeName)
         { 
         }
     }

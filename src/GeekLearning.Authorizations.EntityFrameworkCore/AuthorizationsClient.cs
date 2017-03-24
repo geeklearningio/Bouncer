@@ -1,68 +1,73 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
-    using Caching;
+    using Authorizations.Model;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Storage;
     using Model;
     using System;
-    using System.Linq;
     using System.Collections.Generic;
-    using System.Data.SqlClient;
+    using System.Linq;
     using System.Threading.Tasks;
 
-    public class AuthorizationsClient
-        <TContext> : IAuthorizationsClient where TContext : DbContext
+    public class AuthorizationsClient<TContext> : IAuthorizationsClient where TContext : DbContext
     {
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
-        private readonly IAuthorizationsCacheClient cacheClient;
-        private readonly Dictionary<Guid, IEnumerable<ScopeRights>> scopeRightsScopedCache = new Dictionary<Guid, IEnumerable<ScopeRights>>();
+        private readonly Caching.IAuthorizationsCacheProvider authorizationsCacheProvider;
+        private readonly Dictionary<Guid, Dictionary<Guid, ParsedScope>> parsedScopesPerPrincipal = new Dictionary<Guid, Dictionary<Guid, ParsedScope>>();
 
-        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, IAuthorizationsCacheClient cacheClient)
+        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, Caching.IAuthorizationsCacheProvider authorizationsCacheProvider)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
-            this.cacheClient = cacheClient;
+            this.authorizationsCacheProvider = authorizationsCacheProvider;
         }
 
-        public async Task<RightsResult> GetRightsAsync(string scopeKey, Guid? principalIdOverride = null, bool withChildren = false)
+        public async Task<PrincipalRights> GetRightsAsync(string scopeName, Guid? principalIdOverride = null, bool withChildren = false)
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
 
-            if (scopeRightsScopedCache.ContainsKey(principalId))
+            Dictionary<Guid, ParsedScope> parsedScopes;
+            if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out parsedScopes))
             {
-                return this.scopeRightsScopedCache[principalId].GetResultForScopeName(scopeKey, withChildren);
-            }
+                var roles = await this.authorizationsCacheProvider.GetRolesAsync();
+                var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
 
-            var rightsFromCache = await this.cacheClient.GetRightsAsync(principalId);
-            if (rightsFromCache != null)
-            {
-                var rights = rightsFromCache.ParseInheritedRights();
-                this.scopeRightsScopedCache.Add(principalId, rights);
-                return rights.GetResultForScopeName(scopeKey, withChildren);
-            }
+                var principalRightsPerScope = (await this.context.Authorizations()
+                    .Where(a => a.PrincipalId == principalId)
+                    .Select(a => new { a.ScopeId, a.RoleId })
+                    .ToListAsync())
+                    .GroupBy(a => a.ScopeId)
+                    .ToDictionary(
+                        ag => ag.Key,
+                        ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>()).ToArray());
 
-            using (RelationalDataReader dataReader = await this.context.Database.ExecuteSqlCommandExtAsync(
-                $"select * from Authorizations.PrincipalScopeRight where PrincipalId = @principalId",
-                parameters: new object[]
+                var rootScopes = scopes
+                    .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())
+                    .Select(s => s.Value)
+                    .ToList();
+
+                parsedScopes = new Dictionary<Guid, ParsedScope>();
+                foreach (var rootScope in rootScopes)
                 {
-                    new SqlParameter("@principalId", principalId)
-                }))
-            {
-                var rightsWithParents = await dataReader.FromFlatResultToRightsResultAsync();
-                await this.cacheClient.StoreRightsAsync(principalId, rightsWithParents);
+                    ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes);
+                }
 
-                var rights = rightsWithParents.ParseInheritedRights();
-
-                this.scopeRightsScopedCache.Add(principalId, rights);
-                return rights.GetResultForScopeName(scopeKey, withChildren);
+                this.parsedScopesPerPrincipal.Add(principalId, parsedScopes);
             }
+
+            var askedParsedScope = parsedScopes.Values.FirstOrDefault(s => s.Scope.Name == scopeName);
+            if (askedParsedScope == null)
+            {
+                return new PrincipalRights(principalId, scopeName, Enumerable.Empty<ScopeRights>());
+            }
+
+            return askedParsedScope.ToPrincipalRights(principalId);
         }
 
-        public async Task<bool> HasRightAsync(string rightKey, string scopeKey, Guid? principalIdOverride = null)
+        public async Task<bool> HasRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null)
         {
-            RightsResult result = await this.GetRightsAsync(scopeKey, principalIdOverride);
-            return result.HasRightOnScope(rightKey, scopeKey);
+            var principalRights = await this.GetRightsAsync(scopeName, principalIdOverride);
+            return principalRights.HasRightOnScope(rightName, scopeName);
         }
     }
 }

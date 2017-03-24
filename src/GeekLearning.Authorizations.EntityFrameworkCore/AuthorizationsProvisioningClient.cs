@@ -10,7 +10,6 @@
     public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
     {
         private readonly TContext context;
-
         private readonly IPrincipalIdProvider principalIdProvider;
 
         public AuthorizationsProvisioningClient(TContext context, IPrincipalIdProvider principalIdProvider)
@@ -19,18 +18,18 @@
             this.principalIdProvider = principalIdProvider;
         }
 
-        public async Task AffectRoleToPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey)
+        public async Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
         {
-            Data.Role role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleKey);
+            Data.Role role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
             if (role == null)
             {
-                throw new EntityNotFoundException(roleKey);
+                throw new EntityNotFoundException(roleName);
             }
 
-            Data.Scope scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeKey);
+            Data.Scope scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
             if (scope == null)
             {
-                throw new EntityNotFoundException(scopeKey);
+                throw new EntityNotFoundException(scopeName);
             }
 
             Data.Principal principal = await this.GetEntityAsync<Data.Principal>(s => s.Id == principalId);
@@ -65,12 +64,12 @@
             }
         }
 
-        public async Task UnaffectRoleFromPrincipalOnScopeAsync(string roleKey, Guid principalId, string scopeKey)
+        public async Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
         {
-            Data.Role role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleKey);
+            Data.Role role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
             if (role != null)
             {
-                Data.Scope scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeKey);
+                Data.Scope scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
                 if (scope != null)
                 {
                     var localAuthorization = context.ChangeTracker.Entries<Data.Authorization>()
@@ -94,38 +93,41 @@
             }
         }
 
-        public async Task CreateRightAsync(string rightKey)
+        public async Task CreateRightAsync(string rightName)
         {
-            var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightKey);
+            var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightName);
             if (right == null)
             {
                 var rightEntity = this.context.Set<Data.Right>().Add(new Data.Right
                 {
-                    Name = rightKey,
+                    Name = rightName,
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
+
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Rights = DateTime.UtcNow;
             }
         }
 
-        public async Task CreateRoleAsync(string roleKey, string[] rights)
+        public async Task CreateRoleAsync(string roleName, string[] rightNames)
         {
-            var role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleKey);
+            var role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
             if (role == null)
             {
                 role = new Data.Role
                 {
-                    Name = roleKey,
+                    Name = roleName,
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 };
 
                 this.context.Set<Data.Role>().Add(role);
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Roles = DateTime.UtcNow;
             }
 
-            if (rights != null)
+            if (rightNames != null)
             {
-                foreach (var rightName in rights)
+                foreach (var rightName in rightNames)
                 {
                     await this.CreateRightAsync(rightName);
 
@@ -141,25 +143,27 @@
                         Right = right,
                         Role = role
                     });
+                    (await SharedQueries.GetModelModificationDateAsync(this.context)).Rights = DateTime.UtcNow;
                 }
             }
         }
 
-        public async Task CreateScopeAsync(string scopeKey, string description, params string[] parents)
+        public async Task CreateScopeAsync(string scopeName, string description, params string[] parents)
         {
-            var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeKey);
+            var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
 
             if (scope == null)
             {
                 scope = new Data.Scope
                 {
-                    Name = scopeKey,
+                    Name = scopeName,
                     Description = description,
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 };
 
                 this.context.Set<Data.Scope>().Add(scope);
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
 
             if (parents != null)
@@ -183,18 +187,19 @@
             }
         }
 
-        public async Task DeleteRightAsync(string rightKey)
+        public async Task DeleteRightAsync(string rightName)
         {
-            var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightKey);
+            var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightName);
             if (right != null)
             {
                 this.context.Set<Data.Right>().Remove(right);
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Rights = DateTime.UtcNow;
             }
         }
 
-        public async Task DeleteRoleAsync(string roleKey)
+        public async Task DeleteRoleAsync(string roleName)
         {
-            var role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleKey);
+            var role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
             if (role != null)
             {
                 var roleRights = await this.context.Set<Data.RoleRight>()
@@ -202,12 +207,13 @@
 
                 this.context.Set<Data.RoleRight>().RemoveRange(roleRights);
                 this.context.Set<Data.Role>().Remove(role);
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Roles = DateTime.UtcNow;
             }
         }
 
-        public async Task DeleteScopeAsync(string scopeKey)
+        public async Task DeleteScopeAsync(string scopeName)
         {
-            var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeKey);
+            var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
             if (scope != null)
             {
                 var childrenScopes = await this.context.Set<Data.Scope>()
@@ -216,7 +222,7 @@
                                                    s => s.Name,
                                                    sh => sh.Parent.Name,
                                                    (s, sh) => new { Scope = s, ScopeHierarchy = sh })
-                                               .Where(r => r.ScopeHierarchy.Parent.Name == scopeKey)
+                                               .Where(r => r.ScopeHierarchy.Parent.Name == scopeName)
                                                .Select(r => r.ScopeHierarchy.Child)
                                                .ToListAsync();
 
@@ -224,9 +230,10 @@
                 this.context.Set<Data.ScopeHierarchy>()
                             .RemoveRange(
                                 await this.context.Set<Data.ScopeHierarchy>()
-                                                  .Where(sh => sh.Parent.Name == scopeKey)
+                                                  .Where(sh => sh.Parent.Name == scopeName)
                                                   .ToListAsync());
                 this.context.Set<Data.Scope>().Remove(scope);
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
         }
 

@@ -12,8 +12,7 @@
             services.AddScoped<IPrincipalIdProvider, TPrincipalIdProvider>();
             services.AddScoped<IAuthorizationsClient, AuthorizationsClient<TContext>>();
             services.AddScoped<IAuthorizationsProvisioningClient, AuthorizationsProvisioningClient<TContext>>();
-
-            services.AddSingleton<Caching.IAuthorizationsCacheClient, Caching.DefaultAuthorizationsCacheClient>();
+            services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider<TContext>>();
 
             return services;
         }
