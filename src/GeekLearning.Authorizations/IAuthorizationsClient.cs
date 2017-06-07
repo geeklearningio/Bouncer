@@ -8,5 +8,7 @@
         Task<Model.PrincipalRights> GetRightsAsync(string scopeName, Guid? principalIdOverride = null, bool withChildren = false);
 
         Task<bool> HasRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null);
+
+        Task<bool> HasExplicitRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null);
     }
 }

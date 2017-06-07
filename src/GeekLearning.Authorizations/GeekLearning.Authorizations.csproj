@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>A permission system implemented in .NET Core.</Description>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <Authors>Geek Learning;Arnaud Auroux;Adrien Siffermann;Cyprien Autexier</Authors>
+    <TargetFramework>netstandard1.1</TargetFramework>
+    <AssemblyName>GeekLearning.Authorizations</AssemblyName>
+    <PackageId>GeekLearning.Authorizations</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+</Project>

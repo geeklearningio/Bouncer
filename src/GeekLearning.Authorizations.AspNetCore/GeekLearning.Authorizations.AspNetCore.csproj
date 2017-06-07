@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>AspNetCore permissions system utilities.</Description>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <Authors>Geek Learning;Arnaud Auroux;Adrien Siffermann;Cyprien Autexier</Authors>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>GeekLearning.Authorizations.AspNetCore</AssemblyName>
+    <PackageId>GeekLearning.Authorizations.AspNetCore</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GeekLearning.Authorizations\GeekLearning.Authorizations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="1.1.1" />
+  </ItemGroup>
+
+</Project>

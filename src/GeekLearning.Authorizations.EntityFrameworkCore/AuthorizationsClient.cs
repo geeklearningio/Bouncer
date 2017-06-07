@@ -69,5 +69,11 @@
             var principalRights = await this.GetRightsAsync(scopeName, principalIdOverride);
             return principalRights.HasRightOnScope(rightName, scopeName);
         }
+
+        public async Task<bool> HasExplicitRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null)
+        {
+            var principalRights = await this.GetRightsAsync(scopeName, principalIdOverride);
+            return principalRights.HasExplicitRightOnScope(rightName, scopeName);
+        }
     }
 }

@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Entity Framework Core permission system implementation.</Description>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <Authors>Geek Learning;Arnaud Auroux;Adrien Siffermann;Cyprien Autexier</Authors>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>GeekLearning.Authorizations.EntityFrameworkCore</AssemblyName>
+    <PackageId>GeekLearning.Authorizations.EntityFrameworkCore</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="Sql\**\*">
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GeekLearning.Authorizations\GeekLearning.Authorizations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="1.1.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.3.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+  </ItemGroup>
+
+</Project>
