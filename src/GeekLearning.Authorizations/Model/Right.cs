@@ -71,7 +71,7 @@
         public static bool operator !=(Right a, Right b)
         {
             return !(a == b);
-        }
+        } 
 
         public override int GetHashCode()
         {
