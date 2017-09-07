@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
     {
@@ -187,6 +188,20 @@
             }
         }
 
+        public async Task CreateGroupAsync(string groupName)
+        {
+            var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group == null)
+            {
+                var groupEntity = this.context.Set<Data.Group>().Add(new Data.Group
+                {
+                    Name = groupName,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                });
+            }
+        }
+
         public async Task DeleteRightAsync(string rightName)
         {
             var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightName);
@@ -235,6 +250,51 @@
                 this.context.Set<Data.Scope>().Remove(scope);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
+        }
+
+        public async Task DeleteGroupAsync(string groupName)
+        {
+            var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group != null)
+            {
+                this.context.Set<Data.Group>().Remove(group);
+            }
+        }
+
+        public async Task AddPrincipalToGroup(Guid principalId, string groupName)
+        {
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
+            if (membership == null)
+            {
+                await this.CreateGroupAsync(groupName);
+                var group = await this.GetEntityAsync<Data.Group>(g => g.Name == groupName);
+                this.context.Set<Data.Membership>().Add(new Data.Membership
+                {
+                    PrincipalId = principalId,
+                    Group = group,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                });
+            }
+        }
+
+        public Task AddPrincipalsToGroup(IEnumerable<Guid> principalIds, string groupName)
+        {
+            return Task.WhenAll(principalIds.Select(pId => AddPrincipalToGroup(pId, groupName)));
+        }
+
+        public async Task RemovePrincipalFromGroup(Guid principalId, string groupName)
+        {
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
+            if (membership != null)
+            {
+                this.context.Set<Data.Membership>().Remove(membership);
+            }
+        }
+
+        public Task RemovePrincipalsFromGroup(IEnumerable<Guid> principalIds, string groupName)
+        {
+            return Task.WhenAll(principalIds.Select(pId => RemovePrincipalFromGroup(pId, groupName)));
         }
 
         private async Task<TEntity> GetEntityAsync<TEntity>(Expression<Func<TEntity, bool>> expression) where TEntity : class
