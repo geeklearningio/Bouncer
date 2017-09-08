@@ -18,9 +18,9 @@
         
         Task DeleteRoleAsync(string roleName);
 
-        Task CreateGroupAsync(string groupName);
+        Task CreateGroupAsync(string groupName, string parentGroupName = null);
 
-        Task DeleteGroupAsync(string groupName);
+        Task DeleteGroupAsync(string groupName, bool withChildren = true);
 
         Task AddPrincipalToGroup(Guid principalId, string groupName);
 

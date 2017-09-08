@@ -26,13 +26,12 @@
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
 
-            Dictionary<Guid, ParsedScope> parsedScopes;
-            if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out parsedScopes))
+            if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out Dictionary<Guid, ParsedScope> parsedScopes))
             {
                 var roles = await this.authorizationsCacheProvider.GetRolesAsync();
                 var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
 
-                var principalRightsPerScope = (await this.context.Authorizations()
+                var principalRightsPerScope =(await this.context.Authorizations()
                     .Where(a => a.PrincipalId == principalId)
                     .Select(a => new { a.ScopeId, a.RoleId })
                     .ToListAsync())

@@ -188,17 +188,30 @@
             }
         }
 
-        public async Task CreateGroupAsync(string groupName)
+        public async Task CreateGroupAsync(string groupName, string parentGroupName = null)
         {
             var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
             if (group == null)
             {
-                var groupEntity = this.context.Set<Data.Group>().Add(new Data.Group
+                group = new Data.Group
                 {
                     Name = groupName,
                     CreationBy = this.principalIdProvider.PrincipalId,
-                    ModificationBy = this.principalIdProvider.PrincipalId
-                });
+                    ModificationBy = this.principalIdProvider.PrincipalId,
+
+                };
+                var groupEntity = this.context.Set<Data.Group>().Add(group);
+
+                if (parentGroupName != null)
+                {
+                    await this.CreateGroupAsync(parentGroupName);
+                    var parentGoup = await this.GetEntityAsync<Data.Group>(r => r.Name == parentGroupName);
+                    this.context.Set<Data.Membership>().Add(new Data.Membership
+                    {
+                        Principal = group,
+                        Group = parentGoup
+                    });
+                }
             }
         }
 
@@ -252,11 +265,26 @@
             }
         }
 
-        public async Task DeleteGroupAsync(string groupName)
+        public async Task DeleteGroupAsync(string groupName, bool withChildren = true)
         {
             var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
             if (group != null)
             {
+                var memberShips = await this.context.Set<Data.Membership>().Where(m => m.Group.Name == groupName).ToListAsync();
+                foreach (var memberShip in memberShips)
+                {
+                    if (withChildren)
+                    {
+                        var childGroup = await this.GetEntityAsync<Data.Group>(g => g.Id == memberShip.PrincipalId);
+                        if (childGroup != null)
+                        {
+                            await this.DeleteGroupAsync(childGroup.Name);
+                        }
+                    }
+
+                    this.context.Set<Data.Membership>().Remove(memberShip);
+                }
+
                 this.context.Set<Data.Group>().Remove(group);
             }
         }
