@@ -42,15 +42,17 @@
                     Group = parent,
                     Principal = child
                 });
-
                 await authorizationsFixture.Context.SaveChangesAsync();
 
+                var group1FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
+                var group2FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group2");
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteGroupAsync("group1", withChildren: false);
-
                 await authorizationsFixture.Context.SaveChangesAsync();
                 
                 Assert.Null(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group1"));
+                Assert.Null(await authorizationsFixture.Context.Principals().FirstOrDefaultAsync(p => p.Id == group1FromDb.Id));
                 Assert.NotNull(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group2"));
+                Assert.NotNull(await authorizationsFixture.Context.Principals().FirstOrDefaultAsync(p => p.Id == group2FromDb.Id));
             }
         }
 
@@ -68,15 +70,17 @@
                     Group = parent,
                     Principal = child
                 });
-
                 await authorizationsFixture.Context.SaveChangesAsync();
 
+                var group1FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
+                var group2FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group2");
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteGroupAsync("group1");
-
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 Assert.Null(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group1"));
+                Assert.Null(await authorizationsFixture.Context.Principals().FirstOrDefaultAsync(p => p.Id == group1FromDb.Id));
                 Assert.Null(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group2"));
+                Assert.Null(await authorizationsFixture.Context.Principals().FirstOrDefaultAsync(p => p.Id == group1FromDb.Id));
             }
         }
     }
