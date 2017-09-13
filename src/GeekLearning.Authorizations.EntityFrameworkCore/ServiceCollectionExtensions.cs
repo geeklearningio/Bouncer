@@ -5,7 +5,7 @@
 
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddDbContextACL<TContext, TPrincipalIdProvider>(this IServiceCollection services)
+        public static IServiceCollection AddAclDbContext<TContext, TPrincipalIdProvider>(this IServiceCollection services)
             where TContext : DbContext
             where TPrincipalIdProvider : class, IPrincipalIdProvider
         {
