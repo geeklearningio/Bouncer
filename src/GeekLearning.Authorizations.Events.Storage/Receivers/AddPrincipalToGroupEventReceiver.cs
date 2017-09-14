@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Events.Storage.Receivers
 {
     using GeekLearning.Authorizations.Events.Model;
+    using GeekLearning.Authorizations.Events.Queries;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Blob;
     using System.Threading.Tasks;
@@ -9,19 +10,19 @@
     {
         private readonly AddPrincipalToGroup authorizationsEvent;
         private readonly CloudStorageAccount cloudStorageAccount;
+        private readonly IGetImpactedScopesForAuthorizationEventQuery<AddPrincipalToGroup> getImpactedScopesForAddPrincipalToGroupEventQuery;
 
-        public AddPrincipalToGroupEventReceiver(CloudStorageAccount cloudStorageAccount)
+        public AddPrincipalToGroupEventReceiver(CloudStorageAccount cloudStorageAccount, IGetImpactedScopesForAuthorizationEventQuery<AddPrincipalToGroup> getImpactedScopesForAddPrincipalToGroupEventQuery)
         {
             this.cloudStorageAccount = cloudStorageAccount;
+            this.getImpactedScopesForAddPrincipalToGroupEventQuery = getImpactedScopesForAddPrincipalToGroupEventQuery;
         }
 
-        public Task ReceiveAsync(AddPrincipalToGroup authorizationsEvent)
+        public async Task ReceiveAsync(AddPrincipalToGroup authorizationsEvent)
         {
             CloudBlobClient cloudBlobClient = this.cloudStorageAccount.CreateCloudBlobClient();
 
-
-
-            return Task.CompletedTask;
+            var scopeIds = await this.getImpactedScopesForAddPrincipalToGroupEventQuery.ExecuteAsync(authorizationsEvent);            
         }
     }
 }
