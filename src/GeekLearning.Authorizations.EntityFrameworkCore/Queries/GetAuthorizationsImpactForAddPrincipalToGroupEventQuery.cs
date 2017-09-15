@@ -8,7 +8,7 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext>: IGetImpactedScopesForAuthorizationEventQuery<AddPrincipalToGroup>
+    public class GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext>: IGetImpactForAuthorizationEventQuery<AddPrincipalToGroup>
         where TContext : DbContext
     {
         private readonly TContext context;
@@ -18,15 +18,29 @@
             this.context = context;
         }
 
-        public async Task<IEnumerable<Guid>> ExecuteAsync(AddPrincipalToGroup authorizationsEvent)
+        public async Task<AuthorizationsImpact> ExecuteAsync(AddPrincipalToGroup authorizationsEvent)
         {
             List<Guid> principalIds = new List<Guid>() { authorizationsEvent.PrincipalId };
-            await DetectMembershipsAsync(authorizationsEvent.PrincipalId, principalIds);            
+            await DetectMembershipsAsync(authorizationsEvent.PrincipalId, principalIds);
 
-            return await this.context
+            var impactedScopeNames = await this.context
                 .Authorizations()
-                .Join(principalIds, a => a.PrincipalId, pId => pId, (a, pId) => pId)
+                .Join(principalIds, a => a.PrincipalId, pId => pId, (a, pId) => a.ScopeId)
+                .Join(this.context.Scopes(), pId => pId, s => s.Id, (pId, s) => s.Name)
                 .ToListAsync();
+
+            var groupIds = await this.context
+                .Groups()
+                .Join(principalIds, g => g.Id, pId => pId, (g, pId) => pId)
+                .ToListAsync();
+
+            var impactedUserIds = principalIds.Except(groupIds).ToList();
+
+            return new AuthorizationsImpact
+            {
+                ScopeNames = impactedScopeNames,
+                UserIds = impactedUserIds
+            };
         }
 
         private async Task DetectMembershipsAsync(Guid principalId, List<Guid> principalIds)

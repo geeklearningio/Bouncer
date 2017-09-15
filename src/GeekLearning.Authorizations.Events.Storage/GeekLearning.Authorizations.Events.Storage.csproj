@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GeekLearning.Authorizations.Events\GeekLearning.Authorizations.Events.csproj" />
+    <ProjectReference Include="..\GeekLearning.Authorizations\GeekLearning.Authorizations.csproj" />
   </ItemGroup>
 
 </Project>

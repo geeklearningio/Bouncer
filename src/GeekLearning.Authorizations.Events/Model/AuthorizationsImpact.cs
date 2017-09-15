@@ -5,7 +5,7 @@
 
     public class AuthorizationsImpact
     {
-        public IList<Guid> ScopeIds { get; set; } = new List<Guid>();
+        public IList<string> ScopeNames { get; set; } = new List<string>();
 
         public IList<Guid> UserIds { get; set; } = new List<Guid>();
     }

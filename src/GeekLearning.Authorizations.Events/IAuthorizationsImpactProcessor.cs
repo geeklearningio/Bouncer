@@ -3,8 +3,8 @@
     using GeekLearning.Authorizations.Events.Model;
     using System.Threading.Tasks;
 
-    public interface IEventReceiver<TEvent> where TEvent : EventBase
+    public interface IAuthorizationsImpactProcessor
     {
-        Task ReceiveAsync(TEvent authorizationsEvent);
+        Task StoreAuthorizationsImpactAsync(AuthorizationsImpact authorizationsImpact);
     }
 }
