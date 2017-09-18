@@ -8,16 +8,19 @@
     {
         private readonly Dictionary<string, ScopeRights> scopeRights;
 
-        public PrincipalRights(Guid principalId, string rootScopeName, IEnumerable<ScopeRights> scopeRights)
+        public PrincipalRights(Guid principalId, string rootScopeName, IEnumerable<ScopeRights> scopeRights, bool scopeNotFound = false)
         {
             this.PrincipalId = principalId;
             this.RootScopeName = rootScopeName;
+            this.ScopeNotFound = scopeNotFound;
             this.scopeRights = ComputeScopes(principalId, scopeRights);
         }
 
         public Guid PrincipalId { get; }
 
         public string RootScopeName { get; set; }
+
+        public bool ScopeNotFound { get;  }
 
         public IReadOnlyDictionary<string, ScopeRights> ScopeRights => this.scopeRights;
 
