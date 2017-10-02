@@ -9,9 +9,9 @@
     public class AuthorizationsEventReceiver
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly IAuthorizationsImpactProcessor authorizationsAnalyzer;
+        private readonly IAuthorizationsImpactClient authorizationsAnalyzer;
 
-        public AuthorizationsEventReceiver(IServiceProvider serviceProvider, IAuthorizationsImpactProcessor authorizationsAnalyzer)
+        public AuthorizationsEventReceiver(IServiceProvider serviceProvider, IAuthorizationsImpactClient authorizationsAnalyzer)
         {
             this.serviceProvider = serviceProvider;
             this.authorizationsAnalyzer = authorizationsAnalyzer;

@@ -1,5 +1,8 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
+    using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
+    using GeekLearning.Authorizations.Events.Model;
+    using GeekLearning.Authorizations.Events.Queries;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +16,8 @@
             services.AddScoped<IAuthorizationsClient, AuthorizationsClient<TContext>>();
             services.AddScoped<IAuthorizationsProvisioningClient, AuthorizationsProvisioningClient<TContext>>();
             services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider<TContext>>();
+
+            services.AddScoped<IGetImpactForAuthorizationEventQuery<AddPrincipalToGroup>, GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext>>();
 
             return services;
         }

@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Authorizations
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     public interface IAuthorizationsClient
@@ -10,5 +11,7 @@
         Task<bool> HasRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null);
 
         Task<bool> HasExplicitRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null);
+
+        Task<IList<Guid>> GetMembershipsAsync(Guid principalId);
     }
 }

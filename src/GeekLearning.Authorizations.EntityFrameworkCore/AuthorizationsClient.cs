@@ -74,5 +74,20 @@
             var principalRights = await this.GetRightsAsync(scopeName, principalIdOverride);
             return principalRights.HasExplicitRightOnScope(rightName, scopeName);
         }
+
+        public async Task<IList<Guid>> GetMembershipsAsync(Guid principalId)
+        {
+            List<Guid> principalIds = new List<Guid>();
+            var groupMembers = await this.context.Memberships()
+                .Where(m => m.GroupId == principalId)
+                .ToListAsync();
+            principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
+            foreach (var groupMember in groupMembers)
+            {
+                principalIds.AddRange(await GetMembershipsAsync(groupMember.PrincipalId));
+            }
+
+            return principalIds;
+        }
     }
 }

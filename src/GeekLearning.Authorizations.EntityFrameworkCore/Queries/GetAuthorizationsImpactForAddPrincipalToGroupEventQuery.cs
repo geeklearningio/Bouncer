@@ -3,8 +3,6 @@
     using GeekLearning.Authorizations.Events.Model;
     using GeekLearning.Authorizations.Events.Queries;
     using Microsoft.EntityFrameworkCore;
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -12,17 +10,19 @@
         where TContext : DbContext
     {
         private readonly TContext context;
+        private readonly IAuthorizationsClient authorizationsClient;
 
-        public GetAuthorizationsImpactForAddPrincipalToGroupEventQuery(TContext context)
+        public GetAuthorizationsImpactForAddPrincipalToGroupEventQuery(TContext context, IAuthorizationsClient authorizationsClient)
         {
             this.context = context;
+            this.authorizationsClient = authorizationsClient;
         }
 
         public async Task<AuthorizationsImpact> ExecuteAsync(AddPrincipalToGroup authorizationsEvent)
         {
-            List<Guid> principalIds = new List<Guid>() { authorizationsEvent.PrincipalId };
-            await DetectMembershipsAsync(authorizationsEvent.PrincipalId, principalIds);
-
+            var principalIds = await this.authorizationsClient.GetMembershipsAsync(authorizationsEvent.PrincipalId);
+            principalIds.Add(authorizationsEvent.PrincipalId);
+            
             var impactedScopeNames = await this.context
                 .Authorizations()
                 .Join(principalIds, a => a.PrincipalId, pId => pId, (a, pId) => a.ScopeId)
@@ -41,18 +41,6 @@
                 ScopeNames = impactedScopeNames,
                 UserIds = impactedUserIds
             };
-        }
-
-        private async Task DetectMembershipsAsync(Guid principalId, List<Guid> principalIds)
-        {
-            var groupMembers = await this.context.Memberships()
-                .Where(m => m.GroupId == principalId)
-                .ToListAsync();
-            principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
-            foreach (var groupMember in groupMembers)
-            {
-                await DetectMembershipsAsync(groupMember.PrincipalId, principalIds);
-            }
         }
     }
 }

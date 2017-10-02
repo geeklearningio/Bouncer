@@ -3,7 +3,7 @@
     using GeekLearning.Authorizations.Events.Model;
     using System.Threading.Tasks;
 
-    public interface IAuthorizationsImpactProcessor
+    public interface IAuthorizationsImpactClient
     {
         Task StoreAuthorizationsImpactAsync(AuthorizationsImpact authorizationsImpact);
     }

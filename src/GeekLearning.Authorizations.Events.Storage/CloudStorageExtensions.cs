@@ -1,6 +1,5 @@
-﻿namespace GeekLearning.Authorizations.Events.Storage
+﻿namespace Microsoft.WindowsAzure.Storage
 {
-    using Microsoft.WindowsAzure.Storage;
     using System.Threading.Tasks;
 
     public static class CloudStorageExtensions
