@@ -29,6 +29,33 @@
         }
 
         [Fact]
+        public async Task AddPrincipalToGroup_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateGroupAsync("group2", parentGroupName: "group1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var group = authorizationsFixture.Context
+                    .Groups()
+                    .FirstOrDefault(r => r.Name == "group2");
+
+                await authorizationsFixture.AuthorizationsProvisioningClient
+                    .AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var membership = authorizationsFixture.Context.Memberships().FirstOrDefault(m => m.PrincipalId == authorizationsFixture.Context.CurrentUserId);
+                Assert.NotNull(membership);
+
+                await authorizationsFixture.AuthorizationsEventQueuer.CommitAsync();
+
+                Assert.NotNull(authorizationsFixture.AuthorizationsImpactClient.UserDenormalizedRights[authorizationsFixture.Context.CurrentUserId]);
+            }
+        }
+
+        [Fact]
         public async Task DeleteGroup_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())

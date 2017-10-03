@@ -11,14 +11,16 @@
         private readonly IServiceProvider serviceProvider;
         private readonly IAuthorizationsImpactClient authorizationsAnalyzer;
 
-        public AuthorizationsEventReceiver(IServiceProvider serviceProvider, IAuthorizationsImpactClient authorizationsAnalyzer)
+        public AuthorizationsEventReceiver(IServiceProvider serviceProvider, IAuthorizationsImpactClient authorizationsImpactClient)
         {
             this.serviceProvider = serviceProvider;
-            this.authorizationsAnalyzer = authorizationsAnalyzer;
+            this.authorizationsAnalyzer = authorizationsImpactClient;
         }
 
         public async Task ReceiveAsync<TEvent>(TEvent authorizationsEvent) where TEvent : EventBase
         {
+            //var getImpactForAuthorizationEventQuery2 = this.serviceProvider.GetRequiredService<Events.Queries.IGetImpactForAuthorizationEventQuery<Events.Model.AddPrincipalToGroup>>();
+            
             var getImpactForAuthorizationEventQuery = this.serviceProvider.GetRequiredService<IGetImpactForAuthorizationEventQuery<TEvent>>();
             
             var authorizationsImpact = await getImpactForAuthorizationEventQuery.ExecuteAsync(authorizationsEvent);

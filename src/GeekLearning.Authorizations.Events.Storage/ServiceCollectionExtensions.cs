@@ -8,7 +8,7 @@
         public static IServiceCollection AddAclEventsStorage(this IServiceCollection services)
         {
             services.AddScoped<IEventQueuer, StorageEventQueuer>();
-            services.AddScoped<IAuthorizationsImpactClient, AuthorizationsImpactClient>();
+            services.AddScoped<IAuthorizationsImpactClient, AuthorizationsImpactStorageClient>();
 
             return services;
         }

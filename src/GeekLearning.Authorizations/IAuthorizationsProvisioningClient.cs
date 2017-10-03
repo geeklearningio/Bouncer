@@ -22,9 +22,13 @@
 
         Task DeleteGroupAsync(string groupName, bool withChildren = true);
 
-        Task AddPrincipalToGroup(Guid principalId, string groupName);
+        Task AddPrincipalToGroupAsync(Guid principalId, string groupName);
 
-        Task AddPrincipalsToGroup(IEnumerable<Guid> principalIds, string groupName);
+        Task AddPrincipalsToGroupAsync(IEnumerable<Guid> principalIds, string groupName);
+
+        Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName);
+
+        Task RemovePrincipalsFromGroupAsync(IEnumerable<Guid> principalIds, string groupName);
 
         Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
 

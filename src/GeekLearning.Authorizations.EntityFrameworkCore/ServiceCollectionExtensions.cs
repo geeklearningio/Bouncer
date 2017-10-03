@@ -17,9 +17,14 @@
             services.AddScoped<IAuthorizationsProvisioningClient, AuthorizationsProvisioningClient<TContext>>();
             services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider<TContext>>();
 
-            services.AddScoped<IGetImpactForAuthorizationEventQuery<AddPrincipalToGroup>, GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext>>();
+            services.AddAclEvents<TContext>();
 
             return services;
+        }
+
+        public static void AddAclEvents<TContext>(this IServiceCollection services) where TContext : DbContext
+        {
+            services.AddScoped<IGetImpactForAuthorizationEventQuery<AddPrincipalToGroup>, GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext>>();
         }
     }
 }

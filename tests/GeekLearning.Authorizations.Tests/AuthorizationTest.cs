@@ -8,7 +8,7 @@
     using System.Threading.Tasks;
     using Xunit;
 
-    public class AuthorizationsContextTest
+    public class AuthorizationTest
     {
         [Fact]
         public async Task AffectRoleOnScope_ShouldBeOk()
@@ -169,8 +169,6 @@
                             new List<Right>()),
                     });
 
-                //var result = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("Scope1_Child1", withChildren: true);
-
                 Assert.True(rightsResult.HasRightOnScope("right3", "Scope1_Child1"));
                 Assert.True(rightsResult.HasRightOnScope("right1", "Scope1_Child1"));
                 Assert.False(rightsResult.HasRightOnScope("right3", "Scope1"));
@@ -180,8 +178,6 @@
                 Assert.True(rightsResult.HasRightUnderScope("right3", "Scope1"));
                 Assert.False(rightsResult.HasAnyExplicitRightOnScope("Scope1_Child2"));
                 Assert.True(rightsResult.HasInheritedRightOnScope("right1", "Scope1_Child2"));
-
-                //Assert.True(await authorizationsFixture.AuthorizationsClient.HasRightOnScopeAsync("right3", "Scope1_Child1"));
             }
 
             return Task.CompletedTask;

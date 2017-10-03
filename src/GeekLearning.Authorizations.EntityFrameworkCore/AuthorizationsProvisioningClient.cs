@@ -301,7 +301,7 @@
             }
         }
 
-        public async Task AddPrincipalToGroup(Guid principalId, string groupName)
+        public async Task AddPrincipalToGroupAsync(Guid principalId, string groupName)
         {
             var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
             if (membership == null)
@@ -320,12 +320,12 @@
             }
         }
 
-        public Task AddPrincipalsToGroup(IEnumerable<Guid> principalIds, string groupName)
+        public Task AddPrincipalsToGroupAsync(IEnumerable<Guid> principalIds, string groupName)
         {
-            return Task.WhenAll(principalIds.Select(pId => AddPrincipalToGroup(pId, groupName)));
+            return Task.WhenAll(principalIds.Select(pId => AddPrincipalToGroupAsync(pId, groupName)));
         }
 
-        public async Task RemovePrincipalFromGroup(Guid principalId, string groupName)
+        public async Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName)
         {
             var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
             if (membership != null)
@@ -336,9 +336,9 @@
             }
         }
 
-        public Task RemovePrincipalsFromGroup(IEnumerable<Guid> principalIds, string groupName)
+        public Task RemovePrincipalsFromGroupAsync(IEnumerable<Guid> principalIds, string groupName)
         {
-            return Task.WhenAll(principalIds.Select(pId => RemovePrincipalFromGroup(pId, groupName)));
+            return Task.WhenAll(principalIds.Select(pId => RemovePrincipalFromGroupAsync(pId, groupName)));
         }
 
         private async Task<TEntity> GetEntityAsync<TEntity>(Expression<Func<TEntity, bool>> expression) where TEntity : class

@@ -6,12 +6,12 @@
     using Newtonsoft.Json;
     using System.Threading.Tasks;
 
-    public class AuthorizationsImpactClient : IAuthorizationsImpactClient
+    public class AuthorizationsImpactStorageClient : IAuthorizationsImpactClient
     {
         private readonly CloudStorageAccount cloudStorageAccount;
         private readonly IAuthorizationsClient authorizationsClient;
 
-        public AuthorizationsImpactClient(CloudStorageAccount cloudStorageAccount, IAuthorizationsClient authorizationsClient)
+        public AuthorizationsImpactStorageClient(CloudStorageAccount cloudStorageAccount, IAuthorizationsClient authorizationsClient)
         {
             this.cloudStorageAccount = cloudStorageAccount;
             this.authorizationsClient = authorizationsClient;
