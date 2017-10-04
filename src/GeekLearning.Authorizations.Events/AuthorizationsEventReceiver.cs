@@ -4,6 +4,7 @@
     using GeekLearning.Authorizations.Events.Queries;
     using Microsoft.Extensions.DependencyInjection;
     using System;
+    using System.Reflection;
     using System.Threading.Tasks;
 
     public class AuthorizationsEventReceiver
@@ -19,11 +20,15 @@
 
         public async Task ReceiveAsync<TEvent>(TEvent authorizationsEvent) where TEvent : EventBase
         {
-            //var getImpactForAuthorizationEventQuery2 = this.serviceProvider.GetRequiredService<Events.Queries.IGetImpactForAuthorizationEventQuery<Events.Model.AddPrincipalToGroup>>();
+            var queryType = typeof(IGetImpactForAuthorizationEventQuery<>)
+                .MakeGenericType(new Type[] { authorizationsEvent.GetType() });
+
+            var getImpactForAuthorizationEventQuery = this.serviceProvider.GetRequiredService(queryType);
             
-            var getImpactForAuthorizationEventQuery = this.serviceProvider.GetRequiredService<IGetImpactForAuthorizationEventQuery<TEvent>>();
+            var task = (Task<AuthorizationsImpact>)queryType.GetMethod("ExecuteAsync")
+                .Invoke(getImpactForAuthorizationEventQuery, new object[] { authorizationsEvent });
             
-            var authorizationsImpact = await getImpactForAuthorizationEventQuery.ExecuteAsync(authorizationsEvent);
+            var authorizationsImpact = await task.ConfigureAwait(false);
 
             await this.authorizationsAnalyzer.StoreAuthorizationsImpactAsync(authorizationsImpact);
         }

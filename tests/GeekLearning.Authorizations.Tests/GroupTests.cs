@@ -33,7 +33,32 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateGroupAsync("group2", parentGroupName: "group1");
+                var parentGroup = new Group { Name = "group1" };
+                var childGroup = new Group { Name = "group2" };
+                authorizationsFixture.Context.Groups().Add(parentGroup);
+                authorizationsFixture.Context.Groups().Add(childGroup);
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = parentGroup,
+                    Principal = childGroup
+                });
+
+                var scope = new Scope { Name = "Scope1", Description = "Scope1" };
+                authorizationsFixture.Context.Scopes().Add(scope);
+
+                var right = new Right { Name = "Right1" };
+                authorizationsFixture.Context.Rights().Add(right);
+
+                var role = new Role { Name = "Role1" };
+                role.Rights.Add(new RoleRight { Right = right });
+                authorizationsFixture.Context.Roles().Add(role);
+
+                authorizationsFixture.Context.Authorizations().Add(new Authorization
+                {
+                    Scope = scope,
+                    Role = role,
+                    Principal = childGroup
+                });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

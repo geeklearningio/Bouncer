@@ -8,12 +8,12 @@
 
         public string GroupName { get; set; }
 
-        public AddPrincipalToGroup()
-        {                
-        }
+        public AddPrincipalToGroup() { }
 
         public AddPrincipalToGroup(Guid principalId, string groupName) : base($"{principalId.ToString()}_{groupName}")
         {
+            this.PrincipalId = principalId;
+            this.GroupName = groupName;
         }
     }
 }
