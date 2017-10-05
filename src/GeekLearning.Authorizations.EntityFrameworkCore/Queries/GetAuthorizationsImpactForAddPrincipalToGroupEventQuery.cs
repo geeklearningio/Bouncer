@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext>: IGetImpactForAuthorizationEventQuery<AddPrincipalToGroup>
+    public class GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext> : IGetImpactForAuthorizationEventQuery<AddPrincipalToGroup>
         where TContext : DbContext
     {
         private readonly TContext context;
@@ -20,21 +20,27 @@
 
         public async Task<AuthorizationsImpact> ExecuteAsync(AddPrincipalToGroup authorizationsEvent)
         {
-            var principalIds = await this.authorizationsClient.GetMembershipsAsync(authorizationsEvent.PrincipalId);
-            principalIds.Add(authorizationsEvent.PrincipalId);
-            
+            var groupId = await this.context.Groups()
+                .Where(g => g.Name == authorizationsEvent.GroupName)
+                .Select(g => g.Id)
+                .FirstOrDefaultAsync();
+            var groupUpStream = await this.authorizationsClient.GetGroupParentLinkAsync(groupId);
+            groupUpStream.Add(groupId);
+
             var impactedScopeNames = await this.context
                 .Authorizations()
-                .Join(principalIds, a => a.PrincipalId, pId => pId, (a, pId) => a.ScopeId)
+                .Join(groupUpStream, a => a.PrincipalId, pId => pId, (a, pId) => a.ScopeId)
                 .Join(this.context.Scopes(), pId => pId, s => s.Id, (pId, s) => s.Name)
                 .ToListAsync();
 
+            var groupMembersIds = await this.authorizationsClient.GetGroupMembersAsync(authorizationsEvent.PrincipalId);
+            groupMembersIds.Add(authorizationsEvent.PrincipalId);
             var groupIds = await this.context
                 .Groups()
-                .Join(principalIds, g => g.Id, pId => pId, (g, pId) => pId)
+                .Join(groupMembersIds, g => g.Id, pId => pId, (g, pId) => pId)
                 .ToListAsync();
 
-            var impactedUserIds = principalIds.Except(groupIds).ToList();
+            var impactedUserIds = groupMembersIds.Except(groupIds).ToList();
 
             return new AuthorizationsImpact
             {

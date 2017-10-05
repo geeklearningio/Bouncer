@@ -3,6 +3,7 @@
     using EntityFrameworkCore;
     using EntityFrameworkCore.Data;
     using Microsoft.EntityFrameworkCore;
+    using Newtonsoft.Json;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
@@ -50,8 +51,9 @@
                 authorizationsFixture.Context.Rights().Add(right);
 
                 var role = new Role { Name = "Role1" };
-                role.Rights.Add(new RoleRight { Right = right });
                 authorizationsFixture.Context.Roles().Add(role);
+
+                authorizationsFixture.Context.Set<RoleRight>().Add(new RoleRight { Role = role, Right = right });
 
                 authorizationsFixture.Context.Authorizations().Add(new Authorization
                 {
@@ -61,7 +63,7 @@
                 });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
-
+                
                 var group = authorizationsFixture.Context
                     .Groups()
                     .FirstOrDefault(r => r.Name == "group2");
@@ -76,7 +78,9 @@
 
                 await authorizationsFixture.AuthorizationsEventQueuer.CommitAsync();
 
-                Assert.NotNull(authorizationsFixture.AuthorizationsImpactClient.UserDenormalizedRights[authorizationsFixture.Context.CurrentUserId]);
+                var rights = JsonConvert.DeserializeObject<Model.PrincipalRights>(
+                    authorizationsFixture.AuthorizationsImpactClient.UserDenormalizedRights[authorizationsFixture.Context.CurrentUserId]["Scope1"]);
+                Assert.True(rights.HasRightOnScope("Right1", "Scope1"));
             }
         }
 

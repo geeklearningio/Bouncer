@@ -12,6 +12,8 @@
 
         Task<bool> HasExplicitRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null);
 
-        Task<IList<Guid>> GetMembershipsAsync(Guid principalId);
+        Task<IList<Guid>> GetGroupMembersAsync(Guid groupId);
+
+        Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId);
     }
 }

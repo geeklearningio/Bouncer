@@ -31,8 +31,12 @@
                 var roles = await this.authorizationsCacheProvider.GetRolesAsync();
                 var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
 
-                var principalRightsPerScope =(await this.context.Authorizations()
-                    .Where(a => a.PrincipalId == principalId)
+                var principalIdsLink = await this.GetGroupParentLinkAsync(principalId);
+                principalIdsLink.Add(principalId);
+
+                var principalRightsPerScope = (await this.context.Authorizations()
+                    .Join(principalIdsLink, a => a.PrincipalId, p => p, (a, p) => a)
+                    //.Where(a => a.PrincipalId == principalId)
                     .Select(a => new { a.ScopeId, a.RoleId })
                     .ToListAsync())
                     .GroupBy(a => a.ScopeId)
@@ -75,19 +79,34 @@
             return principalRights.HasExplicitRightOnScope(rightName, scopeName);
         }
 
-        public async Task<IList<Guid>> GetMembershipsAsync(Guid principalId)
+        public async Task<IList<Guid>> GetGroupMembersAsync(Guid groupId)
         {
             List<Guid> principalIds = new List<Guid>();
             var groupMembers = await this.context.Memberships()
-                .Where(m => m.GroupId == principalId)
+                .Where(m => m.GroupId == groupId)
                 .ToListAsync();
             principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
             foreach (var groupMember in groupMembers)
             {
-                principalIds.AddRange(await GetMembershipsAsync(groupMember.PrincipalId));
+                principalIds.AddRange(await GetGroupMembersAsync(groupMember.PrincipalId));
             }
 
             return principalIds;
+        }
+
+        public async Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId)
+        {
+            List<Guid> groupIds = new List<Guid>();
+            var groupParents = await this.context.Memberships()
+                .Where(m => m.PrincipalId == principalId)
+                .ToListAsync();
+            groupIds.AddRange(groupParents.Select(gm => gm.GroupId));
+            foreach (var groupParent in groupParents)
+            {
+                groupIds.AddRange(await GetGroupParentLinkAsync(groupParent.GroupId));
+            }
+
+            return groupIds;
         }
     }
 }
