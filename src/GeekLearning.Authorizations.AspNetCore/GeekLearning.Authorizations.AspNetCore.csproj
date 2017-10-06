@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>AspNetCore permissions system utilities.</Description>
+    <Description>ASP.NET Core ACL system utilities.</Description>
     <VersionPrefix>0.0.1</VersionPrefix>
     <Authors>Geek Learning;Arnaud Auroux;Adrien Siffermann;Cyprien Autexier</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
