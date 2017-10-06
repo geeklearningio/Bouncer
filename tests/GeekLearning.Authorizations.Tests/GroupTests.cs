@@ -4,12 +4,15 @@
     using EntityFrameworkCore.Data;
     using Microsoft.EntityFrameworkCore;
     using Newtonsoft.Json;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
 
     public class GroupTests
     {
+        private object group10;
+
         [Fact]
         public async Task CreateGroup_ShouldBeOk()
         {
@@ -81,6 +84,79 @@
                 var rights = JsonConvert.DeserializeObject<Model.PrincipalRights>(
                     authorizationsFixture.AuthorizationsImpactClient.UserDenormalizedRights[authorizationsFixture.Context.CurrentUserId]["Scope1"]);
                 Assert.True(rights.HasRightOnScope("Right1", "Scope1"));
+            }
+        }
+
+        [Fact]
+        public async Task GetGroupParentLink_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                List<Group> expectedGroups = new List<Group>();
+                for (int i = 0; i < 10; i++)
+                {
+                    var group = new Group { Name = "group" + i };
+                    expectedGroups.Add(group);
+                    authorizationsFixture.Context.Groups().Add(group);
+                }
+
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[0],
+                    Principal = expectedGroups[1]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[0],
+                    Principal = expectedGroups[2]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[2],
+                    Principal = expectedGroups[3]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[3],
+                    Principal = expectedGroups[4]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[4],
+                    Principal = expectedGroups[5]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[4],
+                    Principal = expectedGroups[6]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[6],
+                    Principal = expectedGroups[7]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[6],
+                    Principal = expectedGroups[8]
+                });
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = expectedGroups[8],
+                    Principal = expectedGroups[9]
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var targettedGroup = await authorizationsFixture.Context.Groups().FirstOrDefaultAsync(g => g.Name == expectedGroups[9].Name);
+                var parentLink = await authorizationsFixture.AuthorizationsClient.GetGroupParentLinkAsync(targettedGroup.Id);
+
+                string[] expectedParentLinkItems = { "group8", "group6", "group4", "group3", "group2", "group0" };
+                foreach (var parentLinkItem in parentLink)
+                {
+                    var group = await authorizationsFixture.Context.Groups().FirstOrDefaultAsync(g => g.Id == parentLinkItem);
+                    Assert.True(expectedParentLinkItems.Contains(group.Name));
+                }
             }
         }
 
