@@ -26,14 +26,17 @@
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
 
-            Dictionary<Guid, ParsedScope> parsedScopes;
-            if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out parsedScopes))
+            if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out Dictionary<Guid, ParsedScope> parsedScopes))
             {
                 var roles = await this.authorizationsCacheProvider.GetRolesAsync();
                 var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
 
+                var principalIdsLink = await this.GetGroupParentLinkAsync(principalId);
+                principalIdsLink.Add(principalId);
+
                 var principalRightsPerScope = (await this.context.Authorizations()
-                    .Where(a => a.PrincipalId == principalId)
+                    .Join(principalIdsLink, a => a.PrincipalId, p => p, (a, p) => a)
+                    //.Where(a => a.PrincipalId == principalId)
                     .Select(a => new { a.ScopeId, a.RoleId })
                     .ToListAsync())
                     .GroupBy(a => a.ScopeId)
@@ -74,6 +77,36 @@
         {
             var principalRights = await this.GetRightsAsync(scopeName, principalIdOverride);
             return principalRights.HasExplicitRightOnScope(rightName, scopeName);
+        }
+
+        public async Task<IList<Guid>> GetGroupMembersAsync(Guid groupId)
+        {
+            List<Guid> principalIds = new List<Guid>();
+            var groupMembers = await this.context.Memberships()
+                .Where(m => m.GroupId == groupId)
+                .ToListAsync();
+            principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
+            foreach (var groupMember in groupMembers)
+            {
+                principalIds.AddRange(await GetGroupMembersAsync(groupMember.PrincipalId));
+            }
+
+            return principalIds;
+        }
+
+        public async Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId)
+        {
+            List<Guid> groupIds = new List<Guid>();
+            var groupParents = await this.context.Memberships()
+                .Where(m => m.PrincipalId == principalId)
+                .ToListAsync();
+            groupIds.AddRange(groupParents.Select(gm => gm.GroupId));
+            foreach (var groupParent in groupParents)
+            {
+                groupIds.AddRange(await GetGroupParentLinkAsync(groupParent.GroupId));
+            }
+
+            return groupIds;
         }
     }
 }

@@ -6,16 +6,22 @@
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
+    using GeekLearning.Authorizations.Event;
+    using GeekLearning.Authorizations.Events.Model;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
     {
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
+        private readonly IEventQueuer eventQueuer;
 
-        public AuthorizationsProvisioningClient(TContext context, IPrincipalIdProvider principalIdProvider)
+        public AuthorizationsProvisioningClient(TContext context, IPrincipalIdProvider principalIdProvider, IServiceProvider serviceProvider)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
+            this.eventQueuer = serviceProvider.GetService<IEventQueuer>();
         }
 
         public async Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
@@ -62,6 +68,8 @@
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
             }
+
+            this.QueueEvent(new AffectRoleToPrincipalOnScope(principalId, roleName, scopeName));
         }
 
         public async Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
@@ -89,6 +97,8 @@
                     {
                         this.context.Set<Data.Authorization>().Remove(authorization);
                     }
+
+                    this.QueueEvent(new UnaffectRoleFromPrincipalOnScope(principalId, roleName, scopeName));
                 }
             }
         }
@@ -185,6 +195,35 @@
                     }
                 }
             }
+
+            this.QueueEvent(new CreateScope(scopeName));
+        }
+
+        public async Task CreateGroupAsync(string groupName, string parentGroupName = null)
+        {
+            var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group == null)
+            {
+                group = new Data.Group
+                {
+                    Name = groupName,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId,
+
+                };
+                var groupEntity = this.context.Set<Data.Group>().Add(group);
+
+                if (parentGroupName != null)
+                {
+                    await this.CreateGroupAsync(parentGroupName);
+                    var parentGoup = await this.GetEntityAsync<Data.Group>(r => r.Name == parentGroupName);
+                    this.context.Set<Data.Membership>().Add(new Data.Membership
+                    {
+                        Principal = group,
+                        Group = parentGoup
+                    });
+                }
+            }
         }
 
         public async Task DeleteRightAsync(string rightName)
@@ -234,7 +273,73 @@
                                                   .ToListAsync());
                 this.context.Set<Data.Scope>().Remove(scope);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
+
+                this.QueueEvent(new DeleteScope(scopeName));
             }
+        }
+
+        public async Task DeleteGroupAsync(string groupName, bool withChildren = true)
+        {
+            var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group != null)
+            {
+                var memberShips = await this.context.Set<Data.Membership>().Where(m => m.Group.Name == groupName).ToListAsync();
+                foreach (var memberShip in memberShips)
+                {
+                    if (withChildren)
+                    {
+                        var childGroup = await this.GetEntityAsync<Data.Group>(g => g.Id == memberShip.PrincipalId);
+                        if (childGroup != null)
+                        {
+                            await this.DeleteGroupAsync(childGroup.Name);
+                        }
+                    }
+
+                    this.context.Set<Data.Membership>().Remove(memberShip);
+                }
+
+                this.context.Set<Data.Group>().Remove(group);
+            }
+        }
+
+        public async Task AddPrincipalToGroupAsync(Guid principalId, string groupName)
+        {
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
+            if (membership == null)
+            {
+                await this.CreateGroupAsync(groupName);
+                var group = await this.GetEntityAsync<Data.Group>(g => g.Name == groupName);
+                this.context.Set<Data.Membership>().Add(new Data.Membership
+                {
+                    PrincipalId = principalId,
+                    Group = group,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                });
+
+                this.QueueEvent(new AddPrincipalToGroup(principalId, groupName));
+            }
+        }
+
+        public Task AddPrincipalsToGroupAsync(IEnumerable<Guid> principalIds, string groupName)
+        {
+            return Task.WhenAll(principalIds.Select(pId => AddPrincipalToGroupAsync(pId, groupName)));
+        }
+
+        public async Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName)
+        {
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
+            if (membership != null)
+            {
+                this.context.Set<Data.Membership>().Remove(membership);
+
+                this.QueueEvent(new RemovePrincipalFromGroup(principalId, groupName));
+            }
+        }
+
+        public Task RemovePrincipalsFromGroupAsync(IEnumerable<Guid> principalIds, string groupName)
+        {
+            return Task.WhenAll(principalIds.Select(pId => RemovePrincipalFromGroupAsync(pId, groupName)));
         }
 
         private async Task<TEntity> GetEntityAsync<TEntity>(Expression<Func<TEntity, bool>> expression) where TEntity : class
@@ -251,6 +356,14 @@
             }
 
             return await this.context.Set<TEntity>().FirstOrDefaultAsync(expression);
+        }
+
+        private void QueueEvent(EventBase authorizationsEvent)
+        {
+            if (this.eventQueuer != null)
+            {
+                this.eventQueuer.QueueEvent(authorizationsEvent);
+            }
         }
     }
 }

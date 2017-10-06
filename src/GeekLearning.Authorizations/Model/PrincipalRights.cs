@@ -6,47 +6,49 @@
 
     public class PrincipalRights
     {
-        private readonly Dictionary<string, ScopeRights> scopeRights;
+        public PrincipalRights()
+        {
+        }
 
         public PrincipalRights(Guid principalId, string rootScopeName, IEnumerable<ScopeRights> scopeRights, bool scopeNotFound = false)
         {
             this.PrincipalId = principalId;
             this.RootScopeName = rootScopeName;
             this.ScopeNotFound = scopeNotFound;
-            this.scopeRights = ComputeScopes(principalId, scopeRights);
+            this.ScopeRights = ComputeScopes(principalId, scopeRights);
         }
 
-        public Guid PrincipalId { get; }
+        public Guid PrincipalId { get; set; }
 
         public string RootScopeName { get; set; }
 
-        public bool ScopeNotFound { get;  }
+        public bool ScopeNotFound { get; set; }
 
-        public IReadOnlyDictionary<string, ScopeRights> ScopeRights => this.scopeRights;
+        public IReadOnlyDictionary<string, ScopeRights> ScopeRights { get; set; }
 
         public bool HasRightOnScope(string right, string scope) 
-            => this.scopeRights.ContainsKey(scope) && this.scopeRights[scope].HasRight(right);
+            => this.ScopeRights.ContainsKey(scope) && this.ScopeRights[scope].HasRight(right);
 
         public bool HasInheritedRightOnScope(string right, string scope) 
-            => this.scopeRights.ContainsKey(scope) && this.scopeRights[scope].HasInheritedRight(right);
+            => this.ScopeRights.ContainsKey(scope) && this.ScopeRights[scope].HasInheritedRight(right);
 
         public bool HasExplicitRightOnScope(string right, string scope) 
-            => this.scopeRights.ContainsKey(scope) && this.scopeRights[scope].HasExplicitRight(right);
+            => this.ScopeRights.ContainsKey(scope) && this.ScopeRights[scope].HasExplicitRight(right);
 
         public bool HasAnyExplicitRightOnScope(string scope) 
-            => this.scopeRights.ContainsKey(scope) && this.scopeRights[scope].HasAnyExplicitRight;
+            => this.ScopeRights.ContainsKey(scope) && this.ScopeRights[scope].HasAnyExplicitRight;
 
         public bool HasAnyRightUnderScope(string scope)
-            => this.scopeRights.ContainsKey(scope) && this.scopeRights[scope].HasAnyRightUnder;
+            => this.ScopeRights.ContainsKey(scope) && this.ScopeRights[scope].HasAnyRightUnder;
 
         public bool HasRightUnderScope(string right, string scope)
-            => this.scopeRights.ContainsKey(scope) && this.scopeRights[scope].HasRightUnder(right);
+            => this.ScopeRights.ContainsKey(scope) && this.ScopeRights[scope].HasRightUnder(right);
 
-        private static Dictionary<string, ScopeRights> ComputeScopes(Guid principalId, IEnumerable<ScopeRights> scopeRights)
+        private static Dictionary<string, ScopeRights> ComputeScopes(Guid principalId, IEnumerable<ScopeRights> ScopeRights)
         {
-            if (scopeRights != null)
+            if (ScopeRights != null)
             {
-                return scopeRights.ToDictionary(s => s.ScopeName, s => s);
+                return ScopeRights.ToDictionary(s => s.ScopeName, s => s);
             }
 
             return new Dictionary<string, ScopeRights>();

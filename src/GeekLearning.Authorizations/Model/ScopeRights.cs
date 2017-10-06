@@ -6,39 +6,44 @@
 
     public class ScopeRights
     {
-        private readonly Dictionary<string, Right> rightsOnScope;
-        private readonly Dictionary<string, Right> rightsUnderScope;
+        public ScopeRights()
+        {
+        }
 
         public ScopeRights(Guid principalId, string scopeName, IEnumerable<Right> rightsOnScope, IEnumerable<Right> rightsUnderScope)
         {
             this.PrincipalId = principalId;
             this.ScopeName = scopeName;
 
-            this.rightsOnScope = ComputeRights(principalId, scopeName, rightsOnScope);
-            this.rightsUnderScope = ComputeRights(principalId, scopeName, rightsOnScope.Union(rightsUnderScope));
+            this.RightsOnScope = ComputeRights(principalId, scopeName, rightsOnScope);
+            this.RightsUnderScope = ComputeRights(principalId, scopeName, rightsOnScope.Union(rightsUnderScope));
         }
 
-        public Guid PrincipalId { get; }
+        public Guid PrincipalId { get; set; }
 
-        public string ScopeName { get; }
+        public string ScopeName { get; set; }
+
+        public IReadOnlyDictionary<string, Right> RightsOnScope { get; set; }
+
+        public IReadOnlyDictionary<string, Right> RightsUnderScope { get; set; }
 
         public bool HasAnyExplicitRight 
-            => this.rightsOnScope.Values.Any(r => r.IsExplicit);
+            => this.RightsOnScope.Values.Any(r => r.IsExplicit);
 
         public bool HasAnyRightUnder 
-            => this.rightsUnderScope.Values.Any();
+            => this.RightsUnderScope.Values.Any();
 
         public bool HasRight(string right) 
-            => this.rightsOnScope.ContainsKey(right);
+            => this.RightsOnScope.ContainsKey(right);
 
         public bool HasInheritedRight(string right) 
-            => this.rightsOnScope.ContainsKey(right) && !this.rightsOnScope[right].IsExplicit;
+            => this.RightsOnScope.ContainsKey(right) && !this.RightsOnScope[right].IsExplicit;
 
         public bool HasExplicitRight(string right) 
-            => this.rightsOnScope.ContainsKey(right) && this.rightsOnScope[right].IsExplicit;
+            => this.RightsOnScope.ContainsKey(right) && this.RightsOnScope[right].IsExplicit;
 
         public bool HasRightUnder(string right) 
-            => this.rightsUnderScope.ContainsKey(right);
+            => this.RightsUnderScope.ContainsKey(right);
 
         private static Dictionary<string, Right> ComputeRights(Guid principalId, string scopeName, IEnumerable<Right> rights)
         {

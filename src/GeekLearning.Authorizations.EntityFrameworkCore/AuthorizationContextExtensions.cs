@@ -47,6 +47,19 @@
 
             modelBuilder.Entity<Principal>(entity => entity.MapToTable("Principal", schemaName));
 
+            modelBuilder.Entity<Group>(entity =>
+            {
+                entity.MapToTable("Group", schemaName)
+                      .HasIndex(g => g.Name)
+                      .IsUnique();
+            });
+
+            modelBuilder.Entity<Membership>(entity =>
+            {
+                entity.MapToTable("Membership", schemaName)                      
+                      .HasKey(ms => new { ms.GroupId, ms.PrincipalId });
+            });
+
             modelBuilder.Entity<Authorization>(entity =>
             {
                 entity.MapToTable("Authorization", schemaName);
@@ -93,6 +106,18 @@
            where TContext : DbContext
         {
             return context.Set<Scope>();
+        }
+
+        public static DbSet<Group> Groups<TContext>(this TContext context)
+           where TContext : DbContext
+        {
+            return context.Set<Group>();
+        }
+
+        public static DbSet<Membership> Memberships<TContext>(this TContext context)
+           where TContext : DbContext
+        {
+            return context.Set<Membership>();
         }
 
         public static DbSet<ScopeHierarchy> ScopeHierarchies<TContext>(this TContext context)
