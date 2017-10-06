@@ -9,6 +9,7 @@
     using System.Collections.Generic;
     using GeekLearning.Authorizations.Event;
     using GeekLearning.Authorizations.Events.Model;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
     {
@@ -16,11 +17,11 @@
         private readonly IPrincipalIdProvider principalIdProvider;
         private readonly IEventQueuer eventQueuer;
 
-        public AuthorizationsProvisioningClient(TContext context, IPrincipalIdProvider principalIdProvider, IEventQueuer eventQueuer = null)
+        public AuthorizationsProvisioningClient(TContext context, IPrincipalIdProvider principalIdProvider, IServiceProvider serviceProvider)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
-            this.eventQueuer = eventQueuer;
+            this.eventQueuer = serviceProvider.GetService<IEventQueuer>();
         }
 
         public async Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)

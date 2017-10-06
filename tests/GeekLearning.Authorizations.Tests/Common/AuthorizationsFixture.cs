@@ -38,7 +38,8 @@
 
             this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningClient<AuthorizationsTestContext>(
                 this.Context,
-                new PrincipalIdProvider(this.Context), this.AuthorizationsEventQueuer);
+                new PrincipalIdProvider(this.Context),
+                this.serviceProvider);
         }
 
         public AuthorizationsTestContext Context { get; private set; }
