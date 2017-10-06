@@ -11,8 +11,6 @@
 
     public class GroupTests
     {
-        private object group10;
-
         [Fact]
         public async Task CreateGroup_ShouldBeOk()
         {
