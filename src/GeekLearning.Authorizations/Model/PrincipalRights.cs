@@ -10,17 +10,20 @@
         {
         }
 
-        public PrincipalRights(Guid principalId, string rootScopeName, IEnumerable<ScopeRights> ScopeRights)
+        public PrincipalRights(Guid principalId, string rootScopeName, IEnumerable<ScopeRights> scopeRights, bool scopeNotFound = false)
         {
             this.PrincipalId = principalId;
             this.RootScopeName = rootScopeName;
-            this.ScopeRights = ComputeScopes(principalId, ScopeRights);
+            this.ScopeNotFound = scopeNotFound;
+            this.ScopeRights = ComputeScopes(principalId, scopeRights);
         }
 
         public Guid PrincipalId { get; set; }
 
         public string RootScopeName { get; set; }
-        
+
+        public bool ScopeNotFound { get; set; }
+
         public IReadOnlyDictionary<string, ScopeRights> ScopeRights { get; set; }
 
         public bool HasRightOnScope(string right, string scope) 

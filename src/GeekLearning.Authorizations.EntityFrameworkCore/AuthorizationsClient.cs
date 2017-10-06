@@ -61,7 +61,7 @@
             var askedParsedScope = parsedScopes.Values.FirstOrDefault(s => s.Scope.Name == scopeName);
             if (askedParsedScope == null)
             {
-                return new PrincipalRights(principalId, scopeName, Enumerable.Empty<ScopeRights>());
+                return new PrincipalRights(principalId, scopeName, Enumerable.Empty<ScopeRights>(), scopeNotFound: true);
             }
 
             return askedParsedScope.ToPrincipalRights(principalId);
