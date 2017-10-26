@@ -94,6 +94,12 @@
             return principalIds;
         }
 
+        public async Task<IList<Guid>> GetGroupMembersAsync(string groupName)
+        {
+            return await this.GetGroupMembersAsync(
+                await this.context.Groups().Where(g => g.Name == groupName).Select(g => g.Id).FirstOrDefaultAsync());
+        }
+
         public async Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId)
         {
             List<Guid> groupIds = new List<Guid>();

@@ -17,7 +17,7 @@
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 await authorizationsFixture.AuthorizationsProvisioningClient.CreateGroupAsync("group2", parentGroupName: "group1");
-             
+
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var group = authorizationsFixture.Context
@@ -64,7 +64,7 @@
                 });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
-                
+
                 var group = authorizationsFixture.Context
                     .Groups()
                     .FirstOrDefault(r => r.Name == "group2");
@@ -159,6 +159,40 @@
         }
 
         [Fact]
+        public async Task GetGroupMembers_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var groupParent = new Group { Name = "groupParent" };
+                var groupChild1 = new Group { Name = "groupChild1" };
+                var groupChild2 = new Group { Name = "groupChild2" };
+
+                authorizationsFixture.Context.Groups().Add(groupParent);
+                authorizationsFixture.Context.Groups().Add(groupChild1);
+                authorizationsFixture.Context.Groups().Add(groupChild2);
+
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = groupParent,
+                    Principal = groupChild1
+                });
+
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = groupParent,
+                    Principal = groupChild2
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var child1 = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "groupChild1");
+                var child2 = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "groupChild2");
+                var childrenIds = await authorizationsFixture.AuthorizationsClient.GetGroupMembersAsync("groupParent");
+                Assert.True(childrenIds.Contains(child1.Id) && childrenIds.Contains(child2.Id));
+            }
+        }
+
+        [Fact]
         public async Task DeleteGroup_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
@@ -178,7 +212,7 @@
                 var group2FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group2");
                 await authorizationsFixture.AuthorizationsProvisioningClient.DeleteGroupAsync("group1", withChildren: false);
                 await authorizationsFixture.Context.SaveChangesAsync();
-                
+
                 Assert.Null(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group1"));
                 Assert.Null(await authorizationsFixture.Context.Principals().FirstOrDefaultAsync(p => p.Id == group1FromDb.Id));
                 Assert.NotNull(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group2"));
