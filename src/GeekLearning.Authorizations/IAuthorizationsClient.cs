@@ -19,5 +19,7 @@
         Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId);
 
         Task<bool> HasMembershipAsync(string groupName);
+
+        Task<IList<Guid>> HasMembershipAsync(string groupName, IEnumerable<Guid> principalIds);
     }
 }
