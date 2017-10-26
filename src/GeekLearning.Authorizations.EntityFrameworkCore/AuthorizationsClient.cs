@@ -124,7 +124,18 @@
                     m => m.GroupId,
                     g => g.Id,
                     (m, g) => new { Membership = m, Group = g })
-                .AnyAsync(j => j.Membership.PrincipalId == this.principalIdProvider.PrincipalId && j.Group.Name == groupName);                
+                .AnyAsync(j => j.Membership.PrincipalId == this.principalIdProvider.PrincipalId && j.Group.Name == groupName);
+        }
+
+        public async Task<IList<Guid>> HasMembershipAsync(string groupName, IEnumerable<Guid> principalIds)
+        {
+            return await this.context
+                .Memberships()
+                .Join(principalIds, m => m.PrincipalId, pId => pId, (m, pId) => m)
+                .Join(this.context.Groups(), m => m.GroupId, g => g.Id, (m, g) => new { Membership = m, Group = g })
+                .Where(j => j.Group.Name == groupName)
+                .Select(j => j.Membership.PrincipalId)
+                .ToListAsync();
         }
     }
 }

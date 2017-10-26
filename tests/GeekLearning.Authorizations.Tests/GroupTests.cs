@@ -4,6 +4,7 @@
     using EntityFrameworkCore.Data;
     using Microsoft.EntityFrameworkCore;
     using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -210,6 +211,29 @@
                 await authorizationsFixture.Context.SaveChangesAsync();
                 
                 Assert.True(await authorizationsFixture.AuthorizationsClient.HasMembershipAsync("groupParent"));                
+            }
+        }
+
+        [Fact]
+        public async Task HasMembershipForUsers_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var groupParent = new Group { Name = "groupParent" };
+
+                authorizationsFixture.Context.Groups().Add(groupParent);
+
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = groupParent,
+                    PrincipalId = authorizationsFixture.Context.CurrentUserId
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var usersInGroup = await authorizationsFixture.AuthorizationsClient.HasMembershipAsync("groupParent", new List<Guid> { authorizationsFixture.Context.CurrentUserId });
+                Assert.True(usersInGroup.Contains(authorizationsFixture.Context.CurrentUserId));
+
             }
         }
 
