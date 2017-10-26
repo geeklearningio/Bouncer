@@ -193,6 +193,27 @@
         }
 
         [Fact]
+        public async Task HasMembership_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var groupParent = new Group { Name = "groupParent" };
+
+                authorizationsFixture.Context.Groups().Add(groupParent);
+
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = groupParent,
+                    PrincipalId = authorizationsFixture.Context.CurrentUserId
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+                
+                Assert.True(await authorizationsFixture.AuthorizationsClient.HasMembershipAsync("groupParent"));                
+            }
+        }
+
+        [Fact]
         public async Task DeleteGroup_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())

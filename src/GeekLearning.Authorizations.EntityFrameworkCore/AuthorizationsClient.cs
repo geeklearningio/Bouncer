@@ -114,5 +114,17 @@
 
             return groupIds;
         }
+
+        public async Task<bool> HasMembershipAsync(string groupName)
+        {
+            return await this.context
+                .Memberships()
+                .Join(
+                    this.context.Groups(),
+                    m => m.GroupId,
+                    g => g.Id,
+                    (m, g) => new { Membership = m, Group = g })
+                .AnyAsync(j => j.Membership.PrincipalId == this.principalIdProvider.PrincipalId && j.Group.Name == groupName);                
+        }
     }
 }
