@@ -78,11 +78,11 @@
             return principalRights.HasExplicitRightOnScope(rightName, scopeName);
         }
 
-        public async Task<IList<Guid>> GetGroupMembersAsync(params Guid[] groupIds)
+        public async Task<IList<Guid>> GetGroupMembersAsync(Guid groupId)
         {
             List<Guid> principalIds = new List<Guid>();
             var groupMembers = await this.context.Memberships()
-                .Join(groupIds, m => m.GroupId, groupId => groupId, (m, groupId) => m)                
+                .Where(m => m.GroupId == groupId)
                 .ToListAsync();
             principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
             foreach (var groupMember in groupMembers)
@@ -93,16 +93,23 @@
             return principalIds;
         }
 
-        public async Task<IList<Guid>> GetGroupMembersAsync(params string[] groupNames)
+        public async Task<IList<Guid>> GetGroupMembersAsync(string groupName)
         {
             return await this.GetGroupMembersAsync(
-                await this.context
-                .Groups()
-                .Join(groupNames, g => g.Name, groupName => groupName, (g, groupName) => g)                
-                .Select(g => g.Id)
-                .FirstOrDefaultAsync());
+                await this.context.Groups().Where(g => g.Name == groupName).Select(g => g.Id).FirstOrDefaultAsync());
         }
 
+        public async Task<IDictionary<string, IList<Guid>>> GetGroupMembersAsync(params string[] groupNames)
+        {
+            Dictionary<string, IList<Guid>> groupMembers = new Dictionary<string, IList<Guid>>();
+            // To be improved with a single query
+            foreach (var groupName in groupNames)
+            {
+                groupMembers[groupName] = await this.GetGroupMembersAsync(groupName);
+            }
+
+            return groupMembers;
+        }
         public async Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId)
         {
             List<Guid> groupIds = new List<Guid>();
@@ -122,9 +129,8 @@
         {
             return await this.context
                 .Memberships()
-                .Join(this.context.Groups(), m => m.GroupId, g => g.Id, (m, g) => new { Membership = m, Group = g })
-                .Join(groupNames, mg => mg.Group.Name, groupName => groupName, (mg, groupName) => mg)
-                .AnyAsync(mg => mg.Membership.PrincipalId == this.principalIdProvider.PrincipalId);
+                .Join(groupNames, m => m.Group.Name, groupName => groupName, (m, groupName) => m)
+                .AnyAsync(m => m.PrincipalId == this.principalIdProvider.PrincipalId);
         }
 
         public async Task<IList<Guid>> HasMembershipAsync(IEnumerable<Guid> principalIds, params string[] groupNames)
@@ -132,9 +138,16 @@
             return await this.context
                 .Memberships()
                 .Join(principalIds, m => m.PrincipalId, pId => pId, (m, pId) => m)
-                .Join(this.context.Groups(), m => m.GroupId, g => g.Id, (m, g) => new { Membership = m, Group = g })
-                .Join(groupNames, mg => mg.Group.Name, groupName => groupName, (mg, groupName) => mg)                
-                .Select(mg => mg.Membership.PrincipalId)
+                .Join(groupNames, m => m.Group.Name, groupName => groupName, (m, groupName) => m)                
+                .Select(m => m.PrincipalId)
+                .ToListAsync();
+        }
+
+        public async Task<IList<string>> DetectMembershipsAsync(IEnumerable<string> groupNames)
+        {
+            return await this.context
+                .Memberships()
+                .Join(groupNames, m => m.Group.Name, groupName => groupName, (m, groupName) => groupName)
                 .ToListAsync();
         }
     }

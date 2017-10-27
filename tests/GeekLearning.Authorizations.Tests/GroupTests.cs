@@ -238,6 +238,39 @@
         }
 
         [Fact]
+        public async Task DetectMemberships_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var group1 = new Group { Name = "group1" };
+                var group2 = new Group { Name = "group2" };
+                var group3 = new Group { Name = "group3" };
+
+                authorizationsFixture.Context.Groups().Add(group1);
+                authorizationsFixture.Context.Groups().Add(group2);
+                authorizationsFixture.Context.Groups().Add(group3);
+
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = group1,
+                    PrincipalId = authorizationsFixture.Context.CurrentUserId
+                });
+
+                authorizationsFixture.Context.Memberships().Add(new Membership
+                {
+                    Group = group2,
+                    PrincipalId = authorizationsFixture.Context.CurrentUserId
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var userMemberships = await authorizationsFixture.AuthorizationsClient.DetectMembershipsAsync(new List<string> { "group1", "group2" });
+                Assert.True(userMemberships.Contains("group1") && userMemberships.Contains("group2"));
+
+            }
+        }
+
+        [Fact]
         public async Task DeleteGroup_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
