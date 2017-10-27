@@ -78,11 +78,11 @@
             return principalRights.HasExplicitRightOnScope(rightName, scopeName);
         }
 
-        public async Task<IList<Guid>> GetGroupMembersAsync(Guid groupId)
+        public async Task<IList<Guid>> GetGroupMembersAsync(params Guid[] groupIds)
         {
             List<Guid> principalIds = new List<Guid>();
             var groupMembers = await this.context.Memberships()
-                .Where(m => m.GroupId == groupId)
+                .Join(groupIds, m => m.GroupId, groupId => groupId, (m, groupId) => m)                
                 .ToListAsync();
             principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
             foreach (var groupMember in groupMembers)
@@ -93,10 +93,14 @@
             return principalIds;
         }
 
-        public async Task<IList<Guid>> GetGroupMembersAsync(string groupName)
+        public async Task<IList<Guid>> GetGroupMembersAsync(params string[] groupNames)
         {
             return await this.GetGroupMembersAsync(
-                await this.context.Groups().Where(g => g.Name == groupName).Select(g => g.Id).FirstOrDefaultAsync());
+                await this.context
+                .Groups()
+                .Join(groupNames, g => g.Name, groupName => groupName, (g, groupName) => g)                
+                .Select(g => g.Id)
+                .FirstOrDefaultAsync());
         }
 
         public async Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId)
