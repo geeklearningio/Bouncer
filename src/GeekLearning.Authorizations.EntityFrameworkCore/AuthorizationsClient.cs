@@ -36,7 +36,6 @@
 
                 var principalRightsPerScope = (await this.context.Authorizations()
                     .Join(principalIdsLink, a => a.PrincipalId, p => p, (a, p) => a)
-                    //.Where(a => a.PrincipalId == principalId)
                     .Select(a => new { a.ScopeId, a.RoleId })
                     .ToListAsync())
                     .GroupBy(a => a.ScopeId)
@@ -115,26 +114,23 @@
             return groupIds;
         }
 
-        public async Task<bool> HasMembershipAsync(string groupName)
+        public async Task<bool> HasMembershipAsync(params string[] groupNames)
         {
             return await this.context
                 .Memberships()
-                .Join(
-                    this.context.Groups(),
-                    m => m.GroupId,
-                    g => g.Id,
-                    (m, g) => new { Membership = m, Group = g })
-                .AnyAsync(j => j.Membership.PrincipalId == this.principalIdProvider.PrincipalId && j.Group.Name == groupName);
+                .Join(this.context.Groups(), m => m.GroupId, g => g.Id, (m, g) => new { Membership = m, Group = g })
+                .Join(groupNames, mg => mg.Group.Name, groupName => groupName, (mg, groupName) => mg)
+                .AnyAsync(mg => mg.Membership.PrincipalId == this.principalIdProvider.PrincipalId);
         }
 
-        public async Task<IList<Guid>> HasMembershipAsync(string groupName, IEnumerable<Guid> principalIds)
+        public async Task<IList<Guid>> HasMembershipAsync(IEnumerable<Guid> principalIds, params string[] groupNames)
         {
             return await this.context
                 .Memberships()
                 .Join(principalIds, m => m.PrincipalId, pId => pId, (m, pId) => m)
                 .Join(this.context.Groups(), m => m.GroupId, g => g.Id, (m, g) => new { Membership = m, Group = g })
-                .Where(j => j.Group.Name == groupName)
-                .Select(j => j.Membership.PrincipalId)
+                .Join(groupNames, mg => mg.Group.Name, groupName => groupName, (mg, groupName) => mg)                
+                .Select(mg => mg.Membership.PrincipalId)
                 .ToListAsync();
         }
     }

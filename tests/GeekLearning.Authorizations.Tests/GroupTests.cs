@@ -231,7 +231,7 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                var usersInGroup = await authorizationsFixture.AuthorizationsClient.HasMembershipAsync("groupParent", new List<Guid> { authorizationsFixture.Context.CurrentUserId });
+                var usersInGroup = await authorizationsFixture.AuthorizationsClient.HasMembershipAsync(new List<Guid> { authorizationsFixture.Context.CurrentUserId }, "groupParent");
                 Assert.True(usersInGroup.Contains(authorizationsFixture.Context.CurrentUserId));
 
             }
