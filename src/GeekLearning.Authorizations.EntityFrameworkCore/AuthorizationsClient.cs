@@ -35,7 +35,8 @@
                 principalIdsLink.Add(principalId);
 
                 var principalRightsPerScope = (await this.context.Authorizations()
-                    .Join(principalIdsLink, a => a.PrincipalId, p => p, (a, p) => a)
+                    //.Join(principalIdsLink, a => a.PrincipalId, p => p, (a, p) => a)
+                    .Where(a => principalIdsLink.Contains(a.PrincipalId))
                     .Select(a => new { a.ScopeId, a.RoleId })
                     .ToListAsync())
                     .GroupBy(a => a.ScopeId)
