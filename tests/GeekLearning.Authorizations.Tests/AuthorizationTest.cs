@@ -108,7 +108,7 @@
         }
 
         [Fact]
-        public Task GetRightsOnScope_ShouldBeOk()
+        public Task HasXRightsOnScope_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
@@ -181,6 +181,26 @@
             }
 
             return Task.CompletedTask;
+        }
+
+        [Fact]
+        public async Task GetRightsOnScope_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");
+                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope2", "Scope 2");
+
+                await authorizationsFixture.AuthorizationsProvisioningClient.AffectRoleToPrincipalOnScopeAsync("role1", authorizationsFixture.Context.CurrentUserId, "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
+
+                Assert.True(r.HasRightOnScope("right1", "scope1"));
+            }
         }
     }
 }
