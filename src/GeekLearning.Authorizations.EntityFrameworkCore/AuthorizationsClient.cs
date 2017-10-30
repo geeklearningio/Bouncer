@@ -44,17 +44,20 @@
                         ag => ag.Key,
                         ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>()).ToArray());
 
+                System.Diagnostics.Debug.WriteLine("1");
+                
                 var rootScopes = scopes
                     .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())
                     .Select(s => s.Value)
                     .ToList();
-
+                System.Diagnostics.Debug.WriteLine("2");
                 parsedScopes = new Dictionary<Guid, ParsedScope>();
                 foreach (var rootScope in rootScopes)
                 {
                     ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes);
                 }
 
+                System.Diagnostics.Debug.WriteLine("3");
                 this.parsedScopesPerPrincipal.Add(principalId, parsedScopes);
             }
 
@@ -63,7 +66,7 @@
             {
                 return new PrincipalRights(principalId, scopeName, Enumerable.Empty<ScopeRights>(), scopeNotFound: true);
             }
-
+            System.Diagnostics.Debug.WriteLine("4");
             return askedParsedScope.ToPrincipalRights(principalId);
         }
 
