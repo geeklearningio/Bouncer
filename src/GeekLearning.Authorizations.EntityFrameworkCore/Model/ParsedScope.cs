@@ -19,7 +19,6 @@
 
         public PrincipalRights ToPrincipalRights(Guid principalId)
         {
-            System.Diagnostics.Debug.WriteLine("ToPrincipalRights");
             var scopeRights = new Dictionary<Guid, ScopeRights>();
 
             this.AddToScopeRightsList(principalId, scopeRights);
@@ -29,7 +28,6 @@
 
         private void AddToScopeRightsList(Guid principalId, Dictionary<Guid, ScopeRights> scopeRights)
         {
-            System.Diagnostics.Debug.WriteLine("AddToScopeRightsList");
             if (!scopeRights.ContainsKey(this.Scope.Id))
             {
                 scopeRights.Add(this.Scope.Id, this.ToScopeRights(principalId));
@@ -43,7 +41,6 @@
 
         private ScopeRights ToScopeRights(Guid principalId)
         {
-            System.Diagnostics.Debug.WriteLine("ToScopeRights");
             var rightsOnScope = this.RightNames
                 .Select(r => new Right(principalId, this.Scope.Name, r, this.ExplicitRightNames.Contains(r)))
                 .ToList();
@@ -57,26 +54,29 @@
 
         public static void Parse(
             Guid scopeId,
-            IDictionary<Guid, Caching.Scope> scopes, 
-            Dictionary<Guid, string[]> principalRightsPerScope, 
-            Dictionary<Guid, ParsedScope> parsedScopes)
+            IDictionary<Guid, Caching.Scope> scopes,
+            Dictionary<Guid, string[]> principalRightsPerScope,
+            Dictionary<Guid, ParsedScope> parsedScopes,
+            HashSet<Guid> parsedScopeIds)
         {
-            Caching.Scope scope;
-            if (!scopes.TryGetValue(scopeId, out scope))
+            if (parsedScopeIds.Contains(scopeId))
+            {
+                throw new InvalidOperationException("Scope cycle detected. The scope hierarchy must not define a cycle");
+            }
+
+            if (!scopes.TryGetValue(scopeId, out Caching.Scope scope))
             {
                 // TODO: Log Warning!
                 return;
             }
 
-            ParsedScope parsedScope;
-            if (!parsedScopes.TryGetValue(scope.Id, out parsedScope))
+            if (!parsedScopes.TryGetValue(scope.Id, out ParsedScope parsedScope))
             {
                 parsedScope = new ParsedScope { Scope = scope };
                 parsedScopes.Add(scope.Id, parsedScope);
             }
 
-            string[] explicitRightNames;
-            if (principalRightsPerScope.TryGetValue(scope.Id, out explicitRightNames))
+            if (principalRightsPerScope.TryGetValue(scope.Id, out string[] explicitRightNames))
             {
                 parsedScope.ExplicitRightNames = parsedScope.ExplicitRightNames.Union(explicitRightNames).ToList();
                 parsedScope.RightNames = parsedScope.RightNames.Union(explicitRightNames).ToList();
@@ -86,8 +86,7 @@
             {
                 foreach (var parentScopeId in scope.ParentIds)
                 {
-                    ParsedScope parentParsedScope;
-                    if (parsedScopes.TryGetValue(parentScopeId, out parentParsedScope))
+                    if (parsedScopes.TryGetValue(parentScopeId, out ParsedScope parentParsedScope))
                     {
                         parsedScope.RightNames = parsedScope.RightNames.Union(parentParsedScope.RightNames).ToList();
                         parentParsedScope.Children.Add(parsedScope);
@@ -99,7 +98,7 @@
             {
                 foreach (var childScopeId in scope.ChildIds)
                 {
-                    Parse(childScopeId, scopes, principalRightsPerScope, parsedScopes);
+                    Parse(childScopeId, scopes, principalRightsPerScope, parsedScopes, parsedScopeIds);
                 }
             }
 

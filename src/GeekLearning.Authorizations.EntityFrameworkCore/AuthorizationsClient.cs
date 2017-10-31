@@ -52,7 +52,7 @@
                 parsedScopes = new Dictionary<Guid, ParsedScope>();
                 foreach (var rootScope in rootScopes)
                 {
-                    ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes);
+                    ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes, new HashSet<Guid>());
                 }
 
                 this.parsedScopesPerPrincipal.Add(principalId, parsedScopes);
