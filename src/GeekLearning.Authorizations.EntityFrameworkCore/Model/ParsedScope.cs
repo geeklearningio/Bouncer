@@ -19,6 +19,7 @@
 
         public PrincipalRights ToPrincipalRights(Guid principalId)
         {
+            System.Diagnostics.Debug.WriteLine("ToPrincipalRights");
             var scopeRights = new Dictionary<Guid, ScopeRights>();
 
             this.AddToScopeRightsList(principalId, scopeRights);
@@ -28,6 +29,7 @@
 
         private void AddToScopeRightsList(Guid principalId, Dictionary<Guid, ScopeRights> scopeRights)
         {
+            System.Diagnostics.Debug.WriteLine("AddToScopeRightsList");
             if (!scopeRights.ContainsKey(this.Scope.Id))
             {
                 scopeRights.Add(this.Scope.Id, this.ToScopeRights(principalId));
@@ -41,6 +43,7 @@
 
         private ScopeRights ToScopeRights(Guid principalId)
         {
+            System.Diagnostics.Debug.WriteLine("ToScopeRights");
             var rightsOnScope = this.RightNames
                 .Select(r => new Right(principalId, this.Scope.Name, r, this.ExplicitRightNames.Contains(r)))
                 .ToList();

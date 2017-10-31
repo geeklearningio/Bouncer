@@ -6,6 +6,7 @@
     {
         public Right(Guid principalId, string scopeName, string rightName, bool isExplicit)
         {
+            System.Diagnostics.Debug.WriteLine("Right ctor");
             this.PrincipalId = principalId;
             this.ScopeName = scopeName;
             this.RightName = rightName;

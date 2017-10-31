@@ -12,6 +12,7 @@
 
         public ScopeRights(Guid principalId, string scopeName, IEnumerable<Right> rightsOnScope, IEnumerable<Right> rightsUnderScope)
         {
+            System.Diagnostics.Debug.WriteLine("ScopeRights ctor");
             this.PrincipalId = principalId;
             this.ScopeName = scopeName;
 
@@ -47,6 +48,7 @@
 
         private static Dictionary<string, Right> ComputeRights(Guid principalId, string scopeName, IEnumerable<Right> rights)
         {
+            System.Diagnostics.Debug.WriteLine("ComputeRights");
             if (rights != null)
             {
                 return rights
