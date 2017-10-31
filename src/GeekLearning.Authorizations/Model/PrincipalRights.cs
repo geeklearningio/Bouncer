@@ -16,7 +16,6 @@
             this.RootScopeName = rootScopeName;
             this.ScopeNotFound = scopeNotFound;
             this.ScopeRights = ComputeScopes(principalId, scopeRights);
-            System.Diagnostics.Debug.WriteLine("End PrincipalRights ctor");
         }
 
         public Guid PrincipalId { get; set; }
