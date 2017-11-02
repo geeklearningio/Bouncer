@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
     using Authorizations.Model;
+    using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
     using Microsoft.EntityFrameworkCore;
     using Model;
     using System;
@@ -35,7 +36,6 @@
                 principalIdsLink.Add(principalId);
 
                 var principalRightsPerScope = (await this.context.Authorizations()
-                    //.Join(principalIdsLink, a => a.PrincipalId, p => p, (a, p) => a)
                     .Where(a => principalIdsLink.Contains(a.PrincipalId))
                     .Select(a => new { a.ScopeId, a.RoleId })
                     .ToListAsync())
@@ -48,6 +48,11 @@
                     .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())
                     .Select(s => s.Value)
                     .ToList();
+
+                if (rootScopes.Count == 0)
+                {
+                    throw new RootScopeNotFoundException();
+                }
 
                 parsedScopes = new Dictionary<Guid, ParsedScope>();
                 foreach (var rootScope in rootScopes)

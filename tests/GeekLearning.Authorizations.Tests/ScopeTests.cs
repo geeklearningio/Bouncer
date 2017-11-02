@@ -2,6 +2,7 @@
 {
     using EntityFrameworkCore;
     using EntityFrameworkCore.Data;
+    using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
     using Microsoft.EntityFrameworkCore;
     using System.Linq;
     using System.Threading.Tasks;
@@ -39,7 +40,7 @@
                 var parentKeys = scope.Parents.Select(r => r.Parent.Name);
                 Assert.True(parentKeys.Contains("scopeParent1"));
                 Assert.True(parentKeys.Contains("scopeParent2"));
-            }   
+            }
         }
 
         [Fact]
@@ -83,6 +84,112 @@
                                                          .FirstOrDefault(r => r.Name == "scopeChild2"));
 
                 Assert.False(authorizationsFixture.Context.ScopeHierarchies().Any());
+            }
+        }
+
+        [Fact]        
+        public async Task RootScopeNotFoundDetection_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var scope1Entry = authorizationsFixture.Context.Scopes().Add(new Scope
+                {
+                    Name = "scope1",
+                    Description = "scope 1",
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
+                });
+
+                var scope2Entry = authorizationsFixture.Context.Scopes().Add(new Scope
+                {
+                    Name = "scope2",
+                    Description = "scope 2",
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
+                });
+
+                var scope3Entry = authorizationsFixture.Context.Scopes().Add(new Scope
+                {
+                    Name = "scope3",
+                    Description = "scope 3",
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
+                });
+
+                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
+                {
+                    Child = scope3Entry.Entity,
+                    Parent = scope2Entry.Entity,                    
+                });
+
+                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
+                {
+                    Child = scope2Entry.Entity,
+                    Parent = scope1Entry.Entity,
+                });
+
+                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
+                {
+                    Child = scope1Entry.Entity,
+                    Parent = scope3Entry.Entity,
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                await Assert.ThrowsAsync<RootScopeNotFoundException>(async () => await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true));
+            }
+        }
+
+        [Fact]
+        public async Task ScopeLoopDetection_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var scope1Entry = authorizationsFixture.Context.Scopes().Add(new Scope
+                {
+                    Name = "scope1",
+                    Description = "scope 1",
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
+                });
+
+                var scope2Entry = authorizationsFixture.Context.Scopes().Add(new Scope
+                {
+                    Name = "scope2",
+                    Description = "scope 2",
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
+                });
+
+                var scope3Entry = authorizationsFixture.Context.Scopes().Add(new Scope
+                {
+                    Name = "scope3",
+                    Description = "scope 3",
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
+                });
+
+                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
+                {
+                    Child = scope3Entry.Entity,
+                    Parent = scope2Entry.Entity,
+                });
+
+                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
+                {
+                    Child = scope2Entry.Entity,
+                    Parent = scope1Entry.Entity,
+                });
+
+                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
+                {
+                    Child = scope2Entry.Entity,
+                    Parent = scope3Entry.Entity,
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                await Assert.ThrowsAsync<ScopeLoopDetectedException>(async () => await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true));
             }
         }
     }
