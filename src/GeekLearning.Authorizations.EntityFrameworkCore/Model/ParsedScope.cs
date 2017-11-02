@@ -57,21 +57,13 @@
             Guid scopeId,
             IDictionary<Guid, Caching.Scope> scopes,
             Dictionary<Guid, string[]> principalRightsPerScope,
-            Dictionary<Guid, ParsedScope> parsedScopes,
-            HashSet<Guid> parsedScopeIds)
+            Dictionary<Guid, ParsedScope> parsedScopes)
         {
             if (!scopes.TryGetValue(scopeId, out Caching.Scope scope))
             {
                 // TODO: Log Warning!
                 return;
             }
-
-            if (parsedScopeIds.Contains(scope.Id))
-            {
-                throw new ScopeLoopDetectedException(scope.Name);
-            }
-
-            parsedScopeIds.Add(scopeId);
 
             if (!parsedScopes.TryGetValue(scope.Id, out ParsedScope parsedScope))
             {
@@ -101,7 +93,7 @@
             {
                 foreach (var childScopeId in scope.ChildIds)
                 {
-                    Parse(childScopeId, scopes, principalRightsPerScope, parsedScopes, parsedScopeIds);
+                    Parse(childScopeId, scopes, principalRightsPerScope, parsedScopes);
                 }
             }
 

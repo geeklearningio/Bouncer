@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore.Caching
 {
+    using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Caching.Memory;
@@ -87,9 +88,38 @@
                     ChildIds = groupByParent.ContainsKey(s.Id) ? groupByParent[s.Id] : null,
                     ParentIds = groupByChild.ContainsKey(s.Id) ? groupByChild[s.Id] : null,
                 })
-                .ToList();
+                .ToDictionary(ds => ds.Id, ds => ds);
+            
+            this.ValidateScopeModel(scopes);
 
-            return new ScopesCache { Scopes = scopes };
+            return new ScopesCache { Scopes = scopes.Values };
+        }
+
+        private void ValidateScopeModel(IDictionary<Guid, Scope> scopes)
+        {
+            Action<Scope, int> visitor = null;
+            visitor = (Scope s, int scopeLevel) =>
+            {
+                s.Level = scopeLevel;
+                if (s.ChildIds != null)
+                {
+                    foreach (var childId in s.ChildIds)
+                    {
+                        if (scopes[childId].Level.HasValue && scopes[childId].Level.Value <= scopeLevel)
+                        {
+                            throw new BadScopeModelConfigurationException(s.Name, scopes[childId].Name, s.Level.Value, scopes[childId].Level.Value);
+                        }
+
+                        visitor(scopes[childId], scopeLevel + 1);
+                    }
+                }
+            };
+
+            var rootScopes = scopes.Values.Where(s => s.ParentIds == null || !s.ParentIds.Any()).ToList();
+            foreach (var rootScope in rootScopes)
+            {
+                visitor(rootScope, 0);
+            }
         }
 
         private async Task<TCacheableObject> GetOrCreateAsync<TCacheableObject>(
