@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore.Model
 {
     using Authorizations.Model;
+    using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -59,16 +60,18 @@
             Dictionary<Guid, ParsedScope> parsedScopes,
             HashSet<Guid> parsedScopeIds)
         {
-            if (parsedScopeIds.Contains(scopeId))
-            {
-                throw new InvalidOperationException("Scope cycle detected. The scope hierarchy must not define a cycle");
-            }
-
             if (!scopes.TryGetValue(scopeId, out Caching.Scope scope))
             {
                 // TODO: Log Warning!
                 return;
             }
+
+            if (parsedScopeIds.Contains(scope.Id))
+            {
+                throw new ScopeLoopDetectedException(scope.Name);
+            }
+
+            parsedScopeIds.Add(scopeId);
 
             if (!parsedScopes.TryGetValue(scope.Id, out ParsedScope parsedScope))
             {
