@@ -100,26 +100,31 @@
             Action<Scope, int> visitor = null;
             visitor = (Scope s, int scopeLevel) =>
             {
+                if (s.Level.HasValue && s.Level.Value != scopeLevel)
+                {
+                    throw new BadScopeModelConfigurationException(s.Name);
+                }
+
                 s.Level = scopeLevel;
                 if (s.ChildIds != null)
                 {
-                    foreach (var childId in s.ChildIds)
+                    Parallel.ForEach(s.ChildIds, childId =>
                     {
-                        if (scopes[childId].Level.HasValue && scopes[childId].Level.Value <= scopeLevel)
+                        if (scopes[childId].Level.HasValue && scopes[childId].Level.Value <= s.Level)
                         {
                             throw new BadScopeModelConfigurationException(s.Name, scopes[childId].Name, s.Level.Value, scopes[childId].Level.Value);
                         }
 
                         visitor(scopes[childId], scopeLevel + 1);
-                    }
+                    });
                 }
             };
 
             var rootScopes = scopes.Values.Where(s => s.ParentIds == null || !s.ParentIds.Any()).ToList();
-            foreach (var rootScope in rootScopes)
+            Parallel.ForEach(rootScopes, rootScope =>
             {
                 visitor(rootScope, 0);
-            }
+            });
         }
 
         private async Task<TCacheableObject> GetOrCreateAsync<TCacheableObject>(
