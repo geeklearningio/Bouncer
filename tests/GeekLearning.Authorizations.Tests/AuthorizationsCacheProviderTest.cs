@@ -130,9 +130,7 @@
 
                 var authorizationsCacheProvider = new AuthorizationsCacheProvider<AuthorizationsTestContext>(authorizationsFixture.Context);
 
-                var exception = await Assert.ThrowsAsync<AggregateException>(async () => await authorizationsCacheProvider.GetScopesAsync());
-
-                Assert.Equal(typeof(BadScopeModelConfigurationException), exception.Flatten().InnerException.GetType());
+                await Assert.ThrowsAsync<BadScopeModelConfigurationException>(async () => await authorizationsCacheProvider.GetScopesAsync());                
             }
         }
     }
