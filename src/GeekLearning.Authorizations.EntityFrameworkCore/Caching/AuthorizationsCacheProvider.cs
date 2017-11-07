@@ -42,22 +42,12 @@
 
         private async Task<RolesCache> QueryRolesAsync()
         {
-            var rights = await this.context.Rights()
-                                    .Select(ri => new { ri.Id, ri.Name })
-                                    .ToDictionaryAsync(ri => ri.Id, ri => ri.Name);
-
-            var dataRoles = await this.context.Roles()
-                .Select(r => new { r.Id, r.Name, Rights = r.Rights.Select(rri => rri.RightId) })
+            var roles = await this.context.Roles()
+                .Join(this.context.RoleRights(), r => r.Id, rr => rr.RoleId, (r, rr) => new { Role = r, RoleRights = rr })
+                .Join(this.context.Rights(), j => j.RoleRights.RightId, r => r.Id, (j, r) => new { RoleId = j.Role.Id, RoleName = j.Role.Name, RightName = r.Name })
+                .GroupBy(j => j.RoleId)
+                .Select(g => new Role { Id = g.Key, Name = g.First().RoleName, Rights = g.Select(sg => sg.RightName).ToList() })
                 .ToListAsync();
-
-            var roles = dataRoles
-                .Select(r => new Role
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Rights = r.Rights != null && r.Rights.Any() ? r.Rights.Select(ri => rights[ri]).ToList() : null,
-                })
-                .ToList();
 
             return new RolesCache { Roles = roles };
         }
@@ -108,7 +98,7 @@
                 s.Level = scopeLevel;
                 if (s.ChildIds != null)
                 {
-                    Parallel.ForEach(s.ChildIds, childId =>
+                    foreach (var childId in s.ChildIds)
                     {
                         if (scopes[childId].Level.HasValue && scopes[childId].Level.Value <= s.Level)
                         {
@@ -116,15 +106,15 @@
                         }
 
                         visitor(scopes[childId], scopeLevel + 1);
-                    });
+                    }
                 }
             };
 
             var rootScopes = scopes.Values.Where(s => s.ParentIds == null || !s.ParentIds.Any()).ToList();
-            Parallel.ForEach(rootScopes, rootScope =>
+            foreach(var rootScope in rootScopes)
             {
                 visitor(rootScope, 0);
-            });
+            }
         }
 
         private async Task<TCacheableObject> GetOrCreateAsync<TCacheableObject>(
@@ -137,26 +127,27 @@
             if (this.memoryCache != null)
             {
                 cacheableObject = this.memoryCache.Get<TCacheableObject>(cacheKey);
+                
                 var databaseModelModificationDate = await SharedQueries.GetModelModificationDateAsync(this.context);
-
-                if (cacheableObject != null
-                    && getModificationDate(databaseModelModificationDate) <= cacheableObject.CacheValuesDateTime)
+                
+                var modificationDate = getModificationDate(databaseModelModificationDate);                
+                if (cacheableObject != null && modificationDate <= cacheableObject.CacheValuesDateTime)
                 {
                     return cacheableObject;
                 }
-
+                
                 cacheableObject = await queryCacheableObject();
-                cacheableObject.CacheValuesDateTime = getModificationDate(databaseModelModificationDate);
-
+                cacheableObject.CacheValuesDateTime = modificationDate;
+                
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                     .SetPriority(CacheItemPriority.NeverRemove);
 
                 this.memoryCache.Set(cacheKey, cacheableObject, cacheEntryOptions);
-
+                
                 return cacheableObject;
             }
 
-            return await queryCacheableObject();
+            return await queryCacheableObject();            
         }
     }
 }

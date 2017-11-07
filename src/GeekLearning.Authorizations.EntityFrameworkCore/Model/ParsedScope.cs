@@ -5,6 +5,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     internal class ParsedScope
     {
@@ -21,7 +22,7 @@
         public PrincipalRights ToPrincipalRights(Guid principalId)
         {
             var scopeRights = new Dictionary<Guid, ScopeRights>();
-
+        
             this.AddToScopeRightsList(principalId, scopeRights);
 
             return new PrincipalRights(principalId, this.Scope.Name, scopeRights.Values);
@@ -32,11 +33,11 @@
             if (!scopeRights.ContainsKey(this.Scope.Id))
             {
                 scopeRights.Add(this.Scope.Id, this.ToScopeRights(principalId));
-            }
 
-            foreach (var child in this.Children)
-            {
-                child.AddToScopeRightsList(principalId, scopeRights);
+                foreach (var child in this.Children)
+                {
+                    child.AddToScopeRightsList(principalId, scopeRights);
+                }
             }
         }
 
