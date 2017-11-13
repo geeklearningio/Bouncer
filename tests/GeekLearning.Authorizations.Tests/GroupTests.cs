@@ -151,6 +151,7 @@
                 var parentLink = await authorizationsFixture.AuthorizationsClient.GetGroupParentLinkAsync(targettedGroup.Id);
 
                 string[] expectedParentLinkItems = { "group8", "group6", "group4", "group3", "group2", "group0" };
+                Assert.Equal(expectedParentLinkItems.Length, parentLink.Count);
                 foreach (var parentLinkItem in parentLink)
                 {
                     var group = await authorizationsFixture.Context.Groups().FirstOrDefaultAsync(g => g.Id == parentLinkItem);

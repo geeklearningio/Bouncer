@@ -117,16 +117,19 @@
 
             return groupMembers;
         }
-        public async Task<IList<Guid>> GetGroupParentLinkAsync(Guid principalId)
+
+        public async Task<IList<Guid>> GetGroupParentLinkAsync(params Guid[] principalsId)
         {
             List<Guid> groupIds = new List<Guid>();
-            var groupParents = await this.context.Memberships()
-                .Where(m => m.PrincipalId == principalId)
+            var groupParentsId = await this.context.Memberships()
+                .Where(m => principalsId.Contains(m.PrincipalId))
+                .Select(m => m.GroupId)
                 .ToListAsync();
-            groupIds.AddRange(groupParents.Select(gm => gm.GroupId));
-            foreach (var groupParent in groupParents)
+            groupIds.AddRange(groupParentsId);
+
+            if (groupParentsId.Count > 0)
             {
-                groupIds.AddRange(await GetGroupParentLinkAsync(groupParent.GroupId));
+                groupIds.AddRange(await GetGroupParentLinkAsync(groupParentsId.ToArray()));
             }
 
             return groupIds;
