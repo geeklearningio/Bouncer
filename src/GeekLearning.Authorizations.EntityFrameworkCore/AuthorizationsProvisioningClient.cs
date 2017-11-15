@@ -23,7 +23,7 @@
             this.principalIdProvider = principalIdProvider;
             this.eventQueuer = serviceProvider.GetService<IEventQueuer>();
         }
-
+        
         public async Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
         {
             Data.Role role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
@@ -72,6 +72,15 @@
             this.QueueEvent(new AffectRoleToPrincipalOnScope(principalId, roleName, scopeName));
         }
 
+        public async Task AffectRoleToGroupOnScopeAsync(string roleName, string groupName, string scopeName)
+        {
+            Data.Group group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group != null)
+            {
+                await this.AffectRoleToPrincipalOnScopeAsync(roleName, group.Id, scopeName);
+            }
+        }
+
         public async Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
         {
             Data.Role role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
@@ -100,6 +109,15 @@
 
                     this.QueueEvent(new UnaffectRoleFromPrincipalOnScope(principalId, roleName, scopeName));
                 }
+            }
+        }
+
+        public async Task UnaffectRoleFromGroupOnScopeAsync(string roleName, string groupName, string scopeName)
+        {
+            Data.Group group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group != null)
+            {
+                await this.UnaffectRoleFromPrincipalOnScopeAsync(roleName, group.Id, scopeName);
             }
         }
 
@@ -265,7 +283,11 @@
                                                .Select(r => r.ScopeHierarchy.Child)
                                                .ToListAsync();
 
-                this.context.Set<Data.Scope>().RemoveRange(childrenScopes);
+                foreach (var childrenScope in childrenScopes)
+                {
+                    await DeleteScopeAsync(childrenScope.Name);
+                }
+
                 this.context.Set<Data.ScopeHierarchy>()
                             .RemoveRange(
                                 await this.context.Set<Data.ScopeHierarchy>()
@@ -324,6 +346,27 @@
         public Task AddPrincipalsToGroupAsync(IEnumerable<Guid> principalIds, string groupName)
         {
             return Task.WhenAll(principalIds.Select(pId => AddPrincipalToGroupAsync(pId, groupName)));
+        }
+
+        public async Task AddGroupToGroupAsync(string childGroupName, string parentGroupName)
+        {
+            await this.CreateGroupAsync(childGroupName);
+            var childGroup = await this.GetEntityAsync<Data.Group>(g => g.Name == childGroupName);
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == childGroup.Id && m.Group.Name == parentGroupName);
+            if (membership == null)
+            {
+                await this.CreateGroupAsync(parentGroupName);
+                var parentGroup = await this.GetEntityAsync<Data.Group>(g => g.Name == parentGroupName);
+                this.context.Set<Data.Membership>().Add(new Data.Membership
+                {
+                    PrincipalId = childGroup.Id,
+                    Group = parentGroup,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                });
+
+                this.QueueEvent(new AddPrincipalToGroup(childGroup.Id, parentGroup.Name));
+            }
         }
 
         public async Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName)

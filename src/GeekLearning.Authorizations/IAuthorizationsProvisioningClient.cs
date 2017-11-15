@@ -26,12 +26,18 @@
 
         Task AddPrincipalsToGroupAsync(IEnumerable<Guid> principalIds, string groupName);
 
+        Task AddGroupToGroupAsync(string childGroupName, string parentGroupName);
+
         Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName);
 
         Task RemovePrincipalsFromGroupAsync(IEnumerable<Guid> principalIds, string groupName);
 
         Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
 
+        Task AffectRoleToGroupOnScopeAsync(string roleName, string groupName, string scopeName);
+
         Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
+
+        Task UnaffectRoleFromGroupOnScopeAsync(string roleName, string groupName, string scopeName);
     }
 }

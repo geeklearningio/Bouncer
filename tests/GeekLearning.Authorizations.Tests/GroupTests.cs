@@ -210,8 +210,8 @@
                 });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
-                
-                Assert.True(await authorizationsFixture.AuthorizationsClient.HasMembershipAsync("groupParent"));                
+
+                Assert.True(await authorizationsFixture.AuthorizationsClient.HasMembershipAsync("groupParent"));
             }
         }
 
@@ -234,7 +234,6 @@
 
                 var usersInGroup = await authorizationsFixture.AuthorizationsClient.HasMembershipAsync(new List<Guid> { authorizationsFixture.Context.CurrentUserId }, "groupParent");
                 Assert.True(usersInGroup.Contains(authorizationsFixture.Context.CurrentUserId));
-
             }
         }
 
@@ -253,12 +252,6 @@
 
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
-                    Group = group1,
-                    PrincipalId = authorizationsFixture.Context.CurrentUserId
-                });
-
-                authorizationsFixture.Context.Memberships().Add(new Membership
-                {
                     Group = group2,
                     PrincipalId = authorizationsFixture.Context.CurrentUserId
                 });
@@ -266,7 +259,7 @@
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var userMemberships = await authorizationsFixture.AuthorizationsClient.DetectMembershipsAsync(new List<string> { "group1", "group2" });
-                Assert.True(userMemberships.Contains("group1") && userMemberships.Contains("group2"));
+                Assert.True(userMemberships.Contains("group2"));
 
             }
         }
@@ -324,6 +317,23 @@
                 Assert.Null(await authorizationsFixture.Context.Principals().FirstOrDefaultAsync(p => p.Id == group1FromDb.Id));
                 Assert.Null(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group2"));
                 Assert.Null(await authorizationsFixture.Context.Principals().FirstOrDefaultAsync(p => p.Id == group1FromDb.Id));
+            }
+        }
+
+        [Fact]
+        public async Task AddGroupToGroup_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                await authorizationsFixture.AuthorizationsProvisioningClient.AddGroupToGroupAsync("childGroup", "parentGroup");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var childGroup = await authorizationsFixture.Context.Groups().FirstOrDefaultAsync(g => g.Name == "childGroup");
+                var parentGroup = await authorizationsFixture.Context.Groups().FirstOrDefaultAsync(g => g.Name == "parentGroup");
+                Assert.NotNull(childGroup);
+                Assert.NotNull(parentGroup);
+                Assert.NotNull(await authorizationsFixture.Context.Memberships().FirstOrDefaultAsync(m => m.PrincipalId == childGroup.Id && m.GroupId == parentGroup.Id));
             }
         }
     }

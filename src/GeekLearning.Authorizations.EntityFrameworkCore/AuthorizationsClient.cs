@@ -139,7 +139,7 @@
         {
             return await this.context
                 .Memberships()
-                .Join(groupNames, m => m.Group.Name, groupName => groupName, (m, groupName) => m)
+                .Where(m => groupNames.Contains(m.Group.Name))
                 .AnyAsync(m => m.PrincipalId == this.principalIdProvider.PrincipalId);
         }
 
@@ -147,8 +147,7 @@
         {
             return await this.context
                 .Memberships()
-                .Join(principalIds, m => m.PrincipalId, pId => pId, (m, pId) => m)
-                .Join(groupNames, m => m.Group.Name, groupName => groupName, (m, groupName) => m)                
+                .Where(m => principalIds.Contains(m.PrincipalId) && groupNames.Contains(m.Group.Name))                
                 .Select(m => m.PrincipalId)
                 .ToListAsync();
         }
@@ -157,7 +156,8 @@
         {
             return await this.context
                 .Memberships()
-                .Join(groupNames, m => m.Group.Name, groupName => groupName, (m, groupName) => groupName)
+                .Where(m => groupNames.Contains(m.Group.Name) && m.PrincipalId == this.principalIdProvider.PrincipalId)
+                .Select(m => m.Group.Name)
                 .ToListAsync();
         }
     }
