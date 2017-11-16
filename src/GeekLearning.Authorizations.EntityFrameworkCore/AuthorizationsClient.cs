@@ -1,6 +1,6 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
-    using Authorizations.Model;
+    using Authorizations.Model.Client;
     using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
     using Microsoft.EntityFrameworkCore;
     using Model;
@@ -83,40 +83,7 @@
         {
             var principalRights = await this.GetRightsAsync(scopeName, principalIdOverride);
             return principalRights.HasExplicitRightOnScope(rightName, scopeName);
-        }
-
-        public async Task<IList<Guid>> GetGroupMembersAsync(Guid groupId)
-        {
-            List<Guid> principalIds = new List<Guid>();
-            var groupMembers = await this.context.Memberships()
-                .Where(m => m.GroupId == groupId)
-                .ToListAsync();
-            principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
-            foreach (var groupMember in groupMembers)
-            {
-                principalIds.AddRange(await GetGroupMembersAsync(groupMember.PrincipalId));
-            }
-
-            return principalIds;
-        }
-
-        public async Task<IList<Guid>> GetGroupMembersAsync(string groupName)
-        {
-            return await this.GetGroupMembersAsync(
-                await this.context.Groups().Where(g => g.Name == groupName).Select(g => g.Id).FirstOrDefaultAsync());
-        }
-
-        public async Task<IDictionary<string, IList<Guid>>> GetGroupMembersAsync(params string[] groupNames)
-        {
-            Dictionary<string, IList<Guid>> groupMembers = new Dictionary<string, IList<Guid>>();
-            // To be improved with a single query
-            foreach (var groupName in groupNames)
-            {
-                groupMembers[groupName] = await this.GetGroupMembersAsync(groupName);
-            }
-
-            return groupMembers;
-        }
+        }        
 
         public async Task<IList<Guid>> GetGroupParentLinkAsync(params Guid[] principalsId)
         {
@@ -141,15 +108,6 @@
                 .Memberships()
                 .Where(m => groupNames.Contains(m.Group.Name))
                 .AnyAsync(m => m.PrincipalId == this.principalIdProvider.PrincipalId);
-        }
-
-        public async Task<IList<Guid>> HasMembershipAsync(IEnumerable<Guid> principalIds, params string[] groupNames)
-        {
-            return await this.context
-                .Memberships()
-                .Where(m => principalIds.Contains(m.PrincipalId) && groupNames.Contains(m.Group.Name))                
-                .Select(m => m.PrincipalId)
-                .ToListAsync();
         }
 
         public async Task<IList<string>> DetectMembershipsAsync(IEnumerable<string> groupNames)

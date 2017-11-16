@@ -14,7 +14,7 @@
         {
             services.AddScoped<IPrincipalIdProvider, TPrincipalIdProvider>();
             services.AddScoped<IAuthorizationsClient, AuthorizationsClient<TContext>>();
-            services.AddScoped<IAuthorizationsProvisioningClient, AuthorizationsProvisioningClient<TContext>>();
+            services.AddScoped<IAuthorizationsManager, AuthorizationsManager<TContext>>();
             services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider<TContext>>();
 
             services.AddAclEvents<TContext>();

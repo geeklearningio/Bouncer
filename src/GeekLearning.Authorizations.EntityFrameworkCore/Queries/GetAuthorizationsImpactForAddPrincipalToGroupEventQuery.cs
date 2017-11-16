@@ -11,11 +11,13 @@
     {
         private readonly TContext context;
         private readonly IAuthorizationsClient authorizationsClient;
+        private readonly IAuthorizationsManager authorizationsManager;
 
-        public GetAuthorizationsImpactForAddPrincipalToGroupEventQuery(TContext context, IAuthorizationsClient authorizationsClient)
+        public GetAuthorizationsImpactForAddPrincipalToGroupEventQuery(TContext context, IAuthorizationsClient authorizationsClient, IAuthorizationsManager authorizationsManager)
         {
             this.context = context;
             this.authorizationsClient = authorizationsClient;
+            this.authorizationsManager = authorizationsManager;
         }
 
         public async Task<AuthorizationsImpact> ExecuteAsync(AddPrincipalToGroup authorizationsEvent)
@@ -33,7 +35,7 @@
                 .Join(this.context.Scopes(), pId => pId, s => s.Id, (pId, s) => s.Name)
                 .ToListAsync();
 
-            var groupMembersIds = await this.authorizationsClient.GetGroupMembersAsync(authorizationsEvent.PrincipalId);
+            var groupMembersIds = await this.authorizationsManager.GetGroupMembersAsync(authorizationsEvent.PrincipalId);
             groupMembersIds.Add(authorizationsEvent.PrincipalId);
             var groupIds = await this.context
                 .Groups()

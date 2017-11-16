@@ -10,14 +10,15 @@
     using GeekLearning.Authorizations.Event;
     using GeekLearning.Authorizations.Events.Model;
     using Microsoft.Extensions.DependencyInjection;
+    using GeekLearning.Authorizations.Model.Manager;
 
-    public class AuthorizationsProvisioningClient<TContext> : IAuthorizationsProvisioningClient where TContext : DbContext
+    public class AuthorizationsManager<TContext> : IAuthorizationsManager where TContext : DbContext
     {
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
         private readonly IEventQueuer eventQueuer;
 
-        public AuthorizationsProvisioningClient(TContext context, IPrincipalIdProvider principalIdProvider, IServiceProvider serviceProvider)
+        public AuthorizationsManager(TContext context, IPrincipalIdProvider principalIdProvider, IServiceProvider serviceProvider)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
@@ -369,6 +370,53 @@
             }
         }
 
+        public async Task<IGroup> GetGroupAsync(string groupName)
+        {
+            return await this.GetEntityAsync<Data.Group>(g => g.Name == groupName);
+        }
+
+        public async Task<IList<Guid>> GetGroupMembersAsync(Guid groupId)
+        {
+            List<Guid> principalIds = new List<Guid>();
+            var groupMembers = await this.context.Memberships()
+                .Where(m => m.GroupId == groupId)
+                .ToListAsync();
+            principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
+            foreach (var groupMember in groupMembers)
+            {
+                principalIds.AddRange(await GetGroupMembersAsync(groupMember.PrincipalId));
+            }
+
+            return principalIds;
+        }
+
+        public async Task<IList<Guid>> GetGroupMembersAsync(string groupName)
+        {
+            return await this.GetGroupMembersAsync(
+                await this.context.Groups().Where(g => g.Name == groupName).Select(g => g.Id).FirstOrDefaultAsync());
+        }
+
+        public async Task<IDictionary<string, IList<Guid>>> GetGroupMembersAsync(params string[] groupNames)
+        {
+            Dictionary<string, IList<Guid>> groupMembers = new Dictionary<string, IList<Guid>>();
+            // To be improved with a single query
+            foreach (var groupName in groupNames)
+            {
+                groupMembers[groupName] = await this.GetGroupMembersAsync(groupName);
+            }
+
+            return groupMembers;
+        }
+
+        public async Task<IList<Guid>> HasMembershipAsync(IEnumerable<Guid> principalIds, params string[] groupNames)
+        {
+            return await this.context
+                .Memberships()
+                .Where(m => principalIds.Contains(m.PrincipalId) && groupNames.Contains(m.Group.Name))
+                .Select(m => m.PrincipalId)
+                .ToListAsync();
+        }
+
         public async Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName)
         {
             var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
@@ -383,6 +431,11 @@
         public Task RemovePrincipalsFromGroupAsync(IEnumerable<Guid> principalIds, string groupName)
         {
             return Task.WhenAll(principalIds.Select(pId => RemovePrincipalFromGroupAsync(pId, groupName)));
+        }
+
+        public async Task RemoveAllPrincipalsFromGroupAsync(string groupName)
+        {
+            await this.RemovePrincipalsFromGroupAsync(await this.GetGroupMembersAsync(groupName), groupName);
         }
 
         private async Task<TEntity> GetEntityAsync<TEntity>(Expression<Func<TEntity, bool>> expression) where TEntity : class
