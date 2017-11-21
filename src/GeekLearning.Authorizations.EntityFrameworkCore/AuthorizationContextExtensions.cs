@@ -52,8 +52,9 @@
                 entity.MapToTable("Group", schemaName)
                       .HasIndex(g => g.Name)
                       .IsUnique();
+                entity.Property(e => e.Id).AddPrincipalRelationship();
             });
-
+            
             modelBuilder.Entity<Membership>(entity =>
             {
                 entity.MapToTable("Membership", schemaName)                      

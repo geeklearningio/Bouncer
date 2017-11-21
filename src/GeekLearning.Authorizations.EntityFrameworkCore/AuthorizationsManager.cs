@@ -223,14 +223,22 @@
             var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
             if (group == null)
             {
+                var principal = new Data.Principal
+                {
+                    Id = Guid.NewGuid(),
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                };
                 group = new Data.Group
                 {
+                    Id = principal.Id,
                     Name = groupName,
-                    CreationBy = this.principalIdProvider.PrincipalId,
-                    ModificationBy = this.principalIdProvider.PrincipalId,
-
+                    CreationBy = principal.CreationBy,
+                    ModificationBy = principal.ModificationBy
                 };
-                var groupEntity = this.context.Set<Data.Group>().Add(group);
+
+                this.context.Set<Data.Principal>().Add(principal);
+                this.context.Set<Data.Group>().Add(group);
 
                 if (parentGroupName != null)
                 {
@@ -238,7 +246,7 @@
                     var parentGoup = await this.GetEntityAsync<Data.Group>(r => r.Name == parentGroupName);
                     this.context.Set<Data.Membership>().Add(new Data.Membership
                     {
-                        Principal = group,
+                        PrincipalId = group.Id,
                         Group = parentGoup
                     });
                 }

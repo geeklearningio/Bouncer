@@ -14,7 +14,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .CreateRoleAsync(
                                                "role1",
                                                new string[] { "right1", "right2" });
@@ -42,7 +42,7 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRoleAsync("role1");
+                await authorizationsFixture.AuthorizationsManager.DeleteRoleAsync("role1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

@@ -13,7 +13,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRightAsync("right1");
+                await authorizationsFixture.AuthorizationsManager.CreateRightAsync("right1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
@@ -31,7 +31,7 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRightAsync("right1");
+                await authorizationsFixture.AuthorizationsManager.DeleteRightAsync("right1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

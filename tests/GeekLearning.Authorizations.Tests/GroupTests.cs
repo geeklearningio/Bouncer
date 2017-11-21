@@ -17,7 +17,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateGroupAsync("group2", parentGroupName: "group1");
+                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", parentGroupName: "group1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
@@ -27,7 +27,8 @@
                 Assert.NotNull(group);
 
                 var membership = authorizationsFixture.Context.Memberships().FirstOrDefault(m => m.Group.Name == "group1");
-                Assert.Equal("group2", ((Group)membership.Principal).Name);
+                group = authorizationsFixture.Context.Groups().FirstOrDefault(g => g.Id == membership.PrincipalId);
+                Assert.Equal("group2", group.Name);
             }
         }
 
@@ -37,13 +38,13 @@
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 var parentGroup = new Group { Name = "group1" };
-                var childGroup = new Group { Name = "group2" };
+                var childGroup = new Group { Id = Guid.NewGuid(), Name = "group2" };
                 authorizationsFixture.Context.Groups().Add(parentGroup);
                 authorizationsFixture.Context.Groups().Add(childGroup);
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = parentGroup,
-                    Principal = childGroup
+                    PrincipalId = childGroup.Id
                 });
 
                 var scope = new Scope { Name = "Scope1", Description = "Scope1" };
@@ -61,7 +62,7 @@
                 {
                     Scope = scope,
                     Role = role,
-                    Principal = childGroup
+                    PrincipalId = childGroup.Id
                 });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
@@ -70,7 +71,7 @@
                     .Groups()
                     .FirstOrDefault(r => r.Name == "group2");
 
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                     .AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
@@ -80,7 +81,7 @@
 
                 await authorizationsFixture.AuthorizationsEventQueuer.CommitAsync();
 
-                var rights = JsonConvert.DeserializeObject<Model.PrincipalRights>(
+                var rights = JsonConvert.DeserializeObject<Model.Client.PrincipalRights>(
                     authorizationsFixture.AuthorizationsImpactClient.UserDenormalizedRights[authorizationsFixture.Context.CurrentUserId]["Scope1"]);
                 Assert.True(rights.HasRightOnScope("Right1", "Scope1"));
             }
@@ -94,7 +95,7 @@
                 List<Group> expectedGroups = new List<Group>();
                 for (int i = 0; i < 10; i++)
                 {
-                    var group = new Group { Name = "group" + i };
+                    var group = new Group { Id = Guid.NewGuid(), Name = "group" + i };
                     expectedGroups.Add(group);
                     authorizationsFixture.Context.Groups().Add(group);
                 }
@@ -102,47 +103,47 @@
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[0],
-                    Principal = expectedGroups[1]
+                    PrincipalId = expectedGroups[1].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[0],
-                    Principal = expectedGroups[2]
+                    PrincipalId = expectedGroups[2].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[2],
-                    Principal = expectedGroups[3]
+                    PrincipalId = expectedGroups[3].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[3],
-                    Principal = expectedGroups[4]
+                    PrincipalId = expectedGroups[4].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[4],
-                    Principal = expectedGroups[5]
+                    PrincipalId = expectedGroups[5].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[4],
-                    Principal = expectedGroups[6]
+                    PrincipalId = expectedGroups[6].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[6],
-                    Principal = expectedGroups[7]
+                    PrincipalId = expectedGroups[7].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[6],
-                    Principal = expectedGroups[8]
+                    PrincipalId = expectedGroups[8].Id
                 });
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = expectedGroups[8],
-                    Principal = expectedGroups[9]
+                    PrincipalId = expectedGroups[9].Id
                 });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
@@ -166,8 +167,8 @@
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 var groupParent = new Group { Name = "groupParent" };
-                var groupChild1 = new Group { Name = "groupChild1" };
-                var groupChild2 = new Group { Name = "groupChild2" };
+                var groupChild1 = new Group { Id = Guid.NewGuid(), Name = "groupChild1" };
+                var groupChild2 = new Group { Id = Guid.NewGuid(), Name = "groupChild2" };
 
                 authorizationsFixture.Context.Groups().Add(groupParent);
                 authorizationsFixture.Context.Groups().Add(groupChild1);
@@ -176,20 +177,20 @@
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = groupParent,
-                    Principal = groupChild1
+                    PrincipalId = groupChild1.Id
                 });
 
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = groupParent,
-                    Principal = groupChild2
+                    PrincipalId = groupChild2.Id
                 });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var child1 = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "groupChild1");
                 var child2 = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "groupChild2");
-                var childrenIds = await authorizationsFixture.AuthorizationsClient.GetGroupMembersAsync("groupParent");
+                var childrenIds = await authorizationsFixture.AuthorizationsManager.GetGroupMembersAsync("groupParent");
                 Assert.True(childrenIds.Contains(child1.Id) && childrenIds.Contains(child2.Id));
             }
         }
@@ -232,7 +233,7 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                var usersInGroup = await authorizationsFixture.AuthorizationsClient.HasMembershipAsync(new List<Guid> { authorizationsFixture.Context.CurrentUserId }, "groupParent");
+                var usersInGroup = await authorizationsFixture.AuthorizationsManager.HasMembershipAsync(new List<Guid> { authorizationsFixture.Context.CurrentUserId }, "groupParent");
                 Assert.True(usersInGroup.Contains(authorizationsFixture.Context.CurrentUserId));
             }
         }
@@ -270,19 +271,19 @@
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 var parent = new Group { Name = "group1" };
-                var child = new Group { Name = "group2" };
+                var child = new Group { Id = Guid.NewGuid(), Name = "group2" };
                 authorizationsFixture.Context.Groups().Add(parent);
                 authorizationsFixture.Context.Groups().Add(child);
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = parent,
-                    Principal = child
+                    PrincipalId = child.Id
                 });
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var group1FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
                 var group2FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group2");
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteGroupAsync("group1", withChildren: false);
+                await authorizationsFixture.AuthorizationsManager.DeleteGroupAsync("group1", withChildren: false);
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 Assert.Null(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group1"));
@@ -298,19 +299,19 @@
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 var parent = new Group { Name = "group1" };
-                var child = new Group { Name = "group2" };
+                var child = new Group { Id = Guid.NewGuid(), Name = "group2" };
                 authorizationsFixture.Context.Groups().Add(parent);
                 authorizationsFixture.Context.Groups().Add(child);
                 authorizationsFixture.Context.Memberships().Add(new Membership
                 {
                     Group = parent,
-                    Principal = child
+                    PrincipalId = child.Id
                 });
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var group1FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
                 var group2FromDb = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group2");
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteGroupAsync("group1");
+                await authorizationsFixture.AuthorizationsManager.DeleteGroupAsync("group1");
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 Assert.Null(authorizationsFixture.Context.Groups().FirstOrDefault(r => r.Name == "group1"));
@@ -325,7 +326,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.AddGroupToGroupAsync("childGroup", "parentGroup");
+                await authorizationsFixture.AuthorizationsManager.AddGroupToGroupAsync("childGroup", "parentGroup");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

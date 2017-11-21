@@ -104,17 +104,20 @@
 
         public async Task<bool> HasMembershipAsync(params string[] groupNames)
         {
+            var userGroupsId = await this.GetGroupParentLinkAsync(this.principalIdProvider.PrincipalId);
+
             return await this.context
                 .Memberships()
-                .Where(m => groupNames.Contains(m.Group.Name))
-                .AnyAsync(m => m.PrincipalId == this.principalIdProvider.PrincipalId);
+                .AnyAsync(m => groupNames.Contains(m.Group.Name) && userGroupsId.Contains(m.GroupId));
         }
 
         public async Task<IList<string>> DetectMembershipsAsync(IEnumerable<string> groupNames)
         {
+            var userGroupsId = await this.GetGroupParentLinkAsync(this.principalIdProvider.PrincipalId);
+
             return await this.context
                 .Memberships()
-                .Where(m => groupNames.Contains(m.Group.Name) && m.PrincipalId == this.principalIdProvider.PrincipalId)
+                .Where(m => groupNames.Contains(m.Group.Name) && userGroupsId.Contains(m.GroupId))
                 .Select(m => m.Group.Name)
                 .ToListAsync();
         }

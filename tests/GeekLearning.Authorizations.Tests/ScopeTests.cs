@@ -15,7 +15,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                             .CreateScopeAsync(
                                                 "scope1",
                                                 "Description scope 1",
@@ -23,7 +23,7 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                             .CreateScopeAsync(
                                                 "scope1",
                                                 "Description scope 1",
@@ -48,7 +48,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
+                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
                 authorizationsFixture.Context.SaveChanges();
 
@@ -72,7 +72,7 @@
 
                 authorizationsFixture.Context.SaveChanges();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
+                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
