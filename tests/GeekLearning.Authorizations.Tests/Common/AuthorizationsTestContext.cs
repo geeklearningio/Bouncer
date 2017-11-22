@@ -18,7 +18,7 @@
         {
             this.Set<UserTest>().Add(new UserTest { Id = CurrentUserId });
 
-            this.Set<Principal>().Add(new Principal { Id = CurrentUserId });
+            this.Set<Principal>().Add(new Principal { CreationBy = CurrentUserId, ModificationBy = CurrentUserId, Id = CurrentUserId });
 
             this.SaveChanges();
         }

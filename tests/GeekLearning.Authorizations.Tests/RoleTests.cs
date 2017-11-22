@@ -38,7 +38,13 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
+                authorizationsFixture.Context.Roles().Add(
+                    new Role
+                    {
+                        Name = "role1",
+                        CreationBy = authorizationsFixture.Context.CurrentUserId,
+                        ModificationBy = authorizationsFixture.Context.CurrentUserId
+                    });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

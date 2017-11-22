@@ -138,6 +138,16 @@
             }
         }
 
+        public async Task DeleteRightAsync(string rightName)
+        {
+            var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightName);
+            if (right != null)
+            {
+                this.context.Set<Data.Right>().Remove(right);
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Rights = DateTime.UtcNow;
+            }
+        }
+
         public async Task CreateRoleAsync(string roleName, string[] rightNames)
         {
             var role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
@@ -174,6 +184,20 @@
                     });
                     (await SharedQueries.GetModelModificationDateAsync(this.context)).Rights = DateTime.UtcNow;
                 }
+            }
+        }
+
+        public async Task DeleteRoleAsync(string roleName)
+        {
+            var role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
+            if (role != null)
+            {
+                var roleRights = await this.context.Set<Data.RoleRight>()
+                                                   .Where(rr => rr.RoleId == role.Id).ToListAsync();
+
+                this.context.Set<Data.RoleRight>().RemoveRange(roleRights);
+                this.context.Set<Data.Role>().Remove(role);
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Roles = DateTime.UtcNow;
             }
         }
 
@@ -218,65 +242,6 @@
             this.QueueEvent(new CreateScope(scopeName));
         }
 
-        public async Task CreateGroupAsync(string groupName, string parentGroupName = null)
-        {
-            var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
-            if (group == null)
-            {
-                var principal = new Data.Principal
-                {
-                    Id = Guid.NewGuid(),
-                    CreationBy = this.principalIdProvider.PrincipalId,
-                    ModificationBy = this.principalIdProvider.PrincipalId
-                };
-                group = new Data.Group
-                {
-                    Id = principal.Id,
-                    Name = groupName,
-                    CreationBy = principal.CreationBy,
-                    ModificationBy = principal.ModificationBy
-                };
-
-                this.context.Set<Data.Principal>().Add(principal);
-                this.context.Set<Data.Group>().Add(group);
-
-                if (parentGroupName != null)
-                {
-                    await this.CreateGroupAsync(parentGroupName);
-                    var parentGoup = await this.GetEntityAsync<Data.Group>(r => r.Name == parentGroupName);
-                    this.context.Set<Data.Membership>().Add(new Data.Membership
-                    {
-                        PrincipalId = group.Id,
-                        Group = parentGoup
-                    });
-                }
-            }
-        }
-
-        public async Task DeleteRightAsync(string rightName)
-        {
-            var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightName);
-            if (right != null)
-            {
-                this.context.Set<Data.Right>().Remove(right);
-                (await SharedQueries.GetModelModificationDateAsync(this.context)).Rights = DateTime.UtcNow;
-            }
-        }
-
-        public async Task DeleteRoleAsync(string roleName)
-        {
-            var role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
-            if (role != null)
-            {
-                var roleRights = await this.context.Set<Data.RoleRight>()
-                                                   .Where(rr => rr.RoleId == role.Id).ToListAsync();
-
-                this.context.Set<Data.RoleRight>().RemoveRange(roleRights);
-                this.context.Set<Data.Role>().Remove(role);
-                (await SharedQueries.GetModelModificationDateAsync(this.context)).Roles = DateTime.UtcNow;
-            }
-        }
-
         public async Task DeleteScopeAsync(string scopeName)
         {
             var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
@@ -309,9 +274,39 @@
             }
         }
 
-        public async Task DeleteGroupAsync(string groupName, bool withChildren = true)
+        public async Task CreateGroupAsync(string groupName, string parentGroupName = null)
         {
             var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group == null)
+            {
+                var principal = new Data.Principal
+                {
+                    Id = Guid.NewGuid(),
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                };
+                group = new Data.Group(principal) { Name = groupName };
+                
+                this.context.Set<Data.Group>().Add(group);
+
+                if (parentGroupName != null)
+                {
+                    await this.CreateGroupAsync(parentGroupName);
+                    var parentGoup = await this.GetEntityAsync<Data.Group>(r => r.Name == parentGroupName);
+                    this.context.Set<Data.Membership>().Add(new Data.Membership
+                    {
+                        CreationBy = principal.CreationBy,
+                        ModificationBy = principal.ModificationBy,
+                        PrincipalId = group.Id,
+                        Group = parentGoup
+                    });
+                }
+            }
+        }
+
+        public async Task DeleteGroupAsync(string groupName, bool withChildren = true)
+        {
+            var group = await this.GetEntityAsync<Data.Group>(g => g.Name == groupName);
             if (group != null)
             {
                 var memberShips = await this.context.Set<Data.Membership>().Where(m => m.Group.Name == groupName).ToListAsync();
@@ -328,8 +323,9 @@
 
                     this.context.Set<Data.Membership>().Remove(memberShip);
                 }
-
+                
                 this.context.Set<Data.Group>().Remove(group);
+                this.context.Set<Data.Principal>().Remove(group.Principal);
             }
         }
 
