@@ -24,7 +24,7 @@
             this.principalIdProvider = principalIdProvider;
             this.eventQueuer = serviceProvider.GetService<IEventQueuer>();
         }
-        
+
         public async Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
         {
             Data.Role role = await this.GetEntityAsync<Data.Role>(r => r.Name == roleName);
@@ -90,23 +90,7 @@
                 Data.Scope scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
                 if (scope != null)
                 {
-                    var localAuthorization = context.ChangeTracker.Entries<Data.Authorization>()
-                                                                  .FirstOrDefault(e => e.Entity.RoleId == role.Id &&
-                                                                                  e.Entity.ScopeId == scope.Id &&
-                                                                                  e.Entity.PrincipalId == principalId);
-                    if (localAuthorization != null && localAuthorization.State == EntityState.Added)
-                    {
-                        localAuthorization.State = EntityState.Unchanged;
-                    }
-
-                    var authorization = await this.context.Set<Data.Authorization>()
-                                                          .FirstOrDefaultAsync(a => a.PrincipalId == principalId &&
-                                                                                    a.RoleId == role.Id &&
-                                                                                    a.ScopeId == scope.Id);
-                    if (authorization != null)
-                    {
-                        this.context.Set<Data.Authorization>().Remove(authorization);
-                    }
+                    await this.UnaffectFromPrincipalAsync(principalId, role.Id, scope.Id);
 
                     this.QueueEvent(new UnaffectRoleFromPrincipalOnScope(principalId, roleName, scopeName));
                 }
@@ -119,6 +103,15 @@
             if (group != null)
             {
                 await this.UnaffectRoleFromPrincipalOnScopeAsync(roleName, group.Id, scopeName);
+            }
+        }
+
+        public async Task UnaffectRolesFromGroupAsync(string groupName)
+        {
+            Data.Group group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            if (group != null)
+            {
+                await this.UnaffectFromPrincipalAsync(group.Id);
             }
         }
 
@@ -286,7 +279,7 @@
                     ModificationBy = this.principalIdProvider.PrincipalId
                 };
                 group = new Data.Group(principal) { Name = groupName };
-                
+
                 this.context.Set<Data.Group>().Add(group);
 
                 if (parentGroupName != null)
@@ -323,7 +316,9 @@
 
                     this.context.Set<Data.Membership>().Remove(memberShip);
                 }
-                
+
+                await this.UnaffectRolesFromGroupAsync(groupName);
+
                 this.context.Set<Data.Group>().Remove(group);
                 this.context.Set<Data.Principal>().Remove(group.Principal);
             }
@@ -440,6 +435,45 @@
         public async Task RemoveAllPrincipalsFromGroupAsync(string groupName)
         {
             await this.RemovePrincipalsFromGroupAsync(await this.GetGroupMembersAsync(groupName), groupName);
+        }
+
+        private async Task UnaffectFromPrincipalAsync(Guid principalId, Guid? roleId = null, Guid? scopeId = null)
+        {
+            var localAuthorizationQuery = context.ChangeTracker.Entries<Data.Authorization>()
+                .Where(e => e.Entity.PrincipalId == principalId);
+            var authorizationQuery = this.context.Set<Data.Authorization>()
+                .Where(a => a.PrincipalId == principalId);
+
+            if (roleId.HasValue)
+            {
+                localAuthorizationQuery = localAuthorizationQuery
+                    .Where(e => e.Entity.RoleId == roleId.Value);
+                authorizationQuery = authorizationQuery
+                    .Where(a => a.RoleId == roleId.Value);
+            }
+
+            if (scopeId.HasValue)
+            {
+                localAuthorizationQuery = localAuthorizationQuery
+                    .Where(e => e.Entity.ScopeId == scopeId.Value);
+                authorizationQuery = authorizationQuery
+                    .Where(a => a.ScopeId == scopeId.Value);
+            }
+
+            var localAuthorization = localAuthorizationQuery.FirstOrDefault();
+            if (localAuthorization != null && localAuthorization.State == EntityState.Added)
+            {
+                localAuthorization.State = EntityState.Unchanged;
+            }
+
+            var authorizations = await authorizationQuery.ToListAsync();
+            if (authorizations != null)
+            {
+                foreach (var authorization in authorizations)
+                {
+                    this.context.Set<Data.Authorization>().Remove(authorization);
+                }
+            }
         }
 
         private async Task<TEntity> GetEntityAsync<TEntity>(Expression<Func<TEntity, bool>> expression) where TEntity : class

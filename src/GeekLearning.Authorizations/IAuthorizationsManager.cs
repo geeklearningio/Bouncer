@@ -52,5 +52,7 @@
         Task UnaffectRoleFromPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName);
 
         Task UnaffectRoleFromGroupOnScopeAsync(string roleName, string groupName, string scopeName);
+
+        Task UnaffectRolesFromGroupAsync(string groupName);
     }
 }
