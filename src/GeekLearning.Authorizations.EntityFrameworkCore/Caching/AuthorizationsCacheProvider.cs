@@ -71,7 +71,7 @@
                 .ToDictionary(g => g.Key, g => g.Select(sh => sh.ParentId).ToList());
 
             var scopes = dataScopes
-                .Select(s => new Scope
+                .Select(s => new Scope 
                 {
                     Id = s.Id,
                     Name = s.Name,
