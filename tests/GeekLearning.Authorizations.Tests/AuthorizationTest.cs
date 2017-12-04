@@ -2,7 +2,7 @@
 {
     using EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore;
-    using Model;
+    using Model.Client;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -15,12 +15,12 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope2", "Scope 2");
+                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
+                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2");
 
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                           .AffectRoleToPrincipalOnScopeAsync(
                                                "role1",
                                                authorizationsFixture.Context.CurrentUserId,
@@ -28,22 +28,22 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
@@ -64,36 +64,30 @@
         }
 
         [Fact]
-        public async Task UnaffectRoleOnScope_ShouldBeOk()
+        public async Task UnaffectRoleFromPrincipalOnScope_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
                 // Test removing non existing authorization
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope1", "Scope 1");
-
-                await authorizationsFixture.AuthorizationsProvisioningClient
-                                           .AffectRoleToPrincipalOnScopeAsync(
-                                                "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
-                                                "scope1");
+                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 // Test removing local existing authorization
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
                                                 authorizationsFixture.Context.CurrentUserId,
@@ -104,6 +98,55 @@
                 Assert.Null(authorizationsFixture.Context
                                                  .Authorizations()
                                                  .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId));
+
+                // Test persisted authorization
+                await authorizationsFixture.AuthorizationsManager
+                                           .AffectRoleToPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                await authorizationsFixture.AuthorizationsManager
+                                           .UnaffectRoleFromPrincipalOnScopeAsync(
+                                                "role1",
+                                                authorizationsFixture.Context.CurrentUserId,
+                                                "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                Assert.Null(authorizationsFixture.Context
+                                                 .Authorizations()
+                                                 .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId));
+            }
+        }
+
+        [Fact]
+        public async Task UnaffectRolesFromGroup_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role2", new string[] { "right2" });
+
+                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
+
+                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
+
+                await authorizationsFixture.AuthorizationsManager.AffectRoleToGroupOnScopeAsync("role1", "group1", "scope1");
+                await authorizationsFixture.AuthorizationsManager.AffectRoleToGroupOnScopeAsync("role2", "group1", "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+                
+                await authorizationsFixture.AuthorizationsManager.UnaffectRolesFromGroupAsync("group1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                Assert.Null(authorizationsFixture.Context
+                                                 .Authorizations()
+                                                 .Join(authorizationsFixture.Context.Groups(), a => a.PrincipalId, g => g.Id, (a, g) => g)
+                                                 .FirstOrDefault(a => a.Name == "group1"));
             }
         }
 
@@ -188,18 +231,18 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateScopeAsync("scope2", "Scope 2", "scope1"); 
+                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2", "scope1");
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateGroupAsync("group2", "group1");
+                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+                await authorizationsFixture.AuthorizationsManager.AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var group = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
-                await authorizationsFixture.AuthorizationsProvisioningClient.AffectRoleToPrincipalOnScopeAsync("role1", group.Id, "scope1");
+                await authorizationsFixture.AuthorizationsManager.AffectRoleToPrincipalOnScopeAsync("role1", group.Id, "scope1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

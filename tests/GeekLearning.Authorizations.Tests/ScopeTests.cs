@@ -15,7 +15,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                             .CreateScopeAsync(
                                                 "scope1",
                                                 "Description scope 1",
@@ -23,7 +23,7 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient
+                await authorizationsFixture.AuthorizationsManager
                                             .CreateScopeAsync(
                                                 "scope1",
                                                 "Description scope 1",
@@ -48,31 +48,49 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
+                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
                 authorizationsFixture.Context.SaveChanges();
 
-                var parent = new Scope { Name = "scope1", Description = "Scope 1" };
+                var parent = new Scope
+                {
+                    Name = "scope1",
+                    Description = "Scope 1",
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId
+                };
 
                 parent.Children.Add(
                     new ScopeHierarchy
                     {
                         Parent = parent,
-                        Child = new Scope { Name = "scopeChild1", Description = "Scope Child 1" }
+                        Child = new Scope
+                        {
+                            Name = "scopeChild1",
+                            Description = "Scope Child 1",
+                            CreationBy = authorizationsFixture.Context.CurrentUserId,
+                            ModificationBy = authorizationsFixture.Context.CurrentUserId
+                        }
                     });
 
                 parent.Children.Add(
                     new ScopeHierarchy
                     {
                         Parent = parent,
-                        Child = new Scope { Name = "scopeChild2", Description = "Scope Child 2" }
+                        Child = new Scope
+                        {
+                            Name = "scopeChild2",
+                            Description = "Scope Child 2",
+                            CreationBy = authorizationsFixture.Context.CurrentUserId,
+                            ModificationBy = authorizationsFixture.Context.CurrentUserId
+                        }
                     });
 
                 authorizationsFixture.Context.Scopes().Add(parent);
 
                 authorizationsFixture.Context.SaveChanges();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteScopeAsync("scope1");
+                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

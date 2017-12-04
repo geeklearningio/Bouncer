@@ -1,4 +1,4 @@
-﻿namespace GeekLearning.Authorizations.Model
+﻿namespace GeekLearning.Authorizations.Model.Client
 {
     using System;
     using System.Collections.Generic;

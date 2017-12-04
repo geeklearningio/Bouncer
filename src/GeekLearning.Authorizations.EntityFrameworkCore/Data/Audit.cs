@@ -1,15 +1,18 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore.Data
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
 
     public abstract class Audit
     {
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
-        public Guid CreationBy { get; set; }
+        [Required]
+        public Guid? CreationBy { get; set; }
 
         public DateTime ModificationDate { get; set; } = DateTime.UtcNow;
 
-        public Guid ModificationBy { get; set; }
+        [Required]
+        public Guid? ModificationBy { get; set; }
     }
 }

@@ -1,11 +1,9 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore.Model
 {
-    using Authorizations.Model;
-    using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
+    using Authorizations.Model.Client;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
 
     internal class ParsedScope
     {

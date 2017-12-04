@@ -45,15 +45,21 @@
                 entity.HasKey(rr => new { rr.RoleId, rr.RightId });
             });
 
-            modelBuilder.Entity<Principal>(entity => entity.MapToTable("Principal", schemaName));
+            modelBuilder.Entity<Principal>(entity =>
+            {
+                entity.MapToTable("Principal", schemaName);
+                entity.HasOne(p => p.Group)
+                      .WithOne(b => b.Principal)
+                      .HasForeignKey<Group>(g => g.Id);
+            });
 
             modelBuilder.Entity<Group>(entity =>
             {
                 entity.MapToTable("Group", schemaName)
                       .HasIndex(g => g.Name)
-                      .IsUnique();
+                      .IsUnique();           
             });
-
+            
             modelBuilder.Entity<Membership>(entity =>
             {
                 entity.MapToTable("Membership", schemaName)                      

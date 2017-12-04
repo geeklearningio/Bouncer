@@ -80,7 +80,7 @@
                 })
                 .ToDictionary(ds => ds.Id, ds => ds);
             
-            this.ValidateScopeModel(scopes);
+            //this.ValidateScopeModel(scopes);
 
             return new ScopesCache { Scopes = scopes.Values };
         }

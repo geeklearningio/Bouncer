@@ -17,7 +17,7 @@
         {
             this.serviceCollection = new ServiceCollection();
             this.serviceCollection.AddScoped(s => this.AuthorizationsClient);
-            this.serviceCollection.AddScoped(s => this.AuthorizationsProvisioningClient);
+            this.serviceCollection.AddScoped(s => this.AuthorizationsManager);
             this.serviceCollection.AddScoped(s => this.AuthorizationsEventQueuer);
             this.serviceCollection.AddScoped<IAuthorizationsImpactClient>(s => this.AuthorizationsImpactClient);
             this.serviceCollection.AddAclEvents<AuthorizationsTestContext>();
@@ -36,7 +36,7 @@
             this.AuthorizationsEventQueuer = new AuthorizationsTestEventQueuer(
                 new AuthorizationsEventReceiver(this.serviceProvider, this.AuthorizationsImpactClient));
 
-            this.AuthorizationsProvisioningClient = new AuthorizationsProvisioningClient<AuthorizationsTestContext>(
+            this.AuthorizationsManager = new AuthorizationsManager<AuthorizationsTestContext>(
                 this.Context,
                 new PrincipalIdProvider(this.Context),
                 this.serviceProvider);
@@ -48,7 +48,7 @@
 
         public IEventQueuer AuthorizationsEventQueuer { get; private set; }
 
-        public IAuthorizationsProvisioningClient AuthorizationsProvisioningClient { get; private set; }
+        public IAuthorizationsManager AuthorizationsManager { get; private set; }
 
         public IAuthorizationsClient AuthorizationsClient { get; private set; }
 
