@@ -326,7 +326,7 @@
 
         public async Task AddPrincipalToGroupAsync(Guid principalId, string groupName)
         {
-            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group.Name == groupName);
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group != null && m.Group.Name == groupName);
             if (membership == null)
             {
                 await this.CreateGroupAsync(groupName);
