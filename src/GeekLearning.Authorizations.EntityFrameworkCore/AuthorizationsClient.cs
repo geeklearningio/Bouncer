@@ -111,14 +111,15 @@
                 .AnyAsync(m => groupNames.Contains(m.Group.Name) && userGroupsId.Contains(m.GroupId));
         }
 
-        public async Task<IList<string>> DetectMembershipsAsync(IEnumerable<string> groupNames)
+        public async Task<IList<string>> DetectMembershipsAsync(IEnumerable<string> groupNames, Guid? principalIdOverride = null)
         {
-            var userGroupsId = await this.GetGroupParentLinkAsync(this.principalIdProvider.PrincipalId);
+            var userGroupsId = await this.GetGroupParentLinkAsync(principalIdOverride ?? this.principalIdProvider.PrincipalId);
 
             return await this.context
                 .Memberships()
                 .Where(m => groupNames.Contains(m.Group.Name) && userGroupsId.Contains(m.GroupId))
                 .Select(m => m.Group.Name)
+                .Distinct()
                 .ToListAsync();
         }
     }
