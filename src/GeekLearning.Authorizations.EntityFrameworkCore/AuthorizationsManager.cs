@@ -7,8 +7,6 @@
     using System.Linq.Expressions;
     using System.Threading.Tasks;
     using System.Collections.Generic;
-    using GeekLearning.Authorizations.Event;
-    using GeekLearning.Authorizations.Events.Model;
     using Microsoft.Extensions.DependencyInjection;
     using GeekLearning.Authorizations.Model.Manager;
 
@@ -16,13 +14,11 @@
     {
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
-        private readonly IEventQueuer eventQueuer;
 
         public AuthorizationsManager(TContext context, IPrincipalIdProvider principalIdProvider, IServiceProvider serviceProvider)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
-            this.eventQueuer = serviceProvider.GetService<IEventQueuer>();
         }
 
         public async Task AffectRoleToPrincipalOnScopeAsync(string roleName, Guid principalId, string scopeName)
@@ -69,8 +65,6 @@
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
             }
-
-            this.QueueEvent(new AffectRoleToPrincipalOnScope(principalId, roleName, scopeName));
         }
 
         public async Task AffectRoleToGroupOnScopeAsync(string roleName, string groupName, string scopeName)
@@ -91,8 +85,6 @@
                 if (scope != null)
                 {
                     await this.UnaffectFromPrincipalAsync(principalId, role.Id, scope.Id);
-
-                    this.QueueEvent(new UnaffectRoleFromPrincipalOnScope(principalId, roleName, scopeName));
                 }
             }
         }
@@ -231,8 +223,6 @@
                     }
                 }
             }
-
-            this.QueueEvent(new CreateScope(scopeName));
         }
 
         public async Task DeleteScopeAsync(string scopeName)
@@ -262,8 +252,6 @@
                                                   .ToListAsync());
                 this.context.Set<Data.Scope>().Remove(scope);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
-
-                this.QueueEvent(new DeleteScope(scopeName));
             }
         }
 
@@ -338,8 +326,6 @@
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
-
-                this.QueueEvent(new AddPrincipalToGroup(principalId, groupName));
             }
         }
 
@@ -364,8 +350,6 @@
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
-
-                this.QueueEvent(new AddPrincipalToGroup(childGroup.Id, parentGroup.Name));
             }
         }
 
@@ -422,8 +406,6 @@
             if (membership != null)
             {
                 this.context.Set<Data.Membership>().Remove(membership);
-
-                this.QueueEvent(new RemovePrincipalFromGroup(principalId, groupName));
             }
         }
 
@@ -490,14 +472,6 @@
             }
 
             return await this.context.Set<TEntity>().FirstOrDefaultAsync(expression);
-        }
-
-        private void QueueEvent(EventBase authorizationsEvent)
-        {
-            if (this.eventQueuer != null)
-            {
-                this.eventQueuer.QueueEvent(authorizationsEvent);
-            }
         }
     }
 }
