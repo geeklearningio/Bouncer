@@ -109,6 +109,11 @@
         public async Task UnaffectRolesFromGroupAsync(string groupName)
         {
             Data.Group group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
+            await this.UnaffectRolesFromGroupAsync(group);
+        }
+
+        private async Task UnaffectRolesFromGroupAsync(Data.Group group)
+        {
             if (group != null)
             {
                 await this.UnaffectFromPrincipalAsync(group.Id);
@@ -300,9 +305,20 @@
         public async Task DeleteGroupAsync(string groupName, bool withChildren = true)
         {
             var group = await this.GetEntityAsync<Data.Group>(g => g.Name == groupName);
+            await DeleteGroupAsync(group, withChildren: withChildren);
+        }
+
+        public async Task DeleteGroupAsync(Guid groupId, bool withChildren = true)
+        {
+            var group = await this.GetEntityAsync<Data.Group>(g => g.Id == groupId);
+            await DeleteGroupAsync(group, withChildren: withChildren);
+        }
+
+        private async Task DeleteGroupAsync(Data.Group group, bool withChildren = true)
+        {
             if (group != null)
             {
-                var memberShips = await this.context.Set<Data.Membership>().Where(m => m.Group.Name == groupName).ToListAsync();
+                var memberShips = await this.context.Set<Data.Membership>().Where(m => m.GroupId == group.Id).ToListAsync();
                 foreach (var memberShip in memberShips)
                 {
                     if (withChildren)
@@ -317,10 +333,28 @@
                     this.context.Set<Data.Membership>().Remove(memberShip);
                 }
 
-                await this.UnaffectRolesFromGroupAsync(groupName);
+                await this.UnaffectRolesFromGroupAsync(group.Name);
 
                 this.context.Set<Data.Group>().Remove(group);
                 this.context.Set<Data.Principal>().Remove(group.Principal);
+            }
+        }
+
+        public async Task AddPrincipalToGroupAsync(Guid principalId, Guid groupId)
+        {
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group != null && m.GroupId == groupId);
+            if (membership == null)
+            {
+                var group = await this.GetEntityAsync<Data.Group>(g => g.Id == groupId);
+                this.context.Set<Data.Membership>().Add(new Data.Membership
+                {
+                    PrincipalId = principalId,
+                    GroupId = groupId,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                });
+
+                this.QueueEvent(new AddPrincipalToGroup(principalId, group.Name));
             }
         }
 
@@ -414,6 +448,18 @@
                 .Where(m => principalIds.Contains(m.PrincipalId) && groupNames.Contains(m.Group.Name))
                 .Select(m => m.PrincipalId)
                 .ToListAsync();
+        }
+
+        public async Task RemovePrincipalFromGroupAsync(Guid principalId, Guid groupId)
+        {
+            var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.GroupId == groupId);
+            if (membership != null)
+            {
+                this.context.Set<Data.Membership>().Remove(membership);
+
+                var group = await this.GetEntityAsync<Data.Group>(g => g.Id == groupId);
+                this.QueueEvent(new RemovePrincipalFromGroup(principalId, group.Name));
+            }
         }
 
         public async Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName)
