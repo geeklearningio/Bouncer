@@ -122,5 +122,10 @@
                 .Distinct()
                 .ToListAsync();
         }
+
+        public void Reset()
+        {
+            this.parsedScopesPerPrincipal.Clear();
+        }
     }
 }
