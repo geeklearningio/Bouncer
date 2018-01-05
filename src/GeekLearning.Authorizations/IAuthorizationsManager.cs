@@ -19,15 +19,21 @@
         
         Task DeleteRoleAsync(string roleName);
 
-        Task CreateGroupAsync(string groupName, string parentGroupName = null);
+        Task<IGroup> CreateGroupAsync(string groupName, string parentGroupName = null);
+
+        Task DeleteGroupAsync(Guid groupId, bool withChildren = true);
 
         Task DeleteGroupAsync(string groupName, bool withChildren = true);
+
+        Task AddPrincipalToGroupAsync(Guid principalId, Guid groupId);
 
         Task AddPrincipalToGroupAsync(Guid principalId, string groupName);
 
         Task AddPrincipalsToGroupAsync(IEnumerable<Guid> principalIds, string groupName);
 
         Task AddGroupToGroupAsync(string childGroupName, string parentGroupName);
+
+        Task<IGroup> GetGroupAsync(Guid groupId);
 
         Task<IGroup> GetGroupAsync(string groupName);
 
@@ -38,6 +44,8 @@
         Task<IDictionary<string, IList<Guid>>> GetGroupMembersAsync(params string[] groupNames);
 
         Task<IList<Guid>> HasMembershipAsync(IEnumerable<Guid> principalIds, params string[] groupNames);
+
+        Task RemovePrincipalFromGroupAsync(Guid principalId, Guid groupId);
 
         Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName);
 

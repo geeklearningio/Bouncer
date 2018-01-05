@@ -272,7 +272,7 @@
             }
         }
 
-        public async Task CreateGroupAsync(string groupName, string parentGroupName = null)
+        public async Task<IGroup> CreateGroupAsync(string groupName, string parentGroupName = null)
         {
             var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);
             if (group == null)
@@ -300,6 +300,7 @@
                     });
                 }
             }
+            return group;
         }
 
         public async Task DeleteGroupAsync(string groupName, bool withChildren = true)
@@ -401,6 +402,11 @@
 
                 this.QueueEvent(new AddPrincipalToGroup(childGroup.Id, parentGroup.Name));
             }
+        }
+
+        public async Task<IGroup> GetGroupAsync(Guid groupId)
+        {
+            return await this.GetEntityAsync<Data.Group>(g => g.Id == groupId);
         }
 
         public async Task<IGroup> GetGroupAsync(string groupName)
