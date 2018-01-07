@@ -334,7 +334,7 @@
                     this.context.Set<Data.Membership>().Remove(memberShip);
                 }
 
-                await this.UnaffectRolesFromGroupAsync(group.Name);
+                await this.UnaffectRolesFromGroupAsync(group);
 
                 this.context.Set<Data.Group>().Remove(group);
                 this.context.Set<Data.Principal>().Remove(group.Principal);
