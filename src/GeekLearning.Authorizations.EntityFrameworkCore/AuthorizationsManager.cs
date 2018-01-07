@@ -238,6 +238,11 @@
         public async Task DeleteScopeAsync(string scopeName)
         {
             var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
+            await DeleteScopeAsync(scope);
+        }
+
+        private async Task DeleteScopeAsync(Data.Scope scope)
+        {
             if (scope != null)
             {
                 var childrenScopes = await this.context.Set<Data.Scope>()
@@ -246,24 +251,31 @@
                                                    s => s.Name,
                                                    sh => sh.Parent.Name,
                                                    (s, sh) => new { Scope = s, ScopeHierarchy = sh })
-                                               .Where(r => r.ScopeHierarchy.Parent.Name == scopeName)
+                                               .Where(r => r.ScopeHierarchy.ParentId == scope.Id)
                                                .Select(r => r.ScopeHierarchy.Child)
                                                .ToListAsync();
 
                 foreach (var childrenScope in childrenScopes)
                 {
-                    await DeleteScopeAsync(childrenScope.Name);
+                    await DeleteScopeAsync(childrenScope);
                 }
 
                 this.context.Set<Data.ScopeHierarchy>()
                             .RemoveRange(
                                 await this.context.Set<Data.ScopeHierarchy>()
-                                                  .Where(sh => sh.Parent.Name == scopeName)
+                                                  .Where(sh => sh.ParentId == scope.Id)
                                                   .ToListAsync());
+
+                this.context.Set<Data.ScopeHierarchy>()
+                           .RemoveRange(
+                               await this.context.Set<Data.ScopeHierarchy>()
+                                                 .Where(sh => sh.ChildId == scope.Id)
+                                                 .ToListAsync());
+
                 this.context.Set<Data.Scope>().Remove(scope);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
 
-                this.QueueEvent(new DeleteScope(scopeName));
+                this.QueueEvent(new DeleteScope(scope.Name));
             }
         }
 
