@@ -20,7 +20,7 @@
         public PrincipalRights ToPrincipalRights(Guid principalId)
         {
             var scopeRights = new Dictionary<Guid, ScopeRights>();
-        
+
             this.AddToScopeRightsList(principalId, scopeRights);
 
             return new PrincipalRights(principalId, this.Scope.Name, scopeRights.Values);

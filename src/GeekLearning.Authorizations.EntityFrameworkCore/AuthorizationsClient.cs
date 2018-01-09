@@ -2,6 +2,7 @@
 {
     using Authorizations.Model.Client;
     using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
+    using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
     using Microsoft.EntityFrameworkCore;
     using Model;
     using System;
@@ -29,37 +30,41 @@
 
             if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out Dictionary<Guid, ParsedScope> parsedScopes))
             {
-                var roles = await this.authorizationsCacheProvider.GetRolesAsync();               
-                var scopes = await this.authorizationsCacheProvider.GetScopesAsync();                
+                var roles = await this.authorizationsCacheProvider.GetRolesAsync();
+                var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
 
                 var principalIdsLink = await this.GetGroupParentLinkAsync(principalId);
                 principalIdsLink.Add(principalId);
 
-                var principalRightsPerScope = (await this.context.
-                    Authorizations()
+                var principalAuthorizations = await this.context.Authorizations()
                     .Where(a => principalIdsLink.Contains(a.PrincipalId))
                     .Select(a => new { a.ScopeId, a.RoleId })
-                    .ToListAsync())
+                    .ToListAsync();
+                var principalRightsByScope = principalAuthorizations
                     .GroupBy(a => a.ScopeId)
                     .ToDictionary(
                         ag => ag.Key,
                         ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>()).ToArray());
 
-                var rootScopes = scopes
-                    .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())
-                    .Select(s => s.Value)
-                    .ToList();
+                //var rootScopes = scopes
+                //    .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())
+                //    .Select(s => s.Value)
+                //    .ToList();
 
-                if (rootScopes.Count == 0)
-                {
-                    throw new RootScopeNotFoundException();
-                }
+                //if (rootScopes.Count == 0)
+                //{
+                //    throw new RootScopeNotFoundException();
+                //}
 
-                parsedScopes = new Dictionary<Guid, ParsedScope>();
-                foreach (var rootScope in rootScopes)
-                {
-                    ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes);
-                }
+                //parsedScopes = new Dictionary<Guid, ParsedScope>();
+                //foreach (var rootScope in rootScopes)
+                //{
+                //    ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes);
+                //}
+
+                var getScopeRightsQuery = new GetScopeRightsQuery(scopes, principalRightsByScope);
+
+                getScopeRightsQuery.Execute(root)
 
                 this.parsedScopesPerPrincipal.Add(principalId, parsedScopes);
             }
