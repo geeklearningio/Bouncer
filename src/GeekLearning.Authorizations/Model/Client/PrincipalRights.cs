@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
 
     public class PrincipalRights
@@ -10,12 +11,17 @@
         {
         }
 
-        public PrincipalRights(Guid principalId, string rootScopeName, IEnumerable<ScopeRights> scopeRights, bool scopeNotFound = false)
+        public PrincipalRights(Guid principalId, string rootScopeName, IDictionary<string, ScopeRights> scopeRights, bool scopeNotFound = false)
         {
             this.PrincipalId = principalId;
             this.RootScopeName = rootScopeName;
             this.ScopeNotFound = scopeNotFound;
-            this.ScopeRights = ComputeScopes(principalId, scopeRights);
+            this.ScopeRights = new ReadOnlyDictionary<string, ScopeRights>(scopeRights);
+        }
+
+        public static PrincipalRights ScopeNotFoundFor(Guid principalId, string rootScopeName)
+        {
+            return new PrincipalRights(principalId, rootScopeName, new Dictionary<string, ScopeRights>(), scopeNotFound: true);
         }
 
         public Guid PrincipalId { get; set; }

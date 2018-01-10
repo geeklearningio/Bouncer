@@ -8,14 +8,18 @@
     public class GetScopeRightsQuery
     {
         private readonly IDictionary<Guid, Caching.Scope> scopesById;
-
+        private readonly IDictionary<string, Caching.Scope> scopesByName;
         private readonly IDictionary<Guid, string[]> explicitRightsByScope;
 
         private readonly Dictionary<Guid, IEnumerable<Right>> rightsByScope = new Dictionary<Guid, IEnumerable<Right>>();
 
-        public GetScopeRightsQuery(IDictionary<Guid, Caching.Scope> scopesById, IDictionary<Guid, string[]> explicitRightsByScope)
+        public GetScopeRightsQuery(
+            IDictionary<Guid, Caching.Scope> scopesById,
+            IDictionary<string, Caching.Scope> scopesByName,
+            IDictionary<Guid, string[]> explicitRightsByScope)
         {
             this.scopesById = scopesById;
+            this.scopesByName = scopesByName;
             this.explicitRightsByScope = explicitRightsByScope;
         }
 
@@ -27,6 +31,22 @@
                 return Enumerable.Empty<ScopeRights>();
             }
 
+            return this.ExecuteCore(scope, principalId, withChildren);
+        }
+
+        public IEnumerable<ScopeRights> Execute(string scopeName, Guid principalId, bool withChildren = false)
+        {
+            if (!this.scopesByName.TryGetValue(scopeName, out Caching.Scope scope))
+            {
+                // TODO: Log Warning!
+                return Enumerable.Empty<ScopeRights>();
+            }
+
+            return this.ExecuteCore(scope, principalId, withChildren);
+        }
+
+        private IEnumerable<ScopeRights> ExecuteCore(Caching.Scope scope, Guid principalId, bool withChildren = false)
+        {
             List<ScopeRights> childrenScopesRights = new List<ScopeRights>();
             if (withChildren && scope.ChildIds?.Any() == true)
             {
@@ -36,7 +56,7 @@
                 }
             }
 
-            var rightsOnScope = this.DetectScopeRights(scopeId, principalId, this.scopesById, this.explicitRightsByScope);
+            var rightsOnScope = this.DetectScopeRights(scope.Id, principalId, this.scopesById, this.explicitRightsByScope);
             var rightsUnderScope = childrenScopesRights.SelectMany(sr => sr.RightsOnScope.Values).ToList();
             
             return new List<ScopeRights>(childrenScopesRights)

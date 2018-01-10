@@ -15,7 +15,7 @@
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
         private readonly Caching.IAuthorizationsCacheProvider authorizationsCacheProvider;
-        private readonly Dictionary<Guid, Dictionary<Guid, ParsedScope>> parsedScopesPerPrincipal = new Dictionary<Guid, Dictionary<Guid, ParsedScope>>();
+        private readonly Dictionary<Guid, Dictionary<string, ScopeRights>> principalsScopesRights = new Dictionary<Guid, Dictionary<string, ScopeRights>>();
 
         public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, Caching.IAuthorizationsCacheProvider authorizationsCacheProvider)
         {
@@ -28,10 +28,11 @@
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
 
-            if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out Dictionary<Guid, ParsedScope> parsedScopes))
+            if (!this.principalsScopesRights.TryGetValue(principalId, out Dictionary<string, ScopeRights> principalScopeRights))
             {
                 var roles = await this.authorizationsCacheProvider.GetRolesAsync();
-                var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
+                var scopes = await this.authorizationsCacheProvider.GetScopesAsync(s => s.Id);
+                var scopesByName = await this.authorizationsCacheProvider.GetScopesAsync(s => s.Name);
 
                 var principalIdsLink = await this.GetGroupParentLinkAsync(principalId);
                 principalIdsLink.Add(principalId);
@@ -61,21 +62,19 @@
                 //{
                 //    ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes);
                 //}
+                
+                var rootScopeRights = new GetScopeRightsQuery(scopes, scopesByName, principalRightsByScope)
+                    .Execute(scopeName, principalId, withChildren);
 
-                var getScopeRightsQuery = new GetScopeRightsQuery(scopes, principalRightsByScope);
-
-                getScopeRightsQuery.Execute(root)
-
-                this.parsedScopesPerPrincipal.Add(principalId, parsedScopes);
+                this.principalsScopesRights[principalId] = rootScopeRights.ToDictionary(sr => sr.ScopeName);
             }
-
-            var askedParsedScope = parsedScopes.Values.FirstOrDefault(s => s.Scope.Name == scopeName);
-            if (askedParsedScope == null)
+            
+            if (!principalScopeRights.TryGetValue(scopeName, out ScopeRights scopeRights))
             {
-                return new PrincipalRights(principalId, scopeName, Enumerable.Empty<ScopeRights>(), scopeNotFound: true);
+                return PrincipalRights.ScopeNotFoundFor(principalId, scopeName);
             }
 
-            return askedParsedScope.ToPrincipalRights(principalId);
+            return new PrincipalRights(principalId, scopeName, scopeRights);
         }
 
         public async Task<bool> HasRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null)

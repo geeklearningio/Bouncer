@@ -6,10 +6,6 @@
 
     public class ScopeRights
     {
-        public ScopeRights() {}
-
-        public ScopeRights(Guid principalId, string scopeName) {}
-
         public ScopeRights(Guid principalId, string scopeName, IEnumerable<Right> rightsOnScope, IEnumerable<Right> rightsUnderScope)
         {
             this.PrincipalId = principalId;
@@ -53,11 +49,9 @@
         {
             if (rights?.Any() == true)
             {
-                var rr = rights
+                return rights
                     .GroupBy(r => r.RightName)
                     .ToDictionary(rg => rg.Key, rg => new Right(principalId, scopeName, rg.Key, rg.Any(r => r.IsExplicit)));
-
-                return rr;
             }
 
             return new Dictionary<string, Right>();
