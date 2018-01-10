@@ -251,5 +251,42 @@
                 Assert.True(r.HasRightOnScope("right1", "scope2"));
             }
         }
+
+        [Fact]
+        public async Task GetRightsOnScopeAfterReset_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+
+                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2", "scope1");
+
+                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
+
+                await authorizationsFixture.AuthorizationsManager.AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var group = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
+                await authorizationsFixture.AuthorizationsManager.AffectRoleToPrincipalOnScopeAsync("role1", group.Id, "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
+
+                Assert.True(r.HasRightOnScope("right1", "scope2"));
+
+                await authorizationsFixture.AuthorizationsManager.UnaffectRoleFromPrincipalOnScopeAsync("role1", group.Id, "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                authorizationsFixture.AuthorizationsClient.Reset();
+
+                r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
+
+                Assert.False(r.HasRightOnScope("right1", "scope2"));
+
+            }
+        }
     }
 }
