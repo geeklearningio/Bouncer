@@ -3,6 +3,7 @@ branches:
     tag: alpha
   features?[/-]:
     tag: a-feature.{BranchName}
+    mode: ContinuousDeployment    
   releases?[/-]:
     mode: ContinuousDeployment
   hotfix(es)?[/-]:
