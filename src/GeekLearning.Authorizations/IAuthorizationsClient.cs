@@ -17,6 +17,8 @@
 
         Task<bool> HasMembershipAsync(params string[] groupNames);
 
-        Task<IList<string>> DetectMembershipsAsync(IEnumerable<string> groupNames, Guid? principalIdOverride = null);        
+        Task<IList<string>> DetectMembershipsAsync(IEnumerable<string> groupNames, Guid? principalIdOverride = null);
+
+        void Reset();
     }
 }
