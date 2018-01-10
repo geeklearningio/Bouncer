@@ -29,8 +29,8 @@
 
             if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out Dictionary<Guid, ParsedScope> parsedScopes))
             {
-                var roles = await this.authorizationsCacheProvider.GetRolesAsync();               
-                var scopes = await this.authorizationsCacheProvider.GetScopesAsync();                
+                var roles = await this.authorizationsCacheProvider.GetRolesAsync();
+                var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
 
                 var principalIdsLink = await this.GetGroupParentLinkAsync(principalId);
                 principalIdsLink.Add(principalId);
@@ -38,12 +38,12 @@
                 var principalRightsPerScope = (await this.context.
                     Authorizations()
                     .Where(a => principalIdsLink.Contains(a.PrincipalId))
-                    .Select(a => new { a.ScopeId, a.RoleId })
+                    .Select(a => new { a.ScopeId, a.RoleId, a.PrincipalId })
                     .ToListAsync())
                     .GroupBy(a => a.ScopeId)
                     .ToDictionary(
                         ag => ag.Key,
-                        ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>()).ToArray());
+                        ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights.Select(r => (a.PrincipalId, r)) : Enumerable.Empty<(Guid, String)>()).ToArray());
 
                 var rootScopes = scopes
                     .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())
@@ -83,7 +83,7 @@
         {
             var principalRights = await this.GetRightsAsync(scopeName, principalIdOverride);
             return principalRights.HasExplicitRightOnScope(rightName, scopeName);
-        }        
+        }
 
         public async Task<IList<Guid>> GetGroupParentLinkAsync(params Guid[] principalsId)
         {
