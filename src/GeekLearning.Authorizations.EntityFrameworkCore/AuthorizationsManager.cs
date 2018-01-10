@@ -327,7 +327,7 @@
                         var childGroup = await this.GetEntityAsync<Data.Group>(g => g.Id == memberShip.PrincipalId);
                         if (childGroup != null)
                         {
-                            await this.DeleteGroupAsync(childGroup.Name);
+                            await this.DeleteGroupAsync(childGroup);
                         }
                     }
 
@@ -337,7 +337,14 @@
                 await this.UnaffectRolesFromGroupAsync(group);
 
                 this.context.Set<Data.Group>().Remove(group);
-                this.context.Set<Data.Principal>().Remove(group.Principal);
+
+                var principal = group.Principal;
+                if (principal == null)
+                {
+                    principal = await this.GetEntityAsync<Data.Principal>(x=> x.Id == group.Id);
+                }
+
+                this.context.Set<Data.Principal>().Remove(principal);
             }
         }
 
