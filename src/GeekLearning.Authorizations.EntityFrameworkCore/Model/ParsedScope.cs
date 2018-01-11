@@ -42,11 +42,11 @@
         private ScopeRights ToScopeRights(Guid principalId)
         {
             var rightsOnScope = this.RightNames
-                .Select(r => new Right(principalId, this.Scope.Name, r.Right, this.ExplicitRightNames.Contains(r), r.OwnerId))
+                .Select(r => new Right(principalId, this.Scope.Name, r.Right, this.ExplicitRightNames.Contains(r), r.OwnerId, this.Scope.Name))
                 .ToList();
 
             var rightsUnderScope = this.RightUnderNames
-                .Select(r => new Right(principalId, this.Scope.Name, r.Right, false, r.OwnerId))
+                .Select(r => new Right(principalId, this.Scope.Name, r.Right, false, r.OwnerId, this.Scope.Name))
                 .ToList();
 
             return new ScopeRights(principalId, this.Scope.Name, rightsOnScope, rightsUnderScope);
