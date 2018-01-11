@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{10E46B81-4662-482C-A3AA-20141409D043}"
 EndProject
@@ -24,6 +24,20 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeekLearning.Authorizations.Tests", "tests\GeekLearning.Authorizations.Tests\GeekLearning.Authorizations.Tests.csproj", "{C0331E1D-B786-43A2-8D1C-370948EEC0FF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeekLearning.Authorizations.AspNetCore", "src\GeekLearning.Authorizations.AspNetCore\GeekLearning.Authorizations.AspNetCore.csproj", "{38E5DE72-9EB4-412A-8C6A-D4AEC2399883}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sql", "sql", "{A83F4C6E-D559-482D-9190-7460A4DF0465}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlServer", "SqlServer", "{0E7C9186-E140-44F5-8291-341F0DC0210E}"
+	ProjectSection(SolutionItems) = preProject
+		sql\SqlServer\Authorization.sql = sql\SqlServer\Authorization.sql
+		sql\SqlServer\ModelModificationDate.sql = sql\SqlServer\ModelModificationDate.sql
+		sql\SqlServer\Principal.sql = sql\SqlServer\Principal.sql
+		sql\SqlServer\Right.sql = sql\SqlServer\Right.sql
+		sql\SqlServer\Role.sql = sql\SqlServer\Role.sql
+		sql\SqlServer\RoleRight.sql = sql\SqlServer\RoleRight.sql
+		sql\SqlServer\Scope.sql = sql\SqlServer\Scope.sql
+		sql\SqlServer\ScopeHierarchy.sql = sql\SqlServer\ScopeHierarchy.sql
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +70,7 @@ Global
 		{7A9AA0E3-765A-480B-AE6B-F917B72AD19E} = {10E46B81-4662-482C-A3AA-20141409D043}
 		{C0331E1D-B786-43A2-8D1C-370948EEC0FF} = {75D0775C-9AA5-4E70-980B-494118D9D480}
 		{38E5DE72-9EB4-412A-8C6A-D4AEC2399883} = {10E46B81-4662-482C-A3AA-20141409D043}
+		{0E7C9186-E140-44F5-8291-341F0DC0210E} = {A83F4C6E-D559-482D-9190-7460A4DF0465}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16FD694-5EB0-4746-83F2-3407169E3DF5}
