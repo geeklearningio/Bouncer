@@ -32,8 +32,7 @@
             var scopes = await this.authorizationsCacheProvider.GetScopesAsync(s => s.Id);
             var scopesByName = await this.authorizationsCacheProvider.GetScopesAsync(s => s.Name);
 
-            var principalIdsLink = await this.GetGroupParentLinkAsync(principalId);
-            principalIdsLink.Add(principalId);
+            var principalIdsLink = new List<Guid>(await this.GetGroupParentLinkAsync(principalId)) { principalId };
 
             var principalAuthorizations = await this.context.Authorizations()
                 .Where(a => principalIdsLink.Contains(a.PrincipalId))
@@ -43,12 +42,14 @@
                 .GroupBy(a => a.ScopeId)
                 .ToDictionary(
                     ag => ag.Key,
-                    ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>()).ToArray());           
+                    ag => ag
+                    .SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>())
+                    .ToArray());
 
-            var rootScopeRights = new GetScopeRightsQuery(scopes, scopesByName, principalRightsByScope)
+            var scopesRights = new GetScopeRightsQuery(scopes, scopesByName, principalRightsByScope)
                 .Execute(scopeName, principalId, withChildren);
 
-            return new PrincipalRights(principalId, scopeName, rootScopeRights);
+            return new PrincipalRights(principalId, scopeName, scopesRights);
         }
 
         public async Task<bool> HasRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null)

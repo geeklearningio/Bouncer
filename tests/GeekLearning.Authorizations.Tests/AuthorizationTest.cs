@@ -8,8 +8,10 @@
     using System.Threading.Tasks;
     using Xunit;
 
-    public class AuthorizationTest
+    public class AuthorizationTest : AuthorizationsTestBase
     {
+        private Dictionary<string, EntityFrameworkCore.Data.Scope> testScopes = new Dictionary<string, EntityFrameworkCore.Data.Scope>();
+
         [Fact]
         public async Task AffectRoleOnScope_ShouldBeOk()
         {
@@ -227,29 +229,117 @@
         }
 
         [Fact]
-        public async Task GetRightsOnScope_ShouldBeOk()
+        public async Task GetRights_OfSpecificGroup_OnSpecificScope_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                var right1 = this.CreateRight(authorizationsFixture.Context, "right1");
+                var role1 = this.CreateRole(authorizationsFixture.Context, "role1");
+                this.AddRightToRole(authorizationsFixture.Context, right1, role1);
 
-                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2", "scope1");
+                var groupParent = this.CreateGroup(authorizationsFixture.Context, "groupParent");
+                var groupChild = this.CreateGroup(authorizationsFixture.Context, "groupChild");
+                this.AddPrincipalToGroup(authorizationsFixture.Context, groupChild.Id, groupParent);
+                this.AddPrincipalToGroup(authorizationsFixture.Context, authorizationsFixture.Context.CurrentUserId, groupChild);
 
-                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
+                this.CreateTestScopeTree(authorizationsFixture);
 
-                await authorizationsFixture.AuthorizationsManager.AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+                this.CreateAuthorization(authorizationsFixture.Context, groupChild.Id, role1, testScopes["R"]);
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                var group = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
-                await authorizationsFixture.AuthorizationsManager.AffectRoleToPrincipalOnScopeAsync("role1", group.Id, "scope1");
+                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("R");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
-
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
-
-                Assert.True(r.HasRightOnScope("right1", "scope2"));
+                Assert.True(r.HasRightOnScope("right1", "R"));
             }
+        }
+
+        [Fact]
+        public async Task GetRights_OnParentScope_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var right1 = this.CreateRight(authorizationsFixture.Context, "right1");
+                var role1 = this.CreateRole(authorizationsFixture.Context, "role1");
+                this.AddRightToRole(authorizationsFixture.Context, right1, role1);
+
+                this.CreateTestScopeTree(authorizationsFixture);
+
+                this.CreateAuthorization(authorizationsFixture.Context, authorizationsFixture.Context.CurrentUserId, role1, testScopes["E"]);
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("R");
+
+                Assert.True(r.HasRightOnScope("right1", "R"));
+            }
+        }
+
+        [Fact]
+        public async Task GetRights_OnSpecificScope_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var right1 = this.CreateRight(authorizationsFixture.Context, "right1");                
+                var role1 = this.CreateRole(authorizationsFixture.Context, "role1");
+                this.AddRightToRole(authorizationsFixture.Context, right1, role1);
+               
+                this.CreateTestScopeTree(authorizationsFixture);
+
+                this.CreateAuthorization(authorizationsFixture.Context, authorizationsFixture.Context.CurrentUserId, role1, testScopes["R"]);                
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("R");
+
+                Assert.True(r.HasRightOnScope("right1", "R"));
+            }
+        }
+
+        //                  +-+
+        //                  |A|
+        //                  +-+
+        //                   |
+        //       +-----+-----+-----+-----+
+        //       |     |     |     |     |
+        //       v     v     v     v     v
+        //      +-+   +-+   +-+   +-+   +-+
+        //      |B|   |C|   |D|   |E|   |F|
+        //      +-+   +-+   +-+   +-+   +-+
+        //       |     |     |     |     |
+        //       +--+--+--+--+--+--+--+--+
+        //          |     |     |     |
+        //          v     v     v     v
+        //         +-+   +-+   +-+   +-+
+        //         |G|   |H|   |I|   |J|
+        //         +-+   +-+   +-+   +-+
+        //          |     |     |     |
+        //  +---+---+ +---+     +---+ +---+---+
+        //  |   |     |   |     |   |     |   |
+        //  v   v     v   v     v   v     v   v
+        // +-+ +-+   +-+ +-+   +-+ +-+   +-+ +-+
+        // |K| |L|   |M| |N|   |O| |P|   |Q| |R|
+        // +-+ +-+   +-+ +-+   +-+ +-+   +-+ +-+
+        private void CreateTestScopeTree(AuthorizationsFixture authorizationsFixture)
+        {
+            this.testScopes["A"] = this.CreateScope(authorizationsFixture.Context, "A");
+            this.testScopes["B"] = this.CreateScope(authorizationsFixture.Context, "B", "A");
+            this.testScopes["C"] = this.CreateScope(authorizationsFixture.Context, "C", "A");
+            this.testScopes["D"] = this.CreateScope(authorizationsFixture.Context, "D", "A");
+            this.testScopes["E"] = this.CreateScope(authorizationsFixture.Context, "E", "A");
+            this.testScopes["F"] = this.CreateScope(authorizationsFixture.Context, "F", "A");
+            this.testScopes["G"] = this.CreateScope(authorizationsFixture.Context, "G", "B", "C");
+            this.testScopes["H"] = this.CreateScope(authorizationsFixture.Context, "H", "C", "D");
+            this.testScopes["I"] = this.CreateScope(authorizationsFixture.Context, "I", "D", "E");
+            this.testScopes["J"] = this.CreateScope(authorizationsFixture.Context, "J", "E", "F");
+            this.testScopes["K"] = this.CreateScope(authorizationsFixture.Context, "K", "G");
+            this.testScopes["L"] = this.CreateScope(authorizationsFixture.Context, "L", "G");
+            this.testScopes["M"] = this.CreateScope(authorizationsFixture.Context, "M", "H");
+            this.testScopes["N"] = this.CreateScope(authorizationsFixture.Context, "N", "H");
+            this.testScopes["O"] = this.CreateScope(authorizationsFixture.Context, "O", "I");
+            this.testScopes["P"] = this.CreateScope(authorizationsFixture.Context, "P", "I");
+            this.testScopes["Q"] = this.CreateScope(authorizationsFixture.Context, "Q", "J");
+            this.testScopes["R"] = this.CreateScope(authorizationsFixture.Context, "R", "J");
         }
     }
 }

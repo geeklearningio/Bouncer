@@ -12,11 +12,7 @@
             this.ScopeName = scopeName;
 
             this.RightsOnScope = ComputeRights(principalId, scopeName, rightsOnScope);
-
-            var rightsOnAndUnderScopes = new List<Right>(rightsOnScope);
-            rightsOnAndUnderScopes.AddRange(rightsUnderScope);
-
-            this.RightsUnderScope = ComputeRights(principalId, scopeName, rightsOnAndUnderScopes);
+            this.RightsUnderScope = ComputeRights(principalId, scopeName, rightsOnScope.Union(rightsUnderScope));
         }
 
         public Guid PrincipalId { get; set; }
