@@ -43,7 +43,7 @@
                     .GroupBy(a => a.ScopeId)
                     .ToDictionary(
                         ag => ag.Key,
-                        ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights.Select(r => (a.PrincipalId, r)) : Enumerable.Empty<(Guid, String)>()).ToArray());
+                        ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights.Select(r => (a.PrincipalId, r, scopes[a.ScopeId].Name)) : Enumerable.Empty<(Guid, String, String)>()).ToArray());
 
                 var rootScopes = scopes
                     .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())

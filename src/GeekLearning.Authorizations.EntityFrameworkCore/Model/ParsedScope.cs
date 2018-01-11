@@ -9,11 +9,11 @@
     {
         public Caching.Scope Scope { get; private set; }
 
-        public IList<(Guid OwnerId, string Right)> ExplicitRightNames { get; private set; } = new List<(Guid OwnerId, string Right)>();
+        public IList<(Guid OwnerId, string Right, string Scope)> ExplicitRightNames { get; private set; } = new List<(Guid OwnerId, string Right, string Scope)>();
 
-        public IList<(Guid OwnerId, string Right)> RightNames { get; private set; } = new List<(Guid OwnerId, string Right)>();
+        public IList<(Guid OwnerId, string Right, string Scope)> RightNames { get; private set; } = new List<(Guid OwnerId, string Right, string Scope)>();
 
-        public IList<(Guid OwnerId, string Right)> RightUnderNames { get; private set; } = new List<(Guid OwnerId, string Right)>();
+        public IList<(Guid OwnerId, string Right, string Scope)> RightUnderNames { get; private set; } = new List<(Guid OwnerId, string Right, string Scope)>();
 
         public IList<ParsedScope> Children { get; set; } = new List<ParsedScope>();
 
@@ -42,11 +42,11 @@
         private ScopeRights ToScopeRights(Guid principalId)
         {
             var rightsOnScope = this.RightNames
-                .Select(r => new Right(principalId, this.Scope.Name, r.Right, this.ExplicitRightNames.Contains(r), r.OwnerId, this.Scope.Name))
+                .Select(r => new Right(principalId, this.Scope.Name, r.Right, this.ExplicitRightNames.Contains(r), r.OwnerId, r.Scope))
                 .ToList();
 
             var rightsUnderScope = this.RightUnderNames
-                .Select(r => new Right(principalId, this.Scope.Name, r.Right, false, r.OwnerId, this.Scope.Name))
+                .Select(r => new Right(principalId, this.Scope.Name, r.Right, false, r.OwnerId, r.Scope))
                 .ToList();
 
             return new ScopeRights(principalId, this.Scope.Name, rightsOnScope, rightsUnderScope);
@@ -55,7 +55,7 @@
         public static void Parse(
             Guid scopeId,
             IDictionary<Guid, Caching.Scope> scopes,
-            Dictionary<Guid, (Guid, string)[]> principalRightsPerScope,
+            Dictionary<Guid, (Guid, string, string)[]> principalRightsPerScope,
             Dictionary<Guid, ParsedScope> parsedScopes)
         {
             if (!scopes.TryGetValue(scopeId, out Caching.Scope scope))
@@ -70,7 +70,7 @@
                 parsedScopes.Add(scope.Id, parsedScope);
             }
 
-            if (principalRightsPerScope.TryGetValue(scope.Id, out (Guid OwnerId, string Right)[] explicitRightNames))
+            if (principalRightsPerScope.TryGetValue(scope.Id, out (Guid OwnerId, string Right, string Scope)[] explicitRightNames))
             {
                 parsedScope.ExplicitRightNames = parsedScope.ExplicitRightNames.Union(explicitRightNames).ToList();
                 parsedScope.RightNames = parsedScope.RightNames.Union(explicitRightNames).ToList();
