@@ -31,7 +31,7 @@
                 return Enumerable.Empty<ScopeRights>();
             }
 
-            return this.ExecuteCore(scope, principalId, withChildren);
+            return this.ExecuteCore(scope, principalId, withChildren).Distinct();
         }
 
         public IEnumerable<ScopeRights> Execute(string scopeName, Guid principalId, bool withChildren = false)
@@ -42,7 +42,7 @@
                 return Enumerable.Empty<ScopeRights>();
             }
 
-            return this.ExecuteCore(scope, principalId, withChildren);
+            return this.ExecuteCore(scope, principalId, withChildren).Distinct();
         }
 
         private IEnumerable<ScopeRights> ExecuteCore(Caching.Scope scope, Guid principalId, bool withChildren = false)
