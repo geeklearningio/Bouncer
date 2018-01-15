@@ -1,10 +1,8 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
     using Authorizations.Model.Client;
-    using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
     using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
     using Microsoft.EntityFrameworkCore;
-    using Model;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -14,40 +12,24 @@
     {
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
-        private readonly Caching.IAuthorizationsCacheProvider authorizationsCacheProvider;
-        private readonly Dictionary<Guid, Dictionary<string, ScopeRights>> principalsScopesRights = new Dictionary<Guid, Dictionary<string, ScopeRights>>();
+        private readonly IGetScopeRightsQuery getScopeRightsQuery;
+        private readonly IGetParentGroupsIdQuery getParentGroupsIdQuery;
 
-        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, Caching.IAuthorizationsCacheProvider authorizationsCacheProvider)
+        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, IGetScopeRightsQuery getScopeRightsQuery, IGetParentGroupsIdQuery getParentGroupsIdQuery)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
-            this.authorizationsCacheProvider = authorizationsCacheProvider;
+            this.getScopeRightsQuery = getScopeRightsQuery;
+            this.getParentGroupsIdQuery = getParentGroupsIdQuery;
         }
 
         public async Task<PrincipalRights> GetRightsAsync(string scopeName, Guid? principalIdOverride = null, bool withChildren = false)
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
-
-            var roles = await this.authorizationsCacheProvider.GetRolesAsync();
-            var scopes = await this.authorizationsCacheProvider.GetScopesAsync(s => s.Id);
-            var scopesByName = await this.authorizationsCacheProvider.GetScopesAsync(s => s.Name);
-
-            var principalIdsLink = new List<Guid>(await this.GetGroupParentLinkAsync(principalId)) { principalId };
-
-            var principalAuthorizations = await this.context.Authorizations()
-                .Where(a => principalIdsLink.Contains(a.PrincipalId))
-                .Select(a => new { a.ScopeId, a.RoleId })
-                .ToListAsync();
-            var principalRightsByScope = principalAuthorizations
-                .GroupBy(a => a.ScopeId)
-                .ToDictionary(
-                    ag => ag.Key,
-                    ag => ag
-                    .SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>())
-                    .ToArray());
-
-            var scopesRights = new GetScopeRightsQuery(scopes, scopesByName, principalRightsByScope)
-                .Execute(scopeName, principalId, withChildren);
+           
+            System.Diagnostics.Stopwatch sw3 = System.Diagnostics.Stopwatch.StartNew();
+            var scopesRights = await this.getScopeRightsQuery.ExecuteAsync(scopeName, principalId, withChildren);
+            sw3.Stop();
 
             return new PrincipalRights(principalId, scopeName, scopesRights);
         }
@@ -66,19 +48,7 @@
 
         public async Task<IList<Guid>> GetGroupParentLinkAsync(params Guid[] principalsId)
         {
-            List<Guid> groupIds = new List<Guid>();
-            var groupParentsId = await this.context.Memberships()
-                .Where(m => principalsId.Contains(m.PrincipalId))
-                .Select(m => m.GroupId)
-                .ToListAsync();
-            groupIds.AddRange(groupParentsId);
-
-            if (groupParentsId.Count > 0)
-            {
-                groupIds.AddRange(await GetGroupParentLinkAsync(groupParentsId.ToArray()));
-            }
-
-            return groupIds;
+            return await this.getParentGroupsIdQuery.ExecuteAsync(principalsId);
         }
 
         public async Task<bool> HasMembershipAsync(params string[] groupNames)

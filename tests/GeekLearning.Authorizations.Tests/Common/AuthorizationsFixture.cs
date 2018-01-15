@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
     using EntityFrameworkCore;
+    using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
     using Microsoft.Data.Sqlite;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
@@ -18,11 +19,16 @@
             this.serviceCollection.AddScoped(s => this.AuthorizationsManager);
 
             this.InitializeTestDatabase();
-            
+
+            var getParentGroupsIdQuery = new GetParentGroupsIdQuery<AuthorizationsTestContext>(this.Context);
             this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(
                 this.Context,
                 new PrincipalIdProvider(this.Context),
-                new EntityFrameworkCore.Caching.AuthorizationsCacheProvider<AuthorizationsTestContext>(this.Context));
+                new GetScopeRightsQuery<AuthorizationsTestContext>(
+                    this.Context, 
+                    new EntityFrameworkCore.Caching.AuthorizationsCacheProvider<AuthorizationsTestContext>(this.Context),
+                    getParentGroupsIdQuery),
+                getParentGroupsIdQuery);
 
             this.serviceProvider = this.serviceCollection.BuildServiceProvider();
 

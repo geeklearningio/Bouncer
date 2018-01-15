@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
+    using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,8 @@
             services.AddScoped<IPrincipalIdProvider, TPrincipalIdProvider>();
             services.AddScoped<IAuthorizationsClient, AuthorizationsClient<TContext>>();
             services.AddScoped<IAuthorizationsManager, AuthorizationsManager<TContext>>();
+            services.AddScoped<IGetScopeRightsQuery, GetScopeRightsQuery<TContext>>();
+            services.AddScoped<IGetParentGroupsIdQuery, GetParentGroupsIdQuery<TContext>>();
             services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider<TContext>>();
 
             return services;
