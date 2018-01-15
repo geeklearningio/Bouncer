@@ -11,12 +11,16 @@
 
         Task DeleteScopeAsync(string scopeName);
 
+        Task LinkScope(string parentScopeName, string childScopeName);
+
+        Task UnlinkScope(string parentScopeName, string childScopeName);
+
         Task CreateRightAsync(string rightName);
 
         Task DeleteRightAsync(string rightName);
 
         Task CreateRoleAsync(string roleName, string[] rightNames);
-        
+
         Task DeleteRoleAsync(string roleName);
 
         Task<IGroup> CreateGroupAsync(string groupName, string parentGroupName = null);
