@@ -19,11 +19,6 @@
             this.ScopeRights = ComputeScopes(principalId, scopeRights);
         }
 
-        public static PrincipalRights ScopeNotFoundFor(Guid principalId, string rootScopeName)
-        {
-            return new PrincipalRights(principalId, rootScopeName, Enumerable.Empty<ScopeRights>(), scopeNotFound: true);
-        }
-
         public Guid PrincipalId { get; set; }
 
         public string RootScopeName { get; set; }
