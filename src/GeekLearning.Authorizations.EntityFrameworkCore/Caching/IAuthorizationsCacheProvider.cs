@@ -8,6 +8,8 @@
     {
         Task<IDictionary<Guid, Role>> GetRolesAsync();
 
+        Task<ScopesCache> GetScopesCacheAsync();
+
         Task<IDictionary<TKey, Scope>> GetScopesAsync<TKey>(Func<Scope, TKey> keySelector);
     }
 }

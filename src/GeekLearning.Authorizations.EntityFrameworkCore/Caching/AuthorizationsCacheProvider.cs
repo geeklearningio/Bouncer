@@ -30,12 +30,14 @@
             return rolesCache.Compute();
         }
 
+        public async Task<ScopesCache> GetScopesCacheAsync()
+        {
+            return await this.GetOrCreateAsync(ScopesCache.GetCacheKey(), () => this.QueryScopesAsync(), mmd => mmd.Scopes);
+        }
+
         public async Task<IDictionary<TKey, Scope>> GetScopesAsync<TKey>(Func<Scope, TKey> keySelector)
         {
-            var scopesCache = await this.GetOrCreateAsync(
-                ScopesCache.GetCacheKey(),
-                () => this.QueryScopesAsync(),
-                mmd => mmd.Scopes);
+            var scopesCache = await this.GetScopesCacheAsync();
 
             return scopesCache.Compute(keySelector);
         }

@@ -27,9 +27,7 @@
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
            
-            System.Diagnostics.Stopwatch sw3 = System.Diagnostics.Stopwatch.StartNew();
             var scopesRights = await this.getScopeRightsQuery.ExecuteAsync(scopeName, principalId, withChildren);
-            sw3.Stop();
 
             return new PrincipalRights(principalId, scopeName, scopesRights);
         }

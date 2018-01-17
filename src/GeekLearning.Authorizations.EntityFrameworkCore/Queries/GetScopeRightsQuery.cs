@@ -14,9 +14,9 @@
         private readonly TContext context;
         private readonly IAuthorizationsCacheProvider authorizationsCacheProvider;
         private readonly IGetParentGroupsIdQuery getParentGroupsIdQuery;
-        private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, IEnumerable<Right>>> principalRights;
-        private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>> principalScopeRights;
-        private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>> principalScopeRightsWithChildren;
+        private readonly Dictionary<Guid, ConcurrentDictionary<Guid, IEnumerable<Right>>> principalRights;
+        private readonly Dictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>> principalScopeRights;
+        private readonly Dictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>> principalScopeRightsWithChildren;
 
         private IDictionary<Guid, Role> roles;
         private IDictionary<Guid, Scope> scopesById;
@@ -27,9 +27,9 @@
             this.context = context;
             this.authorizationsCacheProvider = authorizationsCacheProvider;
             this.getParentGroupsIdQuery = getParentGroupsIdQuery;
-            this.principalRights = new ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, IEnumerable<Right>>>();
-            this.principalScopeRights = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>>();
-            this.principalScopeRightsWithChildren = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>>();
+            this.principalRights = new Dictionary<Guid, ConcurrentDictionary<Guid, IEnumerable<Right>>>();
+            this.principalScopeRights = new Dictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>>();
+            this.principalScopeRightsWithChildren = new Dictionary<Guid, ConcurrentDictionary<string, IEnumerable<ScopeRights>>>();
         }
 
         public async Task<IEnumerable<ScopeRights>> ExecuteAsync(
@@ -58,18 +58,15 @@
                 principalScopeRightsCache = this.principalScopeRights[principalId][scopeName];
             }
             else
-            {
-                System.Diagnostics.Stopwatch sw1 = System.Diagnostics.Stopwatch.StartNew();
+            {                
                 var principalIdsLink = new List<Guid>(await this.getParentGroupsIdQuery.ExecuteAsync(principalId)) { principalId };
-                sw1.Stop();
 
-                System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
                 this.roles = await this.authorizationsCacheProvider.GetRolesAsync();
-                this.scopesById = await this.authorizationsCacheProvider.GetScopesAsync(s => s.Id);
-                this.scopesByName = await authorizationsCacheProvider.GetScopesAsync(s => s.Name);
-                sw.Stop();
 
-                System.Diagnostics.Stopwatch sw2 = System.Diagnostics.Stopwatch.StartNew();
+                var scopesCache = await this.authorizationsCacheProvider.GetScopesCacheAsync();
+                this.scopesById = scopesCache.Compute(s => s.Id);
+                this.scopesByName = scopesCache.Compute(s => s.Name);
+
                 var principalAuthorizations = await this.context.Authorizations()
                     .Where(a => principalIdsLink.Contains(a.PrincipalId))
                     .Select(a => new { a.ScopeId, a.RoleId })
@@ -81,55 +78,34 @@
                         ag => ag
                         .SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights : Enumerable.Empty<string>())
                         .ToArray());
-                sw2.Stop();
 
-                System.Diagnostics.Stopwatch sw3 = System.Diagnostics.Stopwatch.StartNew();
-                var r = await this.ExecuteCoreAsync(scopeName, principalId, explicitRightsByScope, withChildren, true);
-                sw3.Stop();
-
-                return r;
+                return await this.GetScopeRightsAsync(this.GetScope(scopeName), principalId, explicitRightsByScope, withChildren, true);
             }
 
             return principalScopeRightsCache;
         }
 
-        private async Task<IEnumerable<ScopeRights>> ExecuteCoreAsync(Guid scopeId, Guid principalId, IDictionary<Guid, string[]> explicitRightsByScope, bool withChildren = false, bool rootChildLevel = false)
-        {
-            if (!this.scopesById.TryGetValue(scopeId, out Scope scope))
-            {
-                // TODO: Log Warning!
-                return Enumerable.Empty<ScopeRights>();
-            }
-
-            return await this.GetScopeRightsAsync(scope, principalId, explicitRightsByScope, withChildren, rootChildLevel);            
-        }
-
-        private async Task<IEnumerable<ScopeRights>> ExecuteCoreAsync(string scopeName, Guid principalId, IDictionary<Guid, string[]> explicitRightsByScope, bool withChildren = false, bool rootChildLevel = false)
-        {
-            if (!this.scopesByName.TryGetValue(scopeName, out Scope scope))
-            {
-                // TODO: Log Warning!
-                return Enumerable.Empty<ScopeRights>();
-            }
-
-            return await this.GetScopeRightsAsync(scope, principalId, explicitRightsByScope, withChildren, rootChildLevel);            
-        }
-
         private async Task<IEnumerable<ScopeRights>> GetScopeRightsAsync(Scope scope, Guid principalId, IDictionary<Guid, string[]> explicitRightsByScope, bool withChildren = false, bool rootChildLevel = false)
         {
+            if (scope == null)
+            {
+                return Enumerable.Empty<ScopeRights>();
+            }
+
             List<ScopeRights> childrenScopesRights = new List<ScopeRights>();
             if (withChildren && scope.ChildIds?.Any() == true)
             {
                 List<Task<IEnumerable<ScopeRights>>> tasks = new List<Task<IEnumerable<ScopeRights>>>();
                 foreach (var childScopeId in scope.ChildIds)
                 {
+                    var childScope = this.GetScope(childScopeId);
                     if (rootChildLevel)
                     {
-                        tasks.Add(Task.Run(async () => await this.ExecuteCoreAsync(childScopeId, principalId, explicitRightsByScope, withChildren)));
+                        tasks.Add(Task.Run(async () => await this.GetScopeRightsAsync(childScope, principalId, explicitRightsByScope, withChildren)));
                     }
                     else
                     {
-                        childrenScopesRights.AddRange(await this.ExecuteCoreAsync(childScopeId, principalId, explicitRightsByScope, withChildren));
+                        childrenScopesRights.AddRange(await this.GetScopeRightsAsync(childScope, principalId, explicitRightsByScope, withChildren));
                     }
                 }
 
@@ -187,6 +163,26 @@
             this.principalRights[principalId][scopeId] = currentRights.Distinct();
 
             return this.principalRights[principalId][scopeId];
+        }
+
+        private Scope GetScope(Guid scopeId)
+        {
+            if (!this.scopesById.TryGetValue(scopeId, out Scope scope))
+            {
+                // TODO: Log Warning!
+            }
+
+            return scope;
+        }
+
+        private Scope GetScope(string scopeName)
+        {
+            if (!this.scopesByName.TryGetValue(scopeName, out Scope scope))
+            {
+                // TODO: Log Warning!
+            }
+
+            return scope;
         }
     }
 }
