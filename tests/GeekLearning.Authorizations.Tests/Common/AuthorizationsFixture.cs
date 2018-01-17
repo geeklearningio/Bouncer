@@ -1,8 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
     using EntityFrameworkCore;
-    using GeekLearning.Authorizations.Event;
-    using GeekLearning.Authorizations.Events;
+    using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
     using Microsoft.Data.Sqlite;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
@@ -18,23 +17,20 @@
             this.serviceCollection = new ServiceCollection();
             this.serviceCollection.AddScoped(s => this.AuthorizationsClient);
             this.serviceCollection.AddScoped(s => this.AuthorizationsManager);
-            this.serviceCollection.AddScoped(s => this.AuthorizationsEventQueuer);
-            this.serviceCollection.AddScoped<IAuthorizationsImpactClient>(s => this.AuthorizationsImpactClient);
-            this.serviceCollection.AddAclEvents<AuthorizationsTestContext>();
 
             this.InitializeTestDatabase();
-            
+
+            var getParentGroupsIdQuery = new GetParentGroupsIdQuery<AuthorizationsTestContext>(this.Context);
             this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(
                 this.Context,
                 new PrincipalIdProvider(this.Context),
-                new EntityFrameworkCore.Caching.AuthorizationsCacheProvider<AuthorizationsTestContext>(this.Context));
-
-            this.AuthorizationsImpactClient = new AuthorizationsTestImpactClient(this.AuthorizationsClient);
+                new GetScopeRightsQuery<AuthorizationsTestContext>(
+                    this.Context, 
+                    new EntityFrameworkCore.Caching.AuthorizationsCacheProvider<AuthorizationsTestContext>(this.Context),
+                    getParentGroupsIdQuery),
+                getParentGroupsIdQuery);
 
             this.serviceProvider = this.serviceCollection.BuildServiceProvider();
-
-            this.AuthorizationsEventQueuer = new AuthorizationsTestEventQueuer(
-                new AuthorizationsEventReceiver(this.serviceProvider, this.AuthorizationsImpactClient));
 
             this.AuthorizationsManager = new AuthorizationsManager<AuthorizationsTestContext>(
                 this.Context,
@@ -43,11 +39,7 @@
         }
 
         public AuthorizationsTestContext Context { get; private set; }
-
-        public AuthorizationsTestImpactClient AuthorizationsImpactClient { get; private set; }
-
-        public IEventQueuer AuthorizationsEventQueuer { get; private set; }
-
+        
         public IAuthorizationsManager AuthorizationsManager { get; private set; }
 
         public IAuthorizationsClient AuthorizationsClient { get; private set; }

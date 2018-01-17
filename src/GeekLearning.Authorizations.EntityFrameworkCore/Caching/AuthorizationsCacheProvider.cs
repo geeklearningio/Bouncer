@@ -30,14 +30,16 @@
             return rolesCache.Compute();
         }
 
-        public async Task<IDictionary<Guid, Scope>> GetScopesAsync()
+        public async Task<ScopesCache> GetScopesCacheAsync()
         {
-            var scopesCache = await this.GetOrCreateAsync(
-                ScopesCache.GetCacheKey(),
-                () => this.QueryScopesAsync(),
-                mmd => mmd.Scopes);
+            return await this.GetOrCreateAsync(ScopesCache.GetCacheKey(), () => this.QueryScopesAsync(), mmd => mmd.Scopes);
+        }
 
-            return scopesCache.Compute();
+        public async Task<IDictionary<TKey, Scope>> GetScopesAsync<TKey>(Func<Scope, TKey> keySelector)
+        {
+            var scopesCache = await this.GetScopesCacheAsync();
+
+            return scopesCache.Compute(keySelector);
         }
 
         private async Task<RolesCache> QueryRolesAsync()
@@ -77,12 +79,12 @@
                     Name = s.Name,
                     ChildIds = groupByParent.ContainsKey(s.Id) ? groupByParent[s.Id] : null,
                     ParentIds = groupByChild.ContainsKey(s.Id) ? groupByChild[s.Id] : null,
-                })
-                .ToDictionary(ds => ds.Id, ds => ds);
+                });
+                //.ToDictionary(ds => ds.Id, ds => ds);
             
             //this.ValidateScopeModel(scopes);
 
-            return new ScopesCache { Scopes = scopes.Values };
+            return new ScopesCache { Scopes = scopes };
         }
 
         private void ValidateScopeModel(IDictionary<Guid, Scope> scopes)

@@ -166,58 +166,5 @@
                 Assert.False(authorizationsFixture.Context.ScopeHierarchies().Where(x => x.Child.Name == "scopeChild2" || x.Parent.Name == "scopeChild2").Any());
             }
         }
-
-        [Fact]        
-        public async Task RootScopeNotFoundDetection_ShouldBeOk()
-        {
-            using (var authorizationsFixture = new AuthorizationsFixture())
-            {
-                var scope1Entry = authorizationsFixture.Context.Scopes().Add(new Scope
-                {
-                    Name = "scope1",
-                    Description = "scope 1",
-                    CreationBy = authorizationsFixture.Context.CurrentUserId,
-                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
-                });
-
-                var scope2Entry = authorizationsFixture.Context.Scopes().Add(new Scope
-                {
-                    Name = "scope2",
-                    Description = "scope 2",
-                    CreationBy = authorizationsFixture.Context.CurrentUserId,
-                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
-                });
-
-                var scope3Entry = authorizationsFixture.Context.Scopes().Add(new Scope
-                {
-                    Name = "scope3",
-                    Description = "scope 3",
-                    CreationBy = authorizationsFixture.Context.CurrentUserId,
-                    ModificationBy = authorizationsFixture.Context.CurrentUserId,
-                });
-
-                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
-                {
-                    Child = scope3Entry.Entity,
-                    Parent = scope2Entry.Entity,                    
-                });
-
-                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
-                {
-                    Child = scope2Entry.Entity,
-                    Parent = scope1Entry.Entity,
-                });
-
-                authorizationsFixture.Context.ScopeHierarchies().Add(new ScopeHierarchy
-                {
-                    Child = scope1Entry.Entity,
-                    Parent = scope3Entry.Entity,
-                });
-
-                await authorizationsFixture.Context.SaveChangesAsync();
-
-                await Assert.ThrowsAsync<RootScopeNotFoundException>(async () => await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true));
-            }
-        }
     }
 }

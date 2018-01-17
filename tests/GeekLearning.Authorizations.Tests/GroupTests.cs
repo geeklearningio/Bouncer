@@ -111,13 +111,7 @@
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var membership = authorizationsFixture.Context.Memberships().FirstOrDefault(m => m.PrincipalId == authorizationsFixture.Context.CurrentUserId);
-                Assert.NotNull(membership);
-
-                await authorizationsFixture.AuthorizationsEventQueuer.CommitAsync();
-
-                var rights = JsonConvert.DeserializeObject<Model.Client.PrincipalRights>(
-                    authorizationsFixture.AuthorizationsImpactClient.UserDenormalizedRights[authorizationsFixture.Context.CurrentUserId]["Scope1"]);
-                Assert.True(rights.HasRightOnScope("Right1", "Scope1"));
+                Assert.NotNull(membership);                
             }
         }
 

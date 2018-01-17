@@ -1,9 +1,8 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
     using Authorizations.Model.Client;
-    using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
+    using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
     using Microsoft.EntityFrameworkCore;
-    using Model;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,64 +12,24 @@
     {
         private readonly TContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
-        private readonly Caching.IAuthorizationsCacheProvider authorizationsCacheProvider;
-        private readonly Dictionary<Guid, Dictionary<Guid, ParsedScope>> parsedScopesPerPrincipal = new Dictionary<Guid, Dictionary<Guid, ParsedScope>>();
+        private readonly IGetScopeRightsQuery getScopeRightsQuery;
+        private readonly IGetParentGroupsIdQuery getParentGroupsIdQuery;
 
-        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, Caching.IAuthorizationsCacheProvider authorizationsCacheProvider)
+        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, IGetScopeRightsQuery getScopeRightsQuery, IGetParentGroupsIdQuery getParentGroupsIdQuery)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
-            this.authorizationsCacheProvider = authorizationsCacheProvider;
+            this.getScopeRightsQuery = getScopeRightsQuery;
+            this.getParentGroupsIdQuery = getParentGroupsIdQuery;
         }
 
         public async Task<PrincipalRights> GetRightsAsync(string scopeName, Guid? principalIdOverride = null, bool withChildren = false)
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
+           
+            var scopesRights = await this.getScopeRightsQuery.ExecuteAsync(scopeName, principalId, withChildren);
 
-            if (!this.parsedScopesPerPrincipal.TryGetValue(principalId, out Dictionary<Guid, ParsedScope> parsedScopes))
-            {
-                var roles = await this.authorizationsCacheProvider.GetRolesAsync();
-                var scopes = await this.authorizationsCacheProvider.GetScopesAsync();
-
-                var principalIdsLink = await this.GetGroupParentLinkAsync(principalId);
-                principalIdsLink.Add(principalId);
-
-                var principalRightsPerScope = (await this.context.
-                    Authorizations()
-                    .Where(a => principalIdsLink.Contains(a.PrincipalId))
-                    .Select(a => new { a.ScopeId, a.RoleId, a.PrincipalId })
-                    .ToListAsync())
-                    .GroupBy(a => a.ScopeId)
-                    .ToDictionary(
-                        ag => ag.Key,
-                        ag => ag.SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights.Select(r => (a.PrincipalId, r)) : Enumerable.Empty<(Guid, String)>()).ToArray());
-
-                var rootScopes = scopes
-                    .Where(s => s.Value.ParentIds == null || !s.Value.ParentIds.Any())
-                    .Select(s => s.Value)
-                    .ToList();
-
-                if (rootScopes.Count == 0)
-                {
-                    throw new RootScopeNotFoundException();
-                }
-
-                parsedScopes = new Dictionary<Guid, ParsedScope>();
-                foreach (var rootScope in rootScopes)
-                {
-                    ParsedScope.Parse(rootScope.Id, scopes, principalRightsPerScope, parsedScopes);
-                }
-
-                this.parsedScopesPerPrincipal.Add(principalId, parsedScopes);
-            }
-
-            var askedParsedScope = parsedScopes.Values.FirstOrDefault(s => s.Scope.Name == scopeName);
-            if (askedParsedScope == null)
-            {
-                return new PrincipalRights(principalId, scopeName, Enumerable.Empty<ScopeRights>(), scopeNotFound: true);
-            }
-
-            return askedParsedScope.ToPrincipalRights(principalId);
+            return new PrincipalRights(principalId, scopeName, scopesRights);
         }
 
         public async Task<bool> HasRightOnScopeAsync(string rightName, string scopeName, Guid? principalIdOverride = null)
@@ -87,19 +46,7 @@
 
         public async Task<IList<Guid>> GetGroupParentLinkAsync(params Guid[] principalsId)
         {
-            List<Guid> groupIds = new List<Guid>();
-            var groupParentsId = await this.context.Memberships()
-                .Where(m => principalsId.Contains(m.PrincipalId))
-                .Select(m => m.GroupId)
-                .ToListAsync();
-            groupIds.AddRange(groupParentsId);
-
-            if (groupParentsId.Count > 0)
-            {
-                groupIds.AddRange(await GetGroupParentLinkAsync(groupParentsId.ToArray()));
-            }
-
-            return groupIds;
+            return await this.getParentGroupsIdQuery.ExecuteAsync(principalsId);
         }
 
         public async Task<bool> HasMembershipAsync(params string[] groupNames)
@@ -125,7 +72,7 @@
 
         public void Reset()
         {
-            this.parsedScopesPerPrincipal.Clear();
+            this.getScopeRightsQuery.ClearCache();
         }
     }
 }

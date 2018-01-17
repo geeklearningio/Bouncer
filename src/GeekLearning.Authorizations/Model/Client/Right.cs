@@ -9,7 +9,6 @@
         public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, Guid principalSource)
             : this(principalId, scopeName, rightName, isExplicit, new Guid[] { principalSource })
         {
-
         }
 
         [JsonConstructor]

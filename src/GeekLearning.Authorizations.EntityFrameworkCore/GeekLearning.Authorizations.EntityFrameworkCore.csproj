@@ -13,7 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GeekLearning.Authorizations.Events\GeekLearning.Authorizations.Events.csproj" />
     <ProjectReference Include="..\GeekLearning.Authorizations\GeekLearning.Authorizations.csproj" />
   </ItemGroup>
 
@@ -23,6 +22,10 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="2.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>

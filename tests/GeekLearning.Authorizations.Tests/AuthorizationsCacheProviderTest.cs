@@ -130,7 +130,7 @@
 
                 var authorizationsCacheProvider = new AuthorizationsCacheProvider<AuthorizationsTestContext>(authorizationsFixture.Context);
 
-                await Assert.ThrowsAsync<BadScopeModelConfigurationException>(async () => await authorizationsCacheProvider.GetScopesAsync());                
+                await Assert.ThrowsAsync<BadScopeModelConfigurationException>(async () => await authorizationsCacheProvider.GetScopesAsync(s => s.Id));                
             }
         }
     }

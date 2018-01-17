@@ -1,8 +1,6 @@
 ﻿namespace GeekLearning.Authorizations.EntityFrameworkCore
 {
     using GeekLearning.Authorizations.EntityFrameworkCore.Queries;
-    using GeekLearning.Authorizations.Events.Model;
-    using GeekLearning.Authorizations.Events.Queries;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -15,16 +13,11 @@
             services.AddScoped<IPrincipalIdProvider, TPrincipalIdProvider>();
             services.AddScoped<IAuthorizationsClient, AuthorizationsClient<TContext>>();
             services.AddScoped<IAuthorizationsManager, AuthorizationsManager<TContext>>();
+            services.AddScoped<IGetScopeRightsQuery, GetScopeRightsQuery<TContext>>();
+            services.AddScoped<IGetParentGroupsIdQuery, GetParentGroupsIdQuery<TContext>>();
             services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider<TContext>>();
 
-            services.AddAclEvents<TContext>();
-
             return services;
-        }
-
-        public static void AddAclEvents<TContext>(this IServiceCollection services) where TContext : DbContext
-        {
-            services.AddScoped<IGetImpactForAuthorizationEventQuery<AddPrincipalToGroup>, GetAuthorizationsImpactForAddPrincipalToGroupEventQuery<TContext>>();
         }
     }
 }

@@ -12,9 +12,9 @@
 
         public DateTime CacheValuesDateTime { get; set; }
 
-        internal IDictionary<Guid, Scope> Compute()
+        internal IDictionary<TKey, Scope> Compute<TKey>(Func<Scope, TKey> keySelector)
         {
-            return this.Scopes.ToDictionary(r => r.Id, r => r);
+            return this.Scopes.ToDictionary(keySelector, r => r);
         }
 
         public static string GetCacheKey() => nameof(ScopesCache);
