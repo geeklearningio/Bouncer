@@ -167,15 +167,15 @@
                             "Scope1",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right1", true),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right2", true),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right1", true, authorizationsFixture.Context.CurrentUserId),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right2", true, authorizationsFixture.Context.CurrentUserId),
                             },
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right1", false),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right2", false),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right3", false),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right4", false),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right1", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right2", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right3", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right4", false, authorizationsFixture.Context.CurrentUserId),
                             }),
                         new ScopeRights(
                             authorizationsFixture.Context.CurrentUserId,
@@ -183,16 +183,16 @@
                             new List<Right>(),
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope2", "right4", false),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope2", "right4", false, authorizationsFixture.Context.CurrentUserId),
                             }),
                         new ScopeRights(
                             authorizationsFixture.Context.CurrentUserId,
                             "Scope1_Child1",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right1", false),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right2", false),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right3", true),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right1", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right2", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right3", true, authorizationsFixture.Context.CurrentUserId),
                             },
                             new List<Right>()),
                         new ScopeRights(
@@ -200,7 +200,7 @@
                             "Scope2_Child1",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope2_Child1", "right4", true),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope2_Child1", "right4", true, authorizationsFixture.Context.CurrentUserId),
                             },
                             new List<Right>()),
                         new ScopeRights(
@@ -208,8 +208,8 @@
                             "Scope1_Child2",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child2", "right1", false),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child2", "right2", false),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child2", "right1", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child2", "right2", false, authorizationsFixture.Context.CurrentUserId),
                             },
                             new List<Right>()),
                     });
@@ -466,6 +466,43 @@
             this.CreateAuthorization(context, principalId, role5, testScopes["B"]);
 
             await context.SaveChangesAsync();
+        }
+
+        [Fact]
+        public async Task GetRightsOnScopeAfterReset_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+
+                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2", "scope1");
+
+                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
+
+                await authorizationsFixture.AuthorizationsManager.AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var group = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
+                await authorizationsFixture.AuthorizationsManager.AffectRoleToPrincipalOnScopeAsync("role1", group.Id, "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
+
+                Assert.True(r.HasRightOnScope("right1", "scope2"));
+
+                await authorizationsFixture.AuthorizationsManager.UnaffectRoleFromPrincipalOnScopeAsync("role1", group.Id, "scope1");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                authorizationsFixture.AuthorizationsClient.Reset();
+
+                r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
+
+                Assert.False(r.HasRightOnScope("right1", "scope2"));
+
+            }
         }
     }
 }

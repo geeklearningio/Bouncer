@@ -69,5 +69,10 @@
                 .Distinct()
                 .ToListAsync();
         }
+
+        public void Reset()
+        {
+            this.getScopeRightsQuery.ClearCache();
+        }
     }
 }

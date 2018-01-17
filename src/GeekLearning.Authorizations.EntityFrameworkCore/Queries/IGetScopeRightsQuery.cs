@@ -8,5 +8,7 @@
     public interface IGetScopeRightsQuery
     {
         Task<IEnumerable<ScopeRights>> ExecuteAsync(string scopeName, Guid principalId, bool withChildren = false);
+
+        void ClearCache();
     }
 }

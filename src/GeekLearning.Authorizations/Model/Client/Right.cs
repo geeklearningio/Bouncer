@@ -1,18 +1,29 @@
 ﻿namespace GeekLearning.Authorizations.Model.Client
 {
+    using Newtonsoft.Json;
     using System;
+    using System.Collections.Generic;
 
     public class Right : IEquatable<Right>
     {
-        public Right(Guid principalId, string scopeName, string rightName, bool isExplicit)
+        public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, Guid principalSource)
+            : this(principalId, scopeName, rightName, isExplicit, new Guid[] { principalSource })
+        {
+        }
+
+        [JsonConstructor]
+        public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, IEnumerable<Guid> principalSources)
         {
             this.PrincipalId = principalId;
+            this.PrincipalSources = principalSources;
             this.ScopeName = scopeName;
             this.RightName = rightName;
             this.IsExplicit = isExplicit;
         }
 
         public Guid PrincipalId { get; }
+
+        public IEnumerable<Guid> PrincipalSources { get; }
 
         public string ScopeName { get; }
 
@@ -71,7 +82,7 @@
         public static bool operator !=(Right a, Right b)
         {
             return !(a == b);
-        } 
+        }
 
         public override int GetHashCode()
         {
