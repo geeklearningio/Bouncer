@@ -271,6 +271,44 @@
             }
         }
 
+        public async Task LinkScope(string parentScopeName, string childScopeName)
+        {
+            var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentScopeName);
+            var childScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == childScopeName);
+
+            var existingLink = await this.GetEntityAsync<Data.ScopeHierarchy>(s => s.ChildId == childScope.Id && s.ParentId == parentScope.Id);
+
+            if (existingLink == null)
+            {
+                this.context.Set<Data.ScopeHierarchy>().Add(new Data.ScopeHierarchy
+                {
+                    Child = childScope,
+                    Parent = parentScope
+                });
+                parentScope.ModificationBy = principalIdProvider.PrincipalId;
+                parentScope.ModificationDate = DateTime.UtcNow;
+                childScope.ModificationBy = principalIdProvider.PrincipalId;
+                childScope.ModificationDate = DateTime.UtcNow;
+            }
+        }
+
+        public async Task UnlinkScope(string parentScopeName, string childScopeName)
+        {
+            var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentScopeName);
+            var childScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == childScopeName);
+
+            var existingLink = await this.GetEntityAsync<Data.ScopeHierarchy>(s => s.ChildId == childScope.Id && s.ParentId == parentScope.Id);
+
+            if (existingLink != null)
+            {
+                this.context.Set<Data.ScopeHierarchy>().Remove(existingLink);
+                parentScope.ModificationBy = principalIdProvider.PrincipalId;
+                parentScope.ModificationDate = DateTime.UtcNow;
+                childScope.ModificationBy = principalIdProvider.PrincipalId;
+                childScope.ModificationDate = DateTime.UtcNow;
+            }
+        }
+
         public async Task<IGroup> CreateGroupAsync(string groupName, string parentGroupName = null)
         {
             var group = await this.GetEntityAsync<Data.Group>(r => r.Name == groupName);

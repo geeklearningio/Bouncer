@@ -6,16 +6,16 @@
 
     public class Right : IEquatable<Right>
     {
-        public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, Guid principalSource)
-            : this(principalId, scopeName, rightName, isExplicit, new Guid[] { principalSource })
+        public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, Guid sourceAuthorization)
+            : this(principalId, scopeName, rightName, isExplicit, new Guid[] { sourceAuthorization })
         {
         }
 
         [JsonConstructor]
-        public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, IEnumerable<Guid> principalSources)
+        public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, IEnumerable<Guid> sourceAuthorizations)
         {
             this.PrincipalId = principalId;
-            this.PrincipalSources = principalSources;
+            this.SourceAuthorizations = sourceAuthorizations;
             this.ScopeName = scopeName;
             this.RightName = rightName;
             this.IsExplicit = isExplicit;
@@ -23,7 +23,7 @@
 
         public Guid PrincipalId { get; }
 
-        public IEnumerable<Guid> PrincipalSources { get; }
+        public IEnumerable<Guid> SourceAuthorizations { get; }
 
         public string ScopeName { get; }
 
