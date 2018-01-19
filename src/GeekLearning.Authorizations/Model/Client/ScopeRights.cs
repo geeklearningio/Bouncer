@@ -105,7 +105,7 @@
             {
                 return rights
                     .GroupBy(r => r.RightName)
-                    .ToDictionary(rg => rg.Key, rg => new Right(principalId, scopeName, rg.Key, rg.Any(r => r.IsExplicit), rg.SelectMany(x => x.PrincipalSources)));
+                    .ToDictionary(rg => rg.Key, rg => new Right(principalId, scopeName, rg.Key, rg.Any(r => r.IsExplicit), rg.SelectMany(x => x.SourceAuthorizations)));
 
             }
 
