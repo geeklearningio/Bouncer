@@ -271,7 +271,7 @@
             }
         }
 
-        public async Task LinkScope(string parentScopeName, string childScopeName)
+        public async Task LinkScopeAsync(string parentScopeName, string childScopeName)
         {
             var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentScopeName);
             var childScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == childScopeName);
@@ -292,7 +292,7 @@
             }
         }
 
-        public async Task UnlinkScope(string parentScopeName, string childScopeName)
+        public async Task UnlinkScopeAsync(string parentScopeName, string childScopeName)
         {
             var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentScopeName);
             var childScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == childScopeName);
