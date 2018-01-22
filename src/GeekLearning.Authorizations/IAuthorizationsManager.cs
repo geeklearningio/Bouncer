@@ -11,6 +11,10 @@
 
         Task DeleteScopeAsync(string scopeName);
 
+        Task LinkScopeAsync(string parentScopeName, string childScopeName);
+
+        Task UnlinkScopeAsync(string parentScopeName, string childScopeName);
+
         Task CreateRightAsync(string rightName);
 
         Task DeleteRightAsync(string rightName);
