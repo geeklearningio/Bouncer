@@ -159,7 +159,9 @@
             List<Right> currentRights = new List<Right>();
             foreach (var parentScopeId in scope.ParentIds ?? Enumerable.Empty<Guid>())
             {
-                currentRights.AddRange(this.DetectRightsOnScope(parentScopeId, principalId, scopesById, explicitRightsByScope));
+                currentRights.AddRange(
+                    this.DetectRightsOnScope(parentScopeId, principalId, scopesById, explicitRightsByScope)
+                        .Select(r => new Right(r.PrincipalId, r.ScopeName, r.RightName, false, r.SourceAuthorizations)));
             }
 
             if (explicitRightsByScope.TryGetValue(scope.Id, out (Guid AuthorizationId, string rightName)[] explicitRightsForScope))
