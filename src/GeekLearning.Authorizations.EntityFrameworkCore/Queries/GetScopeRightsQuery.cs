@@ -169,7 +169,7 @@
                 currentRights.AddRange(explicitRightsForScope.Select(rightData => new Right(principalId, scope.Name, rightData.rightName, true, rightData.AuthorizationId)));
             }
 
-            this.principalRights[principalId][scopeId] = currentRights.Distinct();
+            this.principalRights[principalId][scopeId] = currentRights.GroupBy(x => x).Select(x => new Right(x.Key.PrincipalId, x.Key.ScopeName, x.Key.RightName, x.Key.IsExplicit, x.SelectMany(s => s.SourceAuthorizations))); //currentRights.Distinct();
 
             return this.principalRights[principalId][scopeId];
         }
