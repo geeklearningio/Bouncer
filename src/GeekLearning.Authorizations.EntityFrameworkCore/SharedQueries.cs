@@ -10,9 +10,7 @@
         public static async Task<Data.ModelModificationDate> GetModelModificationDateAsync<TContext>(TContext context)
             where TContext : DbContext
         {
-            var modelModificationDates = await context.ModelModificationDates()
-                .Where(e => context.Entry(e).State == EntityState.Unchanged)
-                .ToListAsync();            
+            var modelModificationDates = await context.ModelModificationDates().ToListAsync();          
 
             switch (modelModificationDates.Count)
             {
