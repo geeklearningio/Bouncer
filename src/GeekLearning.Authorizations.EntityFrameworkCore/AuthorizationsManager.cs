@@ -289,6 +289,8 @@
                 parentScope.ModificationDate = DateTime.UtcNow;
                 childScope.ModificationBy = principalIdProvider.PrincipalId;
                 childScope.ModificationDate = DateTime.UtcNow;
+
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
         }
 
@@ -306,6 +308,8 @@
                 parentScope.ModificationDate = DateTime.UtcNow;
                 childScope.ModificationBy = principalIdProvider.PrincipalId;
                 childScope.ModificationDate = DateTime.UtcNow;
+
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
         }
 
