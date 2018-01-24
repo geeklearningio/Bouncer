@@ -32,6 +32,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tables", "Tables", "{154A605A-CDFE-4410-AD5F-4BF1DFFAE005}"
 	ProjectSection(SolutionItems) = preProject
 		sql\SqlServer\Tables\Authorization.sql = sql\SqlServer\Tables\Authorization.sql
+		sql\SqlServer\Tables\Group.sql = sql\SqlServer\Tables\Group.sql
+		sql\SqlServer\Tables\Membership.sql = sql\SqlServer\Tables\Membership.sql
 		sql\SqlServer\Tables\ModelModificationDate.sql = sql\SqlServer\Tables\ModelModificationDate.sql
 		sql\SqlServer\Tables\Principal.sql = sql\SqlServer\Tables\Principal.sql
 		sql\SqlServer\Tables\Right.sql = sql\SqlServer\Tables\Right.sql
