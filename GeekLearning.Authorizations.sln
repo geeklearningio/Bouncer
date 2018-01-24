@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{10E46B81-4662-482C-A3AA-20141409D043}"
 EndProject
@@ -28,15 +28,22 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sql", "sql", "{A83F4C6E-D559-482D-9190-7460A4DF0465}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlServer", "SqlServer", "{0E7C9186-E140-44F5-8291-341F0DC0210E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tables", "Tables", "{154A605A-CDFE-4410-AD5F-4BF1DFFAE005}"
 	ProjectSection(SolutionItems) = preProject
-		sql\SqlServer\Authorization.sql = sql\SqlServer\Authorization.sql
-		sql\SqlServer\ModelModificationDate.sql = sql\SqlServer\ModelModificationDate.sql
-		sql\SqlServer\Principal.sql = sql\SqlServer\Principal.sql
-		sql\SqlServer\Right.sql = sql\SqlServer\Right.sql
-		sql\SqlServer\Role.sql = sql\SqlServer\Role.sql
-		sql\SqlServer\RoleRight.sql = sql\SqlServer\RoleRight.sql
-		sql\SqlServer\Scope.sql = sql\SqlServer\Scope.sql
-		sql\SqlServer\ScopeHierarchy.sql = sql\SqlServer\ScopeHierarchy.sql
+		sql\SqlServer\Tables\Authorization.sql = sql\SqlServer\Tables\Authorization.sql
+		sql\SqlServer\Tables\ModelModificationDate.sql = sql\SqlServer\Tables\ModelModificationDate.sql
+		sql\SqlServer\Tables\Principal.sql = sql\SqlServer\Tables\Principal.sql
+		sql\SqlServer\Tables\Right.sql = sql\SqlServer\Tables\Right.sql
+		sql\SqlServer\Tables\Role.sql = sql\SqlServer\Tables\Role.sql
+		sql\SqlServer\Tables\RoleRight.sql = sql\SqlServer\Tables\RoleRight.sql
+		sql\SqlServer\Tables\Scope.sql = sql\SqlServer\Tables\Scope.sql
+		sql\SqlServer\Tables\ScopeHierarchy.sql = sql\SqlServer\Tables\ScopeHierarchy.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Schemas", "Schemas", "{97E82549-48C5-4D5D-9177-1ED2A82856F9}"
+	ProjectSection(SolutionItems) = preProject
+		sql\SqlServer\Schemas\Authorizations.sql = sql\SqlServer\Schemas\Authorizations.sql
 	EndProjectSection
 EndProject
 Global
@@ -71,6 +78,8 @@ Global
 		{C0331E1D-B786-43A2-8D1C-370948EEC0FF} = {75D0775C-9AA5-4E70-980B-494118D9D480}
 		{38E5DE72-9EB4-412A-8C6A-D4AEC2399883} = {10E46B81-4662-482C-A3AA-20141409D043}
 		{0E7C9186-E140-44F5-8291-341F0DC0210E} = {A83F4C6E-D559-482D-9190-7460A4DF0465}
+		{154A605A-CDFE-4410-AD5F-4BF1DFFAE005} = {0E7C9186-E140-44F5-8291-341F0DC0210E}
+		{97E82549-48C5-4D5D-9177-1ED2A82856F9} = {0E7C9186-E140-44F5-8291-341F0DC0210E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16FD694-5EB0-4746-83F2-3407169E3DF5}
