@@ -2,6 +2,6 @@
 {
     public class ModelBuilderOptions
     {
-        public string SchemaName { get; set; }
+        public string SchemaName { get; set; } = "Authorizations";
     }
 }
