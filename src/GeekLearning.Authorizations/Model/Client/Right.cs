@@ -49,9 +49,9 @@
             }
 
             if (this.PrincipalId == other.PrincipalId
-                && this.ScopeName == this.ScopeName
-                && this.RightName == this.RightName
-                && this.IsExplicit == this.IsExplicit)
+                && this.ScopeName == other.ScopeName
+                && this.RightName == other.RightName
+                && this.IsExplicit == other.IsExplicit)
             {
                 return true;
             }

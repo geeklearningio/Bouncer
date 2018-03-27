@@ -58,7 +58,7 @@
                 return false;
             }
 
-            if (this.PrincipalId == other.PrincipalId && this.ScopeName == this.ScopeName)
+            if (this.PrincipalId == other.PrincipalId && this.ScopeName == other.ScopeName)
             {
                 return true;
             }
