@@ -4,7 +4,7 @@
     using System;
     using System.Collections.Generic;
 
-    public class Right : IEquatable<Right>
+    public sealed class Right : IEquatable<Right>
     {
         public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, Guid sourceAuthorization)
             : this(principalId, scopeName, rightName, isExplicit, new Guid[] { sourceAuthorization })

@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class ScopeRights : IEquatable<ScopeRights>
+    public sealed class ScopeRights : IEquatable<ScopeRights>
     {
         public ScopeRights(Guid principalId, string scopeName, IEnumerable<Right> rightsOnScope, IEnumerable<Right> rightsUnderScope)
         {
