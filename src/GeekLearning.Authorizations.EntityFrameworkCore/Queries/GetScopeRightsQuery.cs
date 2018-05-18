@@ -129,7 +129,7 @@
             var scopeRights = new List<ScopeRights>(childrenScopesRights)
             {
                 new ScopeRights(principalId, scope.Name, rightsOnScope, rightsUnderScope)
-            };
+            }.Distinct();
 
             if (withChildren)
             {
@@ -140,7 +140,7 @@
                 this.principalScopeRights[principalId][scope.Name] = scopeRights;
             }
 
-            return scopeRights.Distinct();
+            return scopeRights;
         }
 
         private IEnumerable<Right> DetectRightsOnScope(Guid scopeId, Guid principalId, IDictionary<Guid, Scope> scopesById, IDictionary<Guid, (Guid, string)[]> explicitRightsByScope)
