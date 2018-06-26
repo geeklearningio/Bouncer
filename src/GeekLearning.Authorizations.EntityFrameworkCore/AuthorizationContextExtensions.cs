@@ -45,12 +45,36 @@
                 entity.HasKey(rr => new { rr.RoleId, rr.RightId });
             });
 
-            modelBuilder.Entity<Principal>(entity => entity.MapToTable("Principal", schemaName));
+            modelBuilder.Entity<Principal>(entity =>
+            {
+                entity.MapToTable("Principal", schemaName);
+                entity.HasOne(p => p.Group)
+                      .WithOne(b => b.Principal)
+                      .HasForeignKey<Group>(g => g.Id);
+            });
+
+            modelBuilder.Entity<Group>(entity =>
+            {
+                entity.MapToTable("Group", schemaName)
+                      .HasIndex(g => g.Name)
+                      .IsUnique();           
+            });
+            
+            modelBuilder.Entity<Membership>(entity =>
+            {
+                entity.MapToTable("Membership", schemaName)                      
+                      .HasKey(ms => new { ms.GroupId, ms.PrincipalId });
+            });
 
             modelBuilder.Entity<Authorization>(entity =>
             {
                 entity.MapToTable("Authorization", schemaName);
                 entity.HasIndex(a => new { a.RoleId, a.ScopeId, a.PrincipalId }).IsUnique();
+            });
+
+            modelBuilder.Entity<ModelModificationDate>(entity =>
+            {
+                entity.MapToTable("ModelModificationDate", schemaName);
             });
         }
 
@@ -90,10 +114,28 @@
             return context.Set<Scope>();
         }
 
+        public static DbSet<Group> Groups<TContext>(this TContext context)
+           where TContext : DbContext
+        {
+            return context.Set<Group>();
+        }
+
+        public static DbSet<Membership> Memberships<TContext>(this TContext context)
+           where TContext : DbContext
+        {
+            return context.Set<Membership>();
+        }
+
         public static DbSet<ScopeHierarchy> ScopeHierarchies<TContext>(this TContext context)
            where TContext : DbContext
         {
             return context.Set<ScopeHierarchy>();
+        }
+
+        public static DbSet<ModelModificationDate> ModelModificationDates<TContext>(this TContext context)
+            where TContext : DbContext
+        {
+            return context.Set<ModelModificationDate>();
         }
 
         public static PropertyBuilder<TProperty> AddPrincipalRelationship<TProperty>(this PropertyBuilder<TProperty> propertyBuilder)

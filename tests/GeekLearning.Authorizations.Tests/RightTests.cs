@@ -1,7 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using Data;
     using EntityFrameworkCore;
+    using EntityFrameworkCore.Data;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
@@ -13,7 +13,7 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient.CreateRightAsync("right1");
+                await authorizationsFixture.AuthorizationsManager.CreateRightAsync("right1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
@@ -21,17 +21,22 @@
             }
         }
 
-
         [Fact]
         public async Task DeleteRight_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Rights().Add(new Right { Name = "right1" });
+                authorizationsFixture.Context.Rights().Add(
+                    new Right
+                    {
+                        Name = "right1",
+                        CreationBy = authorizationsFixture.Context.CurrentUserId,
+                        ModificationBy = authorizationsFixture.Context.CurrentUserId
+                    });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRightAsync("right1");
+                await authorizationsFixture.AuthorizationsManager.DeleteRightAsync("right1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

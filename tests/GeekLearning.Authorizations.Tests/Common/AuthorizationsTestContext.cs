@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using GeekLearning.Authorizations.EntityFrameworkCore;
+    using EntityFrameworkCore;
+    using EntityFrameworkCore.Data;
     using Microsoft.EntityFrameworkCore;
     using System;
 
@@ -17,7 +18,7 @@
         {
             this.Set<UserTest>().Add(new UserTest { Id = CurrentUserId });
 
-            this.Set<Data.Principal>().Add(new Data.Principal { Id = CurrentUserId });
+            this.Set<Principal>().Add(new Principal { CreationBy = CurrentUserId, ModificationBy = CurrentUserId, Id = CurrentUserId });
 
             this.SaveChanges();
         }

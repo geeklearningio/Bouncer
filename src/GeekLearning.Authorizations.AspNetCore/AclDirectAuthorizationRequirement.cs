@@ -2,7 +2,7 @@
 {
     public class AclDirectAuthorizationRequirement : AclAuthorizationRequirement
     {
-        public AclDirectAuthorizationRequirement(string right, string scope) : base(right, scope)
+        public AclDirectAuthorizationRequirement(string rightName, string scopeName) : base(rightName, scopeName)
         { 
         }
     }

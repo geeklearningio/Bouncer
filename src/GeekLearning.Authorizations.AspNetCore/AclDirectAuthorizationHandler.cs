@@ -14,7 +14,7 @@
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AclDirectAuthorizationRequirement requirement)
         {
-            if (await this.authorizationClient.HasRightAsync(requirement.Right, requirement.Scope))
+            if (await this.authorizationClient.HasRightOnScopeAsync(requirement.RightName, requirement.ScopeName))
             {
                 context.Succeed(requirement);
             }
