@@ -4,6 +4,8 @@
     using EntityFrameworkCore.Data;
     using GeekLearning.Authorizations.EntityFrameworkCore.Exceptions;
     using Microsoft.EntityFrameworkCore;
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
@@ -50,20 +52,21 @@
             {
                 await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
-                authorizationsFixture.Context.SaveChanges();
+                await authorizationsFixture.Context.SaveChangesAsync();
 
-                var parent = new Scope
+                var parentScope = new Scope
                 {
+                    Id = Guid.NewGuid(),
                     Name = "scope1",
                     Description = "Scope 1",
                     CreationBy = authorizationsFixture.Context.CurrentUserId,
                     ModificationBy = authorizationsFixture.Context.CurrentUserId
                 };
 
-                parent.Children.Add(
+                parentScope.Children.Add(
                     new ScopeHierarchy
                     {
-                        Parent = parent,
+                        Parent = parentScope,
                         Child = new Scope
                         {
                             Name = "scopeChild1",
@@ -73,10 +76,10 @@
                         }
                     });
 
-                parent.Children.Add(
+                parentScope.Children.Add(
                     new ScopeHierarchy
                     {
-                        Parent = parent,
+                        Parent = parentScope,
                         Child = new Scope
                         {
                             Name = "scopeChild2",
@@ -86,9 +89,40 @@
                         }
                     });
 
-                authorizationsFixture.Context.Scopes().Add(parent);
+                authorizationsFixture.Context.Scopes().Add(parentScope);
+                
+                var role = new Role
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "role1",
+                    Rights = new List<RoleRight>
+                    {
+                        new RoleRight
+                        {
+                            Right = new Right
+                            {
+                                Name = "right1",
+                                CreationBy = authorizationsFixture.Context.CurrentUserId,
+                                ModificationBy = authorizationsFixture.Context.CurrentUserId
+                            }
+                        }
+                    },
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId
+                };
+                
+                authorizationsFixture.Context.Roles().Add(role);
 
-                authorizationsFixture.Context.SaveChanges();
+                authorizationsFixture.Context.Authorizations().Add(new Authorization
+                {
+                    Scope = parentScope,
+                    Role = role,
+                    PrincipalId = authorizationsFixture.Context.CurrentUserId,
+                    CreationBy = authorizationsFixture.Context.CurrentUserId,
+                    ModificationBy = authorizationsFixture.Context.CurrentUserId
+                });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
 
                 await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
@@ -102,6 +136,12 @@
                                                          .FirstOrDefault(r => r.Name == "scopeChild2"));
 
                 Assert.False(authorizationsFixture.Context.ScopeHierarchies().Any());
+                Assert.Null(
+                    authorizationsFixture.Context.Authorizations()
+                    .FirstOrDefault(
+                        a => a.ScopeId == parentScope.Id &&
+                        a.RoleId == role.Id &&
+                        a.PrincipalId == authorizationsFixture.Context.CurrentUserId));
             }
         }
 
