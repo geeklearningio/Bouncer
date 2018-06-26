@@ -289,6 +289,8 @@
                 parentScope.ModificationDate = DateTime.UtcNow;
                 childScope.ModificationBy = principalIdProvider.PrincipalId;
                 childScope.ModificationDate = DateTime.UtcNow;
+
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
         }
 
@@ -306,6 +308,8 @@
                 parentScope.ModificationDate = DateTime.UtcNow;
                 childScope.ModificationBy = principalIdProvider.PrincipalId;
                 childScope.ModificationDate = DateTime.UtcNow;
+
+                (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
         }
 
@@ -399,6 +403,10 @@
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });                
             }
+            else
+            {
+                this.CancelEntityEntryForState<Data.Membership>(membership, EntityState.Deleted);
+            }
         }
 
         public async Task AddPrincipalToGroupAsync(Guid principalId, string groupName)
@@ -415,6 +423,10 @@
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
                 });
+            }
+            else
+            {
+                this.CancelEntityEntryForState<Data.Membership>(membership, EntityState.Deleted);
             }
         }
 
@@ -503,6 +515,10 @@
 
                 var group = await this.GetEntityAsync<Data.Group>(g => g.Id == groupId);
             }
+            else
+            {
+                this.CancelEntityEntryForState<Data.Membership>(membership, EntityState.Added);
+            }
         }
 
         public async Task RemovePrincipalFromGroupAsync(Guid principalId, string groupName)
@@ -511,6 +527,10 @@
             if (membership != null)
             {
                 this.context.Set<Data.Membership>().Remove(membership);
+            }
+            else
+            {
+                this.CancelEntityEntryForState<Data.Membership>(membership, EntityState.Added);
             }
         }
 
@@ -577,6 +597,19 @@
             }
 
             return await this.context.Set<TEntity>().FirstOrDefaultAsync(expression);
+        }
+
+        private void CancelEntityEntryForState<TEntity>(TEntity entity, EntityState state) where TEntity : class
+        {
+            var entityEntry = this.context
+                .ChangeTracker
+                .Entries<TEntity>()
+                .Where(ee => ee.Entity == entity && ee.State == state)
+                .FirstOrDefault();
+            if (entityEntry != null)
+            {
+                entityEntry.State = EntityState.Unchanged;
+            }
         }
     }
 }

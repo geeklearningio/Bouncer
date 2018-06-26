@@ -4,7 +4,7 @@
     using System;
     using System.Collections.Generic;
 
-    public class Right : IEquatable<Right>
+    public sealed class Right : IEquatable<Right>
     {
         public Right(Guid principalId, string scopeName, string rightName, bool isExplicit, Guid sourceAuthorization)
             : this(principalId, scopeName, rightName, isExplicit, new Guid[] { sourceAuthorization })
@@ -49,9 +49,9 @@
             }
 
             if (this.PrincipalId == other.PrincipalId
-                && this.ScopeName == this.ScopeName
-                && this.RightName == this.RightName
-                && this.IsExplicit == this.IsExplicit)
+                && this.ScopeName == other.ScopeName
+                && this.RightName == other.RightName
+                && this.IsExplicit == other.IsExplicit)
             {
                 return true;
             }

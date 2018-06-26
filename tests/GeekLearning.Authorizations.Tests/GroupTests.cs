@@ -111,7 +111,17 @@
                 await authorizationsFixture.Context.SaveChangesAsync();
 
                 var membership = authorizationsFixture.Context.Memberships().FirstOrDefault(m => m.PrincipalId == authorizationsFixture.Context.CurrentUserId);
-                Assert.NotNull(membership);                
+                Assert.NotNull(membership);
+
+                await authorizationsFixture.AuthorizationsManager
+                    .RemovePrincipalFromGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+                await authorizationsFixture.AuthorizationsManager
+                    .AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                membership = authorizationsFixture.Context.Memberships().FirstOrDefault(m => m.PrincipalId == authorizationsFixture.Context.CurrentUserId);
+                Assert.NotNull(membership);
             }
         }
 

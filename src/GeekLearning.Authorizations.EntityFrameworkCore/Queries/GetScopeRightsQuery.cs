@@ -129,7 +129,7 @@
             var scopeRights = new List<ScopeRights>(childrenScopesRights)
             {
                 new ScopeRights(principalId, scope.Name, rightsOnScope, rightsUnderScope)
-            };
+            }.Distinct();
 
             if (withChildren)
             {
@@ -140,7 +140,7 @@
                 this.principalScopeRights[principalId][scope.Name] = scopeRights;
             }
 
-            return scopeRights.Distinct();
+            return scopeRights;
         }
 
         private IEnumerable<Right> DetectRightsOnScope(Guid scopeId, Guid principalId, IDictionary<Guid, Scope> scopesById, IDictionary<Guid, (Guid, string)[]> explicitRightsByScope)
@@ -169,7 +169,7 @@
                 currentRights.AddRange(explicitRightsForScope.Select(rightData => new Right(principalId, scope.Name, rightData.rightName, true, rightData.AuthorizationId)));
             }
 
-            this.principalRights[principalId][scopeId] = currentRights.Distinct();
+            this.principalRights[principalId][scopeId] = currentRights.GroupBy(x => x).Select(x => new Right(x.Key.PrincipalId, x.Key.ScopeName, x.Key.RightName, x.Key.IsExplicit, x.SelectMany(s => s.SourceAuthorizations))); //currentRights.Distinct();
 
             return this.principalRights[principalId][scopeId];
         }
