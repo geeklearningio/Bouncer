@@ -1,7 +1,7 @@
 ﻿namespace GeekLearning.Authorizations.Tests
 {
-    using Data;
     using EntityFrameworkCore;
+    using EntityFrameworkCore.Data;
     using Microsoft.EntityFrameworkCore;
     using System.Linq;
     using System.Threading.Tasks;
@@ -14,10 +14,10 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                await authorizationsFixture.AuthorizationsProvisioningClient
-                                            .CreateRoleAsync(
-                                                "role1",
-                                                new string[] { "right1", "right2" });
+                await authorizationsFixture.AuthorizationsManager
+                                           .CreateRoleAsync(
+                                               "role1",
+                                               new string[] { "right1", "right2" });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
@@ -38,11 +38,17 @@
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
             {
-                authorizationsFixture.Context.Roles().Add(new Role { Name = "role1" });
+                authorizationsFixture.Context.Roles().Add(
+                    new Role
+                    {
+                        Name = "role1",
+                        CreationBy = authorizationsFixture.Context.CurrentUserId,
+                        ModificationBy = authorizationsFixture.Context.CurrentUserId
+                    });
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsProvisioningClient.DeleteRoleAsync("role1");
+                await authorizationsFixture.AuthorizationsManager.DeleteRoleAsync("role1");
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 

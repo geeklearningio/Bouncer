@@ -4,14 +4,14 @@
 
     public abstract class AclAuthorizationRequirement : IAuthorizationRequirement
     {
-        public AclAuthorizationRequirement(string right, string scope)
+        public AclAuthorizationRequirement(string rightName, string scopeName)
         {
-            this.Right = right;
-            this.Scope = scope; 
+            this.RightName = rightName;
+            this.ScopeName = scopeName; 
         }
 
-        public string Right { get; set; }
+        public string RightName { get; set; }
 
-        public string Scope { get; set; }
+        public string ScopeName { get; set; }
     }
 }
