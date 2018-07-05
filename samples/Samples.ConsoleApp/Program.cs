@@ -1,8 +1,6 @@
 ﻿namespace Samples.ConsoleApp
 {
-    using Bouncer.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore;
-    using System;
 
     class Program
     {
@@ -18,8 +16,6 @@
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.AddAuthorizationContext(new ModelBuilderOptions { SchemaName = "Authorizations" });
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

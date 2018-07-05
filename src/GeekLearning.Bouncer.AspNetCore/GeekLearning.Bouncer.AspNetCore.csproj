@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ASP.NET Core ACL system utilities.</Description>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <Authors>Geek Learning;Arnaud Auroux;Adrien Siffermann;Cyprien Autexier</Authors>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Bouncer.AspNetCore</AssemblyName>
+    <PackageId>Bouncer.AspNetCore</PackageId>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GeekLearning.Bouncer\GeekLearning.Bouncer.csproj" />
+  </ItemGroup>
+
+</Project>

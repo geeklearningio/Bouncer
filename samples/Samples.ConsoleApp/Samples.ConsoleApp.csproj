@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Bouncer.EntityFrameworkCore\Bouncer.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\GeekLearning.Bouncer.EntityFrameworkCore\GeekLearning.Bouncer.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
 </Project>
