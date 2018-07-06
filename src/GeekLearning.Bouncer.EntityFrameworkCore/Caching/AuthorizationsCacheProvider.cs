@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore.Caching
 {
-    using Bouncer.EntityFrameworkCore.Exceptions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Exceptions;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Caching.Memory;

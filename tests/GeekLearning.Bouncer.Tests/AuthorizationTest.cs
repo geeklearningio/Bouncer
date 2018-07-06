@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Bouncer.Tests
 {
     using EntityFrameworkCore;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using Microsoft.EntityFrameworkCore;
     using Model.Client;
     using System.Collections.Generic;

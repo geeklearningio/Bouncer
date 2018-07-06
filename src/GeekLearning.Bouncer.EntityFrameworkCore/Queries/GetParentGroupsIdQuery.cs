@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore.Queries
 {
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.Generic;

@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Bouncer.Tests
 {
     using Bouncer.EntityFrameworkCore;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using System;
     using System.Linq;
 

@@ -4,6 +4,7 @@
     using Bouncer.EntityFrameworkCore.Caching;
     using Bouncer.EntityFrameworkCore.Data;
     using Bouncer.EntityFrameworkCore.Exceptions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using System;
     using System.Threading.Tasks;
     using Xunit;

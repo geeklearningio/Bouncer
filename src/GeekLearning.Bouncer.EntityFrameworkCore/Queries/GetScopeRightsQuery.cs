@@ -1,7 +1,8 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore.Queries
 {
-    using Bouncer.EntityFrameworkCore.Caching;
-    using Bouncer.Model.Client;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Caching;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
+    using GeekLearning.Bouncer.Model.Client;
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.Concurrent;

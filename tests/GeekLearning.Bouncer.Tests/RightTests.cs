@@ -2,6 +2,7 @@
 {
     using EntityFrameworkCore;
     using EntityFrameworkCore.Data;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;

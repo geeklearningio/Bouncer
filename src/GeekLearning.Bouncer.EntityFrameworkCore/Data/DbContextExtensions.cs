@@ -1,6 +1,5 @@
-﻿namespace GeekLearning.Bouncer.EntityFrameworkCore
+﻿namespace GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions
 {
-    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

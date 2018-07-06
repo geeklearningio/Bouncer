@@ -1,7 +1,8 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore
 {
-    using Bouncer.Model.Client;
-    using Bouncer.EntityFrameworkCore.Queries;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Queries;
+    using GeekLearning.Bouncer.Model.Client;
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.Generic;
