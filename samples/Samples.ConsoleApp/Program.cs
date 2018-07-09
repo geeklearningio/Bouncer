@@ -1,6 +1,8 @@
 ﻿namespace Samples.ConsoleApp
 {
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using System.IO;
 
     class Program
     {
@@ -11,8 +13,6 @@
 
     public class SampleDbContext : DbContext
     {
-        private readonly string connectionString = "Server=(localdb)\\mssqllocaldb;Database=Test;Trusted_Connection=True;MultipleActiveResultSets=true";
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -22,7 +22,13 @@
         {
             base.OnConfiguring(optionsBuilder);
 
-            optionsBuilder.UseSqlServer(connectionString);
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+               .SetBasePath(Directory.GetCurrentDirectory())
+               .AddJsonFile("appsettings.json")
+               .Build();
+
+            optionsBuilder.UseSqlServer(
+                configuration.GetConnectionString("DefaultConnection"));
         }
     }
 }

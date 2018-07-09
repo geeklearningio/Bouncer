@@ -3,11 +3,18 @@
     using GeekLearning.Bouncer.EntityFrameworkCore.Configuration;
     using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
     using Microsoft.EntityFrameworkCore.Infrastructure;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
+    using System.IO;
 
-    public class BouncerContext : DbContext
+    public class BouncerContext : DbContext, IDesignTimeDbContextFactory<BouncerContext>
     {
+        public BouncerContext()
+        {
+        }
+
         public BouncerContext(DbContextOptions<BouncerContext> options)
                : base(options)
         {
@@ -32,6 +39,20 @@
         public DbSet<Authorization> Authorizations { get; set; }
 
         public DbSet<ModelModificationDate> ModelModificationDates { get; set; }
+
+        public BouncerContext CreateDbContext(string[] args)
+        {
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+               .SetBasePath(Directory.GetCurrentDirectory())
+               .AddJsonFile("appsettings.json")
+               .Build();
+
+            var builder = new DbContextOptionsBuilder<BouncerContext>();
+
+            builder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+
+            return new BouncerContext(builder.Options);
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
