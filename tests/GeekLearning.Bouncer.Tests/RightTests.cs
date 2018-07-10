@@ -12,36 +12,36 @@
         [Fact]
         public async Task CreateRight_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager.CreateRightAsync("right1");
+                await bouncerFixture.AuthorizationsManager.CreateRightAsync("right1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.NotNull(authorizationsFixture.Context.Rights().FirstOrDefault(r => r.Name == "right1"));
+                Assert.NotNull(bouncerFixture.Context.Rights.FirstOrDefault(r => r.Name == "right1"));
             }
         }
 
         [Fact]
         public async Task DeleteRight_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                authorizationsFixture.Context.Rights().Add(
+                bouncerFixture.Context.Rights.Add(
                     new Right
                     {
                         Name = "right1",
-                        CreationBy = authorizationsFixture.Context.CurrentUserId,
-                        ModificationBy = authorizationsFixture.Context.CurrentUserId
+                        CreationBy = bouncerFixture.Context.CurrentUserId,
+                        ModificationBy = bouncerFixture.Context.CurrentUserId
                     });
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsManager.DeleteRightAsync("right1");
+                await bouncerFixture.AuthorizationsManager.DeleteRightAsync("right1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.Null(authorizationsFixture.Context.Rights().FirstOrDefault(r => r.Name == "right1"));
+                Assert.Null(bouncerFixture.Context.Rights.FirstOrDefault(r => r.Name == "right1"));
             }
         }
     }

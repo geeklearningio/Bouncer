@@ -9,55 +9,55 @@
     using System.Threading.Tasks;
     using Xunit;
 
-    public class AuthorizationTest : AuthorizationsTestBase
+    public class AuthorizationTest : BouncerTestBase
     {
         private readonly Dictionary<string, EntityFrameworkCore.Data.Scope> testScopes = new Dictionary<string, EntityFrameworkCore.Data.Scope>();
 
         [Fact]
         public async Task AffectRoleOnScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await bouncerFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
-                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2");
+                await bouncerFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
+                await bouncerFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2");
 
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                           .AffectRoleToPrincipalOnScopeAsync(
                                                "role1",
-                                               authorizationsFixture.Context.CurrentUserId,
+                                               bouncerFixture.Context.CurrentUserId,
                                                "scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope2");
 
-                authorizationsFixture.Context.SaveChanges();
+                bouncerFixture.Context.SaveChanges();
 
-                var authorizations = authorizationsFixture.Context.Authorizations()
+                var authorizations = bouncerFixture.Context.Authorizations
                                                                   .Include(a => a.Scope)
                                                                   .Include(a => a.Role)
-                                                                  .Where(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId)
+                                                                  .Where(a => a.PrincipalId == bouncerFixture.Context.CurrentUserId)
                                                                   .ToList();
 
                 Assert.Contains(authorizations, a => a.Role.Name == "role1");
@@ -69,86 +69,86 @@
         [Fact]
         public async Task UnaffectRoleFromPrincipalOnScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
                 // Test removing non existing authorization
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
 
-                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await bouncerFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
+                await bouncerFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
                 // Test removing local existing authorization
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.Null(authorizationsFixture.Context
-                                                 .Authorizations()
-                                                 .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId));
+                Assert.Null(bouncerFixture.Context
+                                                 .Authorizations
+                                                 .FirstOrDefault(a => a.PrincipalId == bouncerFixture.Context.CurrentUserId));
 
                 // Test persisted authorization
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .AffectRoleToPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                            .UnaffectRoleFromPrincipalOnScopeAsync(
                                                 "role1",
-                                                authorizationsFixture.Context.CurrentUserId,
+                                                bouncerFixture.Context.CurrentUserId,
                                                 "scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.Null(authorizationsFixture.Context
-                                                 .Authorizations()
-                                                 .FirstOrDefault(a => a.PrincipalId == authorizationsFixture.Context.CurrentUserId));
+                Assert.Null(bouncerFixture.Context
+                                                 .Authorizations
+                                                 .FirstOrDefault(a => a.PrincipalId == bouncerFixture.Context.CurrentUserId));
             }
         }
 
         [Fact]
         public async Task UnaffectRolesFromGroup_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
-                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role2", new string[] { "right2" });
+                await bouncerFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await bouncerFixture.AuthorizationsManager.CreateRoleAsync("role2", new string[] { "right2" });
 
-                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
+                await bouncerFixture.AuthorizationsManager.CreateScopeAsync("scope1", "Scope 1");
 
-                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
+                await bouncerFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
 
-                await authorizationsFixture.AuthorizationsManager.AffectRoleToGroupOnScopeAsync("role1", "group1", "scope1");
-                await authorizationsFixture.AuthorizationsManager.AffectRoleToGroupOnScopeAsync("role2", "group1", "scope1");
+                await bouncerFixture.AuthorizationsManager.AffectRoleToGroupOnScopeAsync("role1", "group1", "scope1");
+                await bouncerFixture.AuthorizationsManager.AffectRoleToGroupOnScopeAsync("role2", "group1", "scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
                 
-                await authorizationsFixture.AuthorizationsManager.UnaffectRolesFromGroupAsync("group1");
+                await bouncerFixture.AuthorizationsManager.UnaffectRolesFromGroupAsync("group1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.Null(authorizationsFixture.Context
-                                                 .Authorizations()
-                                                 .Join(authorizationsFixture.Context.Groups(), a => a.PrincipalId, g => g.Id, (a, g) => g)
+                Assert.Null(bouncerFixture.Context
+                                                 .Authorizations
+                                                 .Join(bouncerFixture.Context.Groups, a => a.PrincipalId, g => g.Id, (a, g) => g)
                                                  .FirstOrDefault(a => a.Name == "group1"));
             }
         }
@@ -156,61 +156,61 @@
         [Fact]
         public void HasXRightsOnScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
                 PrincipalRights rightsResult = new PrincipalRights(
-                    authorizationsFixture.Context.CurrentUserId,
+                    bouncerFixture.Context.CurrentUserId,
                     "Scope1",
                     new List<ScopeRights>
                     {
                         new ScopeRights(
-                            authorizationsFixture.Context.CurrentUserId,
+                            bouncerFixture.Context.CurrentUserId,
                             "Scope1",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right1", true, authorizationsFixture.Context.CurrentUserId),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right2", true, authorizationsFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1", "right1", true, bouncerFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1", "right2", true, bouncerFixture.Context.CurrentUserId),
                             },
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right1", false, authorizationsFixture.Context.CurrentUserId),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right2", false, authorizationsFixture.Context.CurrentUserId),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right3", false, authorizationsFixture.Context.CurrentUserId),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1", "right4", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1", "right1", false, bouncerFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1", "right2", false, bouncerFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1", "right3", false, bouncerFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1", "right4", false, bouncerFixture.Context.CurrentUserId),
                             }),
                         new ScopeRights(
-                            authorizationsFixture.Context.CurrentUserId,
+                            bouncerFixture.Context.CurrentUserId,
                             "Scope2",
                             new List<Right>(),
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope2", "right4", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope2", "right4", false, bouncerFixture.Context.CurrentUserId),
                             }),
                         new ScopeRights(
-                            authorizationsFixture.Context.CurrentUserId,
+                            bouncerFixture.Context.CurrentUserId,
                             "Scope1_Child1",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right1", false, authorizationsFixture.Context.CurrentUserId),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right2", false, authorizationsFixture.Context.CurrentUserId),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child1", "right3", true, authorizationsFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1_Child1", "right1", false, bouncerFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1_Child1", "right2", false, bouncerFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1_Child1", "right3", true, bouncerFixture.Context.CurrentUserId),
                             },
                             new List<Right>()),
                         new ScopeRights(
-                            authorizationsFixture.Context.CurrentUserId,
+                            bouncerFixture.Context.CurrentUserId,
                             "Scope2_Child1",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope2_Child1", "right4", true, authorizationsFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope2_Child1", "right4", true, bouncerFixture.Context.CurrentUserId),
                             },
                             new List<Right>()),
                         new ScopeRights(
-                            authorizationsFixture.Context.CurrentUserId,
+                            bouncerFixture.Context.CurrentUserId,
                             "Scope1_Child2",
                             new List<Right>
                             {
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child2", "right1", false, authorizationsFixture.Context.CurrentUserId),
-                                new Right(authorizationsFixture.Context.CurrentUserId, "Scope1_Child2", "right2", false, authorizationsFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1_Child2", "right1", false, bouncerFixture.Context.CurrentUserId),
+                                new Right(bouncerFixture.Context.CurrentUserId, "Scope1_Child2", "right2", false, bouncerFixture.Context.CurrentUserId),
                             },
                             new List<Right>()),
                     });
@@ -230,14 +230,14 @@
         [Fact]
         public async Task GetRights_WithChildren_MultiBranches_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await this.InitAuthorizationsAsync(authorizationsFixture.Context, AuthorizationsTarget.ChildGroup);
+                await this.InitAuthorizationsAsync(bouncerFixture.Context, BouncerTarget.ChildGroup);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("A");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("A");
                 Assert.False(r.HasAnyRightUnderScope("A"));
 
-                r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("A", withChildren: true);
+                r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("A", withChildren: true);
                 Assert.True(r.HasRightOnScope("right1", "U"));
                 Assert.True(r.HasRightOnScope("right2", "U"));
                 Assert.True(r.HasRightOnScope("right3", "U"));
@@ -253,14 +253,14 @@
         [Fact]
         public async Task GetRights_WithChildren_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await this.InitAuthorizationsAsync(authorizationsFixture.Context, AuthorizationsTarget.ChildGroup);
+                await this.InitAuthorizationsAsync(bouncerFixture.Context, BouncerTarget.ChildGroup);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("G");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("G");
                 Assert.False(r.HasAnyRightUnderScope("G"));
 
-                r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("G", withChildren: true);
+                r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("G", withChildren: true);
                 Assert.True(r.HasRightOnScope("right5", "R"));
             }
         }
@@ -268,11 +268,11 @@
         [Fact]
         public async Task GetRights_OfSpecificGroup_OnSpecificScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await this.InitAuthorizationsAsync(authorizationsFixture.Context, AuthorizationsTarget.ChildGroup);
+                await this.InitAuthorizationsAsync(bouncerFixture.Context, BouncerTarget.ChildGroup);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("Q");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("Q");
 
                 Assert.True(r.HasRightOnScope("right5", "Q"));
             }
@@ -281,11 +281,11 @@
         [Fact]
         public async Task GetRights_OfParentGroup_OnSpecificScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await this.InitAuthorizationsAsync(authorizationsFixture.Context, AuthorizationsTarget.ParentGroup);
+                await this.InitAuthorizationsAsync(bouncerFixture.Context, BouncerTarget.ParentGroup);
                 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("Q");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("Q");
 
                 Assert.True(r.HasRightOnScope("right5", "Q"));
             }
@@ -294,11 +294,11 @@
         [Fact]
         public async Task GetRights_OnParentScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await InitAuthorizationsAsync(authorizationsFixture.Context);
+                await InitAuthorizationsAsync(bouncerFixture.Context);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("M");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("M");
 
                 Assert.True(r.HasRightOnScope("right6", "M"));
                 Assert.False(r.HasExplicitRightOnScope("right6", "M"));
@@ -308,11 +308,11 @@
         [Fact]
         public async Task GetRights_Explicit_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await InitAuthorizationsAsync(authorizationsFixture.Context);
+                await InitAuthorizationsAsync(bouncerFixture.Context);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("B");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("B");
 
                 Assert.True(r.HasRightOnScope("right6", "B"));
                 Assert.True(r.HasAnyRightUnderScope("B"));
@@ -324,11 +324,11 @@
         [Fact]
         public async Task GetRights_OnSpecificScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await InitAuthorizationsAsync(authorizationsFixture.Context);
+                await InitAuthorizationsAsync(bouncerFixture.Context);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("Q");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("Q");
 
                 Assert.True(r.HasRightOnScope("right5", "Q"));
                 Assert.True(r.HasAnyRightUnderScope("Q"));
@@ -339,11 +339,11 @@
         [Fact]
         public async Task GetRights_OnMultipleScopes_OneLevel_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await InitAuthorizationsAsync(authorizationsFixture.Context);
+                await InitAuthorizationsAsync(bouncerFixture.Context);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("K");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("K");
 
                 Assert.True(r.HasRightOnScope("right1", "K"));
                 Assert.True(r.HasRightOnScope("right2", "K"));
@@ -355,11 +355,11 @@
         [Fact]
         public async Task GetRights_OnMultipleScopes_MultiLevel_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await InitAuthorizationsAsync(authorizationsFixture.Context);
+                await InitAuthorizationsAsync(bouncerFixture.Context);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("P");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("P");
 
                 Assert.True(r.HasRightOnScope("right1", "P"));
                 Assert.True(r.HasRightOnScope("right2", "P"));
@@ -371,11 +371,11 @@
         [Fact]
         public async Task GetRights_OnMultipleScopes_MultiLevels_MultiBranches_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await InitAuthorizationsAsync(authorizationsFixture.Context);
+                await InitAuthorizationsAsync(bouncerFixture.Context);
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("U");
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("U");
 
                 Assert.True(r.HasRightOnScope("right1", "U"));
                 Assert.True(r.HasRightOnScope("right2", "U"));
@@ -388,34 +388,34 @@
         [Fact]
         public async Task GetRightsOnScopeAfterReset_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
+                await bouncerFixture.AuthorizationsManager.CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2", "scope1");
+                await bouncerFixture.AuthorizationsManager.CreateScopeAsync("scope2", "Scope 2", "scope1");
 
-                await authorizationsFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
+                await bouncerFixture.AuthorizationsManager.CreateGroupAsync("group2", "group1");
 
-                await authorizationsFixture.AuthorizationsManager.AddPrincipalToGroupAsync(authorizationsFixture.Context.CurrentUserId, "group2");
+                await bouncerFixture.AuthorizationsManager.AddPrincipalToGroupAsync(bouncerFixture.Context.CurrentUserId, "group2");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                var group = await authorizationsFixture.Context.Groups().FirstAsync(g => g.Name == "group1");
-                await authorizationsFixture.AuthorizationsManager.AffectRoleToPrincipalOnScopeAsync("role1", group.Id, "scope1");
+                var group = await bouncerFixture.Context.Groups.FirstAsync(g => g.Name == "group1");
+                await bouncerFixture.AuthorizationsManager.AffectRoleToPrincipalOnScopeAsync("role1", group.Id, "scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                var r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
+                var r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
 
                 Assert.True(r.HasRightOnScope("right1", "scope2"));
 
-                await authorizationsFixture.AuthorizationsManager.UnaffectRoleFromPrincipalOnScopeAsync("role1", group.Id, "scope1");
+                await bouncerFixture.AuthorizationsManager.UnaffectRoleFromPrincipalOnScopeAsync("role1", group.Id, "scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                authorizationsFixture.AuthorizationsClient.Reset();
+                bouncerFixture.AuthorizationsClient.Reset();
 
-                r = await authorizationsFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
+                r = await bouncerFixture.AuthorizationsClient.GetRightsAsync("scope1", withChildren: true);
 
                 Assert.False(r.HasRightOnScope("right1", "scope2"));
 
@@ -464,7 +464,7 @@
         // C | Role3: [ Right4 ]
         // L | Role4: [ Right5 ]
         // B | Role5: [ Right6 ]
-        private void CreateTestScopeTree(AuthorizationsTestContext context)
+        private void CreateTestScopeTree(BouncerTestContext context)
         {
             this.testScopes["A"] = this.CreateScope(context, "A");
             this.testScopes["B"] = this.CreateScope(context, "B");
@@ -490,7 +490,7 @@
             this.testScopes["U"] = this.CreateScope(context, "U", "P", "Q");
         }
 
-        private async Task InitAuthorizationsAsync(AuthorizationsTestContext context, AuthorizationsTarget authorizationsTarget = AuthorizationsTarget.CurrentUser)
+        private async Task InitAuthorizationsAsync(BouncerTestContext context, BouncerTarget authorizationsTarget = BouncerTarget.CurrentUser)
         {
             var right1 = this.CreateRight(context, "right1");
             var right2 = this.CreateRight(context, "right2");
@@ -513,14 +513,14 @@
             this.CreateTestScopeTree(context);
 
             var principalId = context.CurrentUserId;
-            if (authorizationsTarget != AuthorizationsTarget.CurrentUser)
+            if (authorizationsTarget != BouncerTarget.CurrentUser)
             {
                 var groupParent = this.CreateGroup(context, "groupParent");
                 var groupChild = this.CreateGroup(context, "groupChild");
                 this.AddPrincipalToGroup(context, groupChild.Id, groupParent);
                 this.AddPrincipalToGroup(context, context.CurrentUserId, groupChild);
 
-                principalId = authorizationsTarget == AuthorizationsTarget.ChildGroup ? groupChild.Id : groupParent.Id;
+                principalId = authorizationsTarget == BouncerTarget.ChildGroup ? groupChild.Id : groupParent.Id;
             }
 
             this.CreateAuthorization(context, principalId, role1, testScopes["E"]);

@@ -1,17 +1,17 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore.Queries
 {
-    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class GetParentGroupsIdQuery<TContext> : IGetParentGroupsIdQuery where TContext : DbContext
+    public class GetParentGroupsIdQuery : IGetParentGroupsIdQuery
     {
-        private readonly TContext context;
+        private readonly BouncerContext context;
 
-        public GetParentGroupsIdQuery(TContext context)
+        public GetParentGroupsIdQuery(BouncerContext context)
         {
             this.context = context;
         }
@@ -19,7 +19,7 @@
         public async Task<IList<Guid>> ExecuteAsync(params Guid[] principalsId)
         {
             List<Guid> groupIds = new List<Guid>();
-            var groupParentsId = await this.context.Memberships()
+            var groupParentsId = await this.context.Memberships
                 .Where(m => principalsId.Contains(m.PrincipalId))
                 .Select(m => m.GroupId)
                 .ToListAsync();

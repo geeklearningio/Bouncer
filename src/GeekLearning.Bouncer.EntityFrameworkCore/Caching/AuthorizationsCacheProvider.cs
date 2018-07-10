@@ -1,6 +1,6 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore.Caching
 {
-    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using GeekLearning.Bouncer.EntityFrameworkCore.Exceptions;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Distributed;
@@ -10,12 +10,12 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class AuthorizationsCacheProvider<TContext> : IAuthorizationsCacheProvider where TContext : DbContext
+    public class AuthorizationsCacheProvider : IAuthorizationsCacheProvider
     {
-        private readonly TContext context;
+        private readonly BouncerContext context;
         private readonly IMemoryCache memoryCache;
 
-        public AuthorizationsCacheProvider(TContext context, IMemoryCache memoryCache = null)
+        public AuthorizationsCacheProvider(BouncerContext context, IMemoryCache memoryCache = null)
         {
             this.context = context;
             this.memoryCache = memoryCache;
@@ -45,9 +45,9 @@
 
         private async Task<RolesCache> QueryRolesAsync()
         {
-            var roles = await this.context.Roles()
-                .Join(this.context.RoleRights(), r => r.Id, rr => rr.RoleId, (r, rr) => new { Role = r, RoleRights = rr })
-                .Join(this.context.Rights(), j => j.RoleRights.RightId, r => r.Id, (j, r) => new { RoleId = j.Role.Id, RoleName = j.Role.Name, RightName = r.Name })
+            var roles = await this.context.Roles
+                .Join(this.context.RoleRights, r => r.Id, rr => rr.RoleId, (r, rr) => new { Role = r, RoleRights = rr })
+                .Join(this.context.Rights, j => j.RoleRights.RightId, r => r.Id, (j, r) => new { RoleId = j.Role.Id, RoleName = j.Role.Name, RightName = r.Name })
                 .GroupBy(j => j.RoleId)
                 .Select(g => new Role { Id = g.Key, Name = g.First().RoleName, Rights = g.Select(sg => sg.RightName).ToList() })
                 .ToListAsync();
@@ -57,11 +57,11 @@
 
         private async Task<ScopesCache> QueryScopesAsync()
         {
-            var dataScopes = await this.context.Scopes()
+            var dataScopes = await this.context.Scopes
                                     .Select(s => new { s.Id, s.Name })
                                     .ToListAsync();
 
-            var dataScopeHierarchies = await this.context.ScopeHierarchies()
+            var dataScopeHierarchies = await this.context.ScopeHierarchies
                 .Select(s => new { s.ParentId, s.ChildId })
                 .ToListAsync();
 
@@ -142,8 +142,7 @@
                 cacheableObject = await queryCacheableObject();
                 cacheableObject.CacheValuesDateTime = modificationDate;
                 
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    .SetPriority(CacheItemPriority.NeverRemove);
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.NeverRemove);
 
                 this.memoryCache.Set(cacheKey, cacheableObject, cacheEntryOptions);
                 

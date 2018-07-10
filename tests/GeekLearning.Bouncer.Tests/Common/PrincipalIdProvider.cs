@@ -4,19 +4,11 @@
 
     public class PrincipalIdProvider : IPrincipalIdProvider
     {
-        private AuthorizationsTestContext context;
-
-        public PrincipalIdProvider(AuthorizationsTestContext context)
+        public PrincipalIdProvider(Guid currentUserId)
         {
-            this.context = context;
+            this.PrincipalId = currentUserId;
         }
 
-        public Guid PrincipalId
-        {
-            get
-            {
-                return this.context.CurrentUserId;
-            }
-        }
+        public Guid PrincipalId { get; }
     }
 }

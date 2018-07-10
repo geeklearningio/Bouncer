@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore
 {
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using Microsoft.EntityFrameworkCore;
     using System;
@@ -8,10 +9,9 @@
 
     public static class SharedQueries
     {
-        public static async Task<Data.ModelModificationDate> GetModelModificationDateAsync<TContext>(TContext context)
-            where TContext : DbContext
+        public static async Task<Data.ModelModificationDate> GetModelModificationDateAsync(BouncerContext context)
         {
-            var modelModificationDates = await context.ModelModificationDates().ToListAsync();          
+            var modelModificationDates = await context.ModelModificationDates.ToListAsync();          
 
             switch (modelModificationDates.Count)
             {
@@ -35,7 +35,7 @@
                         Scopes = DateTime.UtcNow,
                     };
 
-                    context.ModelModificationDates().Add(modelModificationDate);
+                    context.ModelModificationDates.Add(modelModificationDate);
                     return modelModificationDate;
                 }
 
@@ -56,7 +56,7 @@
                             continue;
                         }
 
-                        context.ModelModificationDates().Remove(toDelete);
+                        context.ModelModificationDates.Remove(toDelete);
                     }
 
                     return toKeep;

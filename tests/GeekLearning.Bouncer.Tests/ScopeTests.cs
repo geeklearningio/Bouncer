@@ -16,25 +16,25 @@
         [Fact]
         public async Task CreateScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                             .CreateScopeAsync(
                                                 "scope1",
                                                 "Description scope 1",
                                                 new string[] { "scopeParent1", "scopeParent2" });
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsManager
+                await bouncerFixture.AuthorizationsManager
                                             .CreateScopeAsync(
                                                 "scope1",
                                                 "Description scope 1",
                                                 new string[] { "scopeParent1", "scopeParent2" });
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                var scope = authorizationsFixture.Context.Scopes()
+                var scope = bouncerFixture.Context.Scopes
                                                          .Include(r => r.Parents)
                                                          .Include(r => r.Children)
                                                          .FirstOrDefault(r => r.Name == "scope1");
@@ -49,19 +49,19 @@
         [Fact]
         public async Task DeleteScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
+                await bouncerFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
                 var parentScope = new Scope
                 {
                     Id = Guid.NewGuid(),
                     Name = "scope1",
                     Description = "Scope 1",
-                    CreationBy = authorizationsFixture.Context.CurrentUserId,
-                    ModificationBy = authorizationsFixture.Context.CurrentUserId
+                    CreationBy = bouncerFixture.Context.CurrentUserId,
+                    ModificationBy = bouncerFixture.Context.CurrentUserId
                 };
 
                 parentScope.Children.Add(
@@ -72,8 +72,8 @@
                         {
                             Name = "scopeChild1",
                             Description = "Scope Child 1",
-                            CreationBy = authorizationsFixture.Context.CurrentUserId,
-                            ModificationBy = authorizationsFixture.Context.CurrentUserId
+                            CreationBy = bouncerFixture.Context.CurrentUserId,
+                            ModificationBy = bouncerFixture.Context.CurrentUserId
                         }
                     });
 
@@ -85,12 +85,12 @@
                         {
                             Name = "scopeChild2",
                             Description = "Scope Child 2",
-                            CreationBy = authorizationsFixture.Context.CurrentUserId,
-                            ModificationBy = authorizationsFixture.Context.CurrentUserId
+                            CreationBy = bouncerFixture.Context.CurrentUserId,
+                            ModificationBy = bouncerFixture.Context.CurrentUserId
                         }
                     });
 
-                authorizationsFixture.Context.Scopes().Add(parentScope);
+                bouncerFixture.Context.Scopes.Add(parentScope);
                 
                 var role = new Role
                 {
@@ -103,64 +103,64 @@
                             Right = new Right
                             {
                                 Name = "right1",
-                                CreationBy = authorizationsFixture.Context.CurrentUserId,
-                                ModificationBy = authorizationsFixture.Context.CurrentUserId
+                                CreationBy = bouncerFixture.Context.CurrentUserId,
+                                ModificationBy = bouncerFixture.Context.CurrentUserId
                             }
                         }
                     },
-                    CreationBy = authorizationsFixture.Context.CurrentUserId,
-                    ModificationBy = authorizationsFixture.Context.CurrentUserId
+                    CreationBy = bouncerFixture.Context.CurrentUserId,
+                    ModificationBy = bouncerFixture.Context.CurrentUserId
                 };
                 
-                authorizationsFixture.Context.Roles().Add(role);
+                bouncerFixture.Context.Roles.Add(role);
 
-                authorizationsFixture.Context.Authorizations().Add(new Authorization
+                bouncerFixture.Context.Authorizations.Add(new Authorization
                 {
                     Scope = parentScope,
                     Role = role,
-                    PrincipalId = authorizationsFixture.Context.CurrentUserId,
-                    CreationBy = authorizationsFixture.Context.CurrentUserId,
-                    ModificationBy = authorizationsFixture.Context.CurrentUserId
+                    PrincipalId = bouncerFixture.Context.CurrentUserId,
+                    CreationBy = bouncerFixture.Context.CurrentUserId,
+                    ModificationBy = bouncerFixture.Context.CurrentUserId
                 });
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
+                await bouncerFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.Null(authorizationsFixture.Context.Scopes()
+                Assert.Null(bouncerFixture.Context.Scopes
                                                          .FirstOrDefault(r => r.Name == "scope1"));
-                Assert.Null(authorizationsFixture.Context.Scopes()
+                Assert.Null(bouncerFixture.Context.Scopes
                                                          .FirstOrDefault(r => r.Name == "scopeChild1"));
-                Assert.Null(authorizationsFixture.Context.Scopes()
+                Assert.Null(bouncerFixture.Context.Scopes
                                                          .FirstOrDefault(r => r.Name == "scopeChild2"));
 
-                Assert.False(authorizationsFixture.Context.ScopeHierarchies().Any());
+                Assert.False(bouncerFixture.Context.ScopeHierarchies.Any());
                 Assert.Null(
-                    authorizationsFixture.Context.Authorizations()
+                    bouncerFixture.Context.Authorizations
                     .FirstOrDefault(
                         a => a.ScopeId == parentScope.Id &&
                         a.RoleId == role.Id &&
-                        a.PrincipalId == authorizationsFixture.Context.CurrentUserId));
+                        a.PrincipalId == bouncerFixture.Context.CurrentUserId));
             }
         }
 
         [Fact]
         public async Task DeleteChildScope_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
+                await bouncerFixture.AuthorizationsManager.DeleteScopeAsync("scope1");
 
-                authorizationsFixture.Context.SaveChanges();
+                bouncerFixture.Context.SaveChanges();
 
                 var parent = new Scope
                 {
                     Name = "scope1",
                     Description = "Scope 1",
-                    CreationBy = authorizationsFixture.Context.CurrentUserId,
-                    ModificationBy = authorizationsFixture.Context.CurrentUserId
+                    CreationBy = bouncerFixture.Context.CurrentUserId,
+                    ModificationBy = bouncerFixture.Context.CurrentUserId
                 };
 
                 parent.Children.Add(
@@ -171,8 +171,8 @@
                         {
                             Name = "scopeChild1",
                             Description = "Scope Child 1",
-                            CreationBy = authorizationsFixture.Context.CurrentUserId,
-                            ModificationBy = authorizationsFixture.Context.CurrentUserId
+                            CreationBy = bouncerFixture.Context.CurrentUserId,
+                            ModificationBy = bouncerFixture.Context.CurrentUserId
                         }
                     });
 
@@ -184,27 +184,27 @@
                         {
                             Name = "scopeChild2",
                             Description = "Scope Child 2",
-                            CreationBy = authorizationsFixture.Context.CurrentUserId,
-                            ModificationBy = authorizationsFixture.Context.CurrentUserId
+                            CreationBy = bouncerFixture.Context.CurrentUserId,
+                            ModificationBy = bouncerFixture.Context.CurrentUserId
                         }
                     });
 
-                authorizationsFixture.Context.Scopes().Add(parent);
+                bouncerFixture.Context.Scopes.Add(parent);
 
-                authorizationsFixture.Context.SaveChanges();
+                bouncerFixture.Context.SaveChanges();
 
-                await authorizationsFixture.AuthorizationsManager.DeleteScopeAsync("scopeChild2");
+                await bouncerFixture.AuthorizationsManager.DeleteScopeAsync("scopeChild2");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.NotNull(authorizationsFixture.Context.Scopes()
+                Assert.NotNull(bouncerFixture.Context.Scopes
                                                          .FirstOrDefault(r => r.Name == "scope1"));
-                Assert.NotNull(authorizationsFixture.Context.Scopes()
+                Assert.NotNull(bouncerFixture.Context.Scopes
                                                          .FirstOrDefault(r => r.Name == "scopeChild1"));
-                Assert.Null(authorizationsFixture.Context.Scopes()
+                Assert.Null(bouncerFixture.Context.Scopes
                                                          .FirstOrDefault(r => r.Name == "scopeChild2"));
 
-                Assert.False(authorizationsFixture.Context.ScopeHierarchies().Where(x => x.Child.Name == "scopeChild2" || x.Parent.Name == "scopeChild2").Any());
+                Assert.False(bouncerFixture.Context.ScopeHierarchies.Where(x => x.Child.Name == "scopeChild2" || x.Parent.Name == "scopeChild2").Any());
             }
         }
     }

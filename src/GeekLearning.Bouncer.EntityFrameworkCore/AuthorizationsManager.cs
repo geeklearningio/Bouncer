@@ -1,7 +1,7 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore
 {
     using Exceptions;
-    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using GeekLearning.Bouncer.Model.Manager;
     using Microsoft.EntityFrameworkCore;
     using System;
@@ -10,12 +10,12 @@
     using System.Linq.Expressions;
     using System.Threading.Tasks;
 
-    public class AuthorizationsManager<TContext> : IAuthorizationsManager where TContext : DbContext
+    public class AuthorizationsManager : IAuthorizationsManager
     {
-        private readonly TContext context;
+        private readonly BouncerContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
 
-        public AuthorizationsManager(TContext context, IPrincipalIdProvider principalIdProvider, IServiceProvider serviceProvider)
+        public AuthorizationsManager(BouncerContext context, IPrincipalIdProvider principalIdProvider, IServiceProvider serviceProvider)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
@@ -45,7 +45,7 @@
                                                           .FirstOrDefault(e => e.Entity.RoleId == role.Id &&
                                                                                e.Entity.ScopeId == scope.Id &&
                                                                                e.Entity.PrincipalId == principalId);
-            var authorization = await this.context.Set<Data.Authorization>()
+            var authorization = await this.context.Authorizations
                                                   .FirstOrDefaultAsync(a => a.PrincipalId == principalId &&
                                                                             a.RoleId == role.Id &&
                                                                             a.ScopeId == scope.Id);
@@ -56,7 +56,7 @@
             }
             else if (authorization == null)
             {
-                this.context.Set<Data.Authorization>().Add(new Data.Authorization
+                this.context.Authorizations.Add(new Data.Authorization
                 {
                     Role = role,
                     Scope = scope,
@@ -117,7 +117,7 @@
             var right = await this.GetEntityAsync<Data.Right>(r => r.Name == rightName);
             if (right == null)
             {
-                var rightEntity = this.context.Set<Data.Right>().Add(new Data.Right
+                var rightEntity = this.context.Rights.Add(new Data.Right
                 {
                     Name = rightName,
                     CreationBy = this.principalIdProvider.PrincipalId,
@@ -150,7 +150,7 @@
                     ModificationBy = this.principalIdProvider.PrincipalId
                 };
 
-                this.context.Set<Data.Role>().Add(role);
+                this.context.Roles.Add(role);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Roles = DateTime.UtcNow;
             }
 
@@ -185,8 +185,8 @@
                 var roleRights = await this.context.Set<Data.RoleRight>()
                                                    .Where(rr => rr.RoleId == role.Id).ToListAsync();
 
-                this.context.Set<Data.RoleRight>().RemoveRange(roleRights);
-                this.context.Set<Data.Role>().Remove(role);
+                this.context.RoleRights.RemoveRange(roleRights);
+                this.context.Roles.Remove(role);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Roles = DateTime.UtcNow;
             }
         }
@@ -205,7 +205,7 @@
                     ModificationBy = this.principalIdProvider.PrincipalId
                 };
 
-                this.context.Set<Data.Scope>().Add(scope);
+                this.context.Scopes.Add(scope);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
 
@@ -220,7 +220,7 @@
                     var scopeHierarchy = await this.GetEntityAsync<Data.ScopeHierarchy>(sh => sh.ChildId == scope.Id && sh.ParentId == parentScope.Id);
                     if (scopeHierarchy == null)
                     {
-                        this.context.Set<Data.ScopeHierarchy>().Add(new Data.ScopeHierarchy
+                        this.context.ScopeHierarchies.Add(new Data.ScopeHierarchy
                         {
                             Child = scope,
                             Parent = parentScope
@@ -240,7 +240,7 @@
         {
             if (scope != null)
             {
-                var childrenScopes = await this.context.Set<Data.Scope>()
+                var childrenScopes = await this.context.Scopes
                                                .Join(
                                                    this.context.Set<Data.ScopeHierarchy>(),
                                                    s => s.Name,
@@ -255,19 +255,19 @@
                     await DeleteScopeAsync(childrenScope);
                 }
 
-                this.context.Set<Data.ScopeHierarchy>()
-                            .RemoveRange(
-                                await this.context.Set<Data.ScopeHierarchy>()
-                                                  .Where(sh => sh.ParentId == scope.Id)
-                                                  .ToListAsync());
+                this.context.ScopeHierarchies
+                    .RemoveRange(
+                        await this.context.Set<Data.ScopeHierarchy>()
+                                .Where(sh => sh.ParentId == scope.Id)
+                                .ToListAsync());
 
-                this.context.Set<Data.ScopeHierarchy>()
-                           .RemoveRange(
-                               await this.context.Set<Data.ScopeHierarchy>()
-                                                 .Where(sh => sh.ChildId == scope.Id)
-                                                 .ToListAsync());
+                this.context.ScopeHierarchies
+                    .RemoveRange(
+                        await this.context.Set<Data.ScopeHierarchy>()
+                                .Where(sh => sh.ChildId == scope.Id)
+                                .ToListAsync());
 
-                this.context.Set<Data.Scope>().Remove(scope);
+                this.context.Scopes.Remove(scope);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
         }
@@ -281,7 +281,7 @@
 
             if (existingLink == null)
             {
-                this.context.Set<Data.ScopeHierarchy>().Add(new Data.ScopeHierarchy
+                this.context.ScopeHierarchies.Add(new Data.ScopeHierarchy
                 {
                     Child = childScope,
                     Parent = parentScope
@@ -327,13 +327,13 @@
                 };
                 group = new Data.Group(principal) { Name = groupName };
 
-                this.context.Set<Data.Group>().Add(group);
+                this.context.Groups.Add(group);
 
                 if (parentGroupName != null)
                 {
                     await this.CreateGroupAsync(parentGroupName);
                     var parentGoup = await this.GetEntityAsync<Data.Group>(r => r.Name == parentGroupName);
-                    this.context.Set<Data.Membership>().Add(new Data.Membership
+                    this.context.Memberships.Add(new Data.Membership
                     {
                         CreationBy = principal.CreationBy,
                         ModificationBy = principal.ModificationBy,
@@ -342,6 +342,7 @@
                     });
                 }
             }
+
             return group;
         }
 
@@ -361,7 +362,7 @@
         {
             if (group != null)
             {
-                var memberShips = await this.context.Set<Data.Membership>().Where(m => m.GroupId == group.Id).ToListAsync();
+                var memberShips = await this.context.Memberships.Where(m => m.GroupId == group.Id).ToListAsync();
                 foreach (var memberShip in memberShips)
                 {
                     if (withChildren)
@@ -373,12 +374,12 @@
                         }
                     }
 
-                    this.context.Set<Data.Membership>().Remove(memberShip);
+                    this.context.Memberships.Remove(memberShip);
                 }
 
                 await this.UnaffectRolesFromGroupAsync(group);
 
-                this.context.Set<Data.Group>().Remove(group);
+                this.context.Groups.Remove(group);
 
                 var principal = group.AssociatedPrincipal;
                 if (principal == null)
@@ -386,7 +387,7 @@
                     principal = await this.GetEntityAsync<Data.Principal>(x=> x.Id == group.Id);
                 }
 
-                this.context.Set<Data.Principal>().Remove(principal);
+                this.context.Principals.Remove(principal);
             }
         }
 
@@ -396,7 +397,7 @@
             if (membership == null)
             {
                 var group = await this.GetEntityAsync<Data.Group>(g => g.Id == groupId);
-                this.context.Set<Data.Membership>().Add(new Data.Membership
+                this.context.Memberships.Add(new Data.Membership
                 {
                     PrincipalId = principalId,
                     GroupId = groupId,
@@ -417,7 +418,7 @@
             {
                 await this.CreateGroupAsync(groupName);
                 var group = await this.GetEntityAsync<Data.Group>(g => g.Name == groupName);
-                this.context.Set<Data.Membership>().Add(new Data.Membership
+                this.context.Memberships.Add(new Data.Membership
                 {
                     PrincipalId = principalId,
                     Group = group,
@@ -445,7 +446,7 @@
             {
                 await this.CreateGroupAsync(parentGroupName);
                 var parentGroup = await this.GetEntityAsync<Data.Group>(g => g.Name == parentGroupName);
-                this.context.Set<Data.Membership>().Add(new Data.Membership
+                this.context.Memberships.Add(new Data.Membership
                 {
                     PrincipalId = childGroup.Id,
                     Group = parentGroup,
@@ -468,7 +469,7 @@
         public async Task<IList<Guid>> GetGroupMembersAsync(Guid groupId)
         {
             List<Guid> principalIds = new List<Guid>();
-            var groupMembers = await this.context.Memberships()
+            var groupMembers = await this.context.Memberships
                 .Where(m => m.GroupId == groupId)
                 .ToListAsync();
             principalIds.AddRange(groupMembers.Select(gm => gm.PrincipalId));
@@ -483,7 +484,7 @@
         public async Task<IList<Guid>> GetGroupMembersAsync(string groupName)
         {
             return await this.GetGroupMembersAsync(
-                await this.context.Groups().Where(g => g.Name == groupName).Select(g => g.Id).FirstOrDefaultAsync());
+                await this.context.Groups.Where(g => g.Name == groupName).Select(g => g.Id).FirstOrDefaultAsync());
         }
 
         public async Task<IDictionary<string, IList<Guid>>> GetGroupMembersAsync(params string[] groupNames)
@@ -501,7 +502,7 @@
         public async Task<IList<Guid>> HasMembershipAsync(IEnumerable<Guid> principalIds, params string[] groupNames)
         {
             return await this.context
-                .Memberships()
+                .Memberships
                 .Where(m => principalIds.Contains(m.PrincipalId) && groupNames.Contains(m.Group.Name))
                 .Select(m => m.PrincipalId)
                 .ToListAsync();
@@ -512,7 +513,7 @@
             var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.GroupId == groupId);
             if (membership != null)
             {
-                this.context.Set<Data.Membership>().Remove(membership);
+                this.context.Memberships.Remove(membership);
 
                 var group = await this.GetEntityAsync<Data.Group>(g => g.Id == groupId);
             }
@@ -527,7 +528,7 @@
             var membership = await this.GetEntityAsync<Data.Membership>(m => m.PrincipalId == principalId && m.Group != null && m.Group.Name == groupName);
             if (membership != null)
             {
-                this.context.Set<Data.Membership>().Remove(membership);
+                this.context.Memberships.Remove(membership);
             }
             else
             {
@@ -545,11 +546,16 @@
             await this.RemovePrincipalsFromGroupAsync(await this.GetGroupMembersAsync(groupName), groupName);
         }
 
+        public async Task CommitAsync()
+        {
+            await this.context.SaveChangesAsync();
+        }
+
         private async Task UnaffectFromPrincipalAsync(Guid principalId, Guid? roleId = null, Guid? scopeId = null)
         {
             var localAuthorizationQuery = context.ChangeTracker.Entries<Data.Authorization>()
                 .Where(e => e.Entity.PrincipalId == principalId);
-            var authorizationQuery = this.context.Set<Data.Authorization>()
+            var authorizationQuery = this.context.Authorizations
                 .Where(a => a.PrincipalId == principalId);
 
             if (roleId.HasValue)
@@ -579,7 +585,7 @@
             {
                 foreach (var authorization in authorizations)
                 {
-                    this.context.Set<Data.Authorization>().Remove(authorization);
+                    this.context.Authorizations.Remove(authorization);
                 }
             }
         }

@@ -10,16 +10,15 @@
 
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddBouncer<TContext, TPrincipalIdProvider>(this IServiceCollection services, IConfigurationSection configurationSection)
-            where TContext : DbContext
+        public static IServiceCollection AddBouncer<TPrincipalIdProvider>(this IServiceCollection services, IConfigurationSection configurationSection)
             where TPrincipalIdProvider : class, IPrincipalIdProvider
         {
             services.AddScoped<IPrincipalIdProvider, TPrincipalIdProvider>();
-            services.AddScoped<IAuthorizationsClient, AuthorizationsClient<TContext>>();
-            services.AddScoped<IAuthorizationsManager, AuthorizationsManager<TContext>>();
-            services.AddScoped<IGetScopeRightsQuery, GetScopeRightsQuery<TContext>>();
-            services.AddScoped<IGetParentGroupsIdQuery, GetParentGroupsIdQuery<TContext>>();
-            services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider<TContext>>();
+            services.AddScoped<IAuthorizationsClient, AuthorizationsClient>();
+            services.AddScoped<IAuthorizationsManager, AuthorizationsManager>();
+            services.AddScoped<IGetScopeRightsQuery, GetScopeRightsQuery>();
+            services.AddScoped<IGetParentGroupsIdQuery, GetParentGroupsIdQuery>();
+            services.AddScoped<Caching.IAuthorizationsCacheProvider, Caching.AuthorizationsCacheProvider>();
 
             services.AddDbContextPool<BouncerContext>((sp, optionsBuilder) =>
             {

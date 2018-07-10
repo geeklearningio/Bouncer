@@ -1,6 +1,6 @@
 ﻿namespace GeekLearning.Bouncer.Tests
 {
-    public enum AuthorizationsTarget
+    public enum BouncerTarget
     {
         CurrentUser,
         ChildGroup,

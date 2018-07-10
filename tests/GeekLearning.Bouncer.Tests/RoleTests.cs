@@ -1,8 +1,6 @@
 ﻿namespace GeekLearning.Bouncer.Tests
 {
-    using EntityFrameworkCore;
     using EntityFrameworkCore.Data;
-    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using Microsoft.EntityFrameworkCore;
     using System.Linq;
     using System.Threading.Tasks;
@@ -13,19 +11,17 @@
         [Fact]
         public async Task CreateRole_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                await authorizationsFixture.AuthorizationsManager
-                                           .CreateRoleAsync(
-                                               "role1",
-                                               new string[] { "right1", "right2" });
+                await bouncerFixture.AuthorizationsManager
+                        .CreateRoleAsync("role1", new string[] { "right1", "right2" });
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                var role = authorizationsFixture.Context.Roles()
-                                                        .Include(r => r.Rights)
-                                                        .ThenInclude(rr => rr.Right)
-                                                        .FirstOrDefault(r => r.Name == "role1");
+                var role = bouncerFixture.Context.Roles
+                            .Include(r => r.Rights)
+                            .ThenInclude(rr => rr.Right)
+                            .FirstOrDefault(r => r.Name == "role1");
                 Assert.NotNull(role);
 
                 var rightKeys = role.Rights.Select(r => r.Right.Name);
@@ -37,23 +33,23 @@
         [Fact]
         public async Task DeleteRole_ShouldBeOk()
         {
-            using (var authorizationsFixture = new AuthorizationsFixture())
+            using (var bouncerFixture = new BouncerFixture())
             {
-                authorizationsFixture.Context.Roles().Add(
+                bouncerFixture.Context.Roles.Add(
                     new Role
                     {
                         Name = "role1",
-                        CreationBy = authorizationsFixture.Context.CurrentUserId,
-                        ModificationBy = authorizationsFixture.Context.CurrentUserId
+                        CreationBy = bouncerFixture.Context.CurrentUserId,
+                        ModificationBy = bouncerFixture.Context.CurrentUserId
                     });
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsManager.DeleteRoleAsync("role1");
+                await bouncerFixture.AuthorizationsManager.DeleteRoleAsync("role1");
 
-                await authorizationsFixture.Context.SaveChangesAsync();
+                await bouncerFixture.Context.SaveChangesAsync();
 
-                Assert.Null(authorizationsFixture.Context.Roles().FirstOrDefault(r => r.Name == "role1"));
+                Assert.Null(bouncerFixture.Context.Roles.FirstOrDefault(r => r.Name == "role1"));
             }
         }
     }

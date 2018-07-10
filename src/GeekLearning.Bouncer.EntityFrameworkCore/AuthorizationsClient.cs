@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore
 {
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using GeekLearning.Bouncer.EntityFrameworkCore.Queries;
     using GeekLearning.Bouncer.Model.Client;
@@ -9,14 +10,14 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class AuthorizationsClient<TContext> : IAuthorizationsClient where TContext : DbContext
+    public class AuthorizationsClient : IAuthorizationsClient
     {
-        private readonly TContext context;
+        private readonly BouncerContext context;
         private readonly IPrincipalIdProvider principalIdProvider;
         private readonly IGetScopeRightsQuery getScopeRightsQuery;
         private readonly IGetParentGroupsIdQuery getParentGroupsIdQuery;
 
-        public AuthorizationsClient(TContext context, IPrincipalIdProvider principalIdProvider, IGetScopeRightsQuery getScopeRightsQuery, IGetParentGroupsIdQuery getParentGroupsIdQuery)
+        public AuthorizationsClient(BouncerContext context, IPrincipalIdProvider principalIdProvider, IGetScopeRightsQuery getScopeRightsQuery, IGetParentGroupsIdQuery getParentGroupsIdQuery)
         {
             this.context = context;
             this.principalIdProvider = principalIdProvider;
@@ -55,7 +56,7 @@
             var userGroupsId = await this.GetGroupParentLinkAsync(this.principalIdProvider.PrincipalId);
 
             return await this.context
-                .Memberships()
+                .Memberships
                 .AnyAsync(m => groupNames.Contains(m.Group.Name) && userGroupsId.Contains(m.GroupId));
         }
 
@@ -64,7 +65,7 @@
             var userGroupsId = await this.GetGroupParentLinkAsync(principalIdOverride ?? this.principalIdProvider.PrincipalId);
 
             return await this.context
-                .Memberships()
+                .Memberships
                 .Where(m => groupNames.Contains(m.Group.Name) && userGroupsId.Contains(m.GroupId))
                 .Select(m => m.Group.Name)
                 .Distinct()

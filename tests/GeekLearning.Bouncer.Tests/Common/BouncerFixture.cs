@@ -1,18 +1,19 @@
 ﻿namespace GeekLearning.Bouncer.Tests
 {
-    using EntityFrameworkCore;
     using Bouncer.EntityFrameworkCore.Queries;
+    using EntityFrameworkCore;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using Microsoft.Data.Sqlite;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using System;
 
-    public sealed class AuthorizationsFixture : IDisposable
+    public sealed class BouncerFixture : IDisposable
     {
         private readonly ServiceCollection serviceCollection;
         private readonly ServiceProvider serviceProvider;
 
-        public AuthorizationsFixture()
+        public BouncerFixture()
         {
             this.serviceCollection = new ServiceCollection();
             this.serviceCollection.AddScoped(s => this.AuthorizationsClient);
@@ -20,25 +21,25 @@
 
             this.InitializeTestDatabase();
 
-            var getParentGroupsIdQuery = new GetParentGroupsIdQuery<AuthorizationsTestContext>(this.Context);
-            this.AuthorizationsClient = new AuthorizationsClient<AuthorizationsTestContext>(
+            var getParentGroupsIdQuery = new GetParentGroupsIdQuery(this.Context);
+            this.AuthorizationsClient = new AuthorizationsClient(
                 this.Context,
-                new PrincipalIdProvider(this.Context),
-                new GetScopeRightsQuery<AuthorizationsTestContext>(
-                    this.Context, 
-                    new EntityFrameworkCore.Caching.AuthorizationsCacheProvider<AuthorizationsTestContext>(this.Context),
+                new PrincipalIdProvider(this.Context.CurrentUserId),
+                new GetScopeRightsQuery(
+                    this.Context,
+                    new EntityFrameworkCore.Caching.AuthorizationsCacheProvider(this.Context),
                     getParentGroupsIdQuery),
                 getParentGroupsIdQuery);
 
             this.serviceProvider = this.serviceCollection.BuildServiceProvider();
 
-            this.AuthorizationsManager = new AuthorizationsManager<AuthorizationsTestContext>(
+            this.AuthorizationsManager = new AuthorizationsManager(
                 this.Context,
-                new PrincipalIdProvider(this.Context),
+                new PrincipalIdProvider(this.Context.CurrentUserId),
                 this.serviceProvider);
         }
-
-        public AuthorizationsTestContext Context { get; private set; }
+        
+        public BouncerTestContext Context { get; private set; }
         
         public IAuthorizationsManager AuthorizationsManager { get; private set; }
 
@@ -53,17 +54,16 @@
 
         private void InitializeTestDatabase()
         {
-            var builder = new DbContextOptionsBuilder<AuthorizationsTestContext>();
+            var builder = new DbContextOptionsBuilder<BouncerContext>();
 
             var connectionStringBuilder = new SqliteConnectionStringBuilder { DataSource = ":memory:" };
-            var connectionString = connectionStringBuilder.ToString();
-            var connection = new SqliteConnection(connectionString);
+            var connection = new SqliteConnection(connectionStringBuilder.ToString());
 
             connection.Open();
 
             builder.UseSqlite(connection);
 
-            this.Context = new AuthorizationsTestContext(builder.Options);
+            this.Context = new BouncerTestContext(builder.Options);
             this.Context.Database.EnsureCreated();
             this.Context.Seed();
 

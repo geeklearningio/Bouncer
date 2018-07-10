@@ -1,7 +1,6 @@
 ﻿namespace GeekLearning.Bouncer.EntityFrameworkCore.Queries
 {
     using GeekLearning.Bouncer.EntityFrameworkCore.Caching;
-    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
     using GeekLearning.Bouncer.Model.Client;
     using Microsoft.EntityFrameworkCore;
     using System;
@@ -10,9 +9,9 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class GetScopeRightsQuery<TContext> : IGetScopeRightsQuery where TContext : DbContext
+    public class GetScopeRightsQuery : IGetScopeRightsQuery
     {
-        private readonly TContext context;
+        private readonly Data.BouncerContext context;
         private readonly IAuthorizationsCacheProvider authorizationsCacheProvider;
         private readonly IGetParentGroupsIdQuery getParentGroupsIdQuery;
         private readonly Dictionary<Guid, ConcurrentDictionary<Guid, IEnumerable<Right>>> principalRights;
@@ -23,7 +22,7 @@
         private IDictionary<Guid, Scope> scopesById;
         private IDictionary<string, Scope> scopesByName;
 
-        public GetScopeRightsQuery(TContext context, IAuthorizationsCacheProvider authorizationsCacheProvider, IGetParentGroupsIdQuery getParentGroupsIdQuery)
+        public GetScopeRightsQuery(Data.BouncerContext context, IAuthorizationsCacheProvider authorizationsCacheProvider, IGetParentGroupsIdQuery getParentGroupsIdQuery)
         {
             this.context = context;
             this.authorizationsCacheProvider = authorizationsCacheProvider;
@@ -68,7 +67,7 @@
                 this.scopesById = scopesCache.Compute(s => s.Id);
                 this.scopesByName = scopesCache.Compute(s => s.Name);
 
-                var principalAuthorizations = await this.context.Authorizations()
+                var principalAuthorizations = await this.context.Authorizations
                     .Where(a => principalIdsLink.Contains(a.PrincipalId))
                     .Select(a => new { a.ScopeId, a.RoleId, a.Id })
                     .ToListAsync();
@@ -170,7 +169,7 @@
                 currentRights.AddRange(explicitRightsForScope.Select(rightData => new Right(principalId, scope.Name, rightData.rightName, true, rightData.AuthorizationId)));
             }
 
-            this.principalRights[principalId][scopeId] = currentRights.GroupBy(x => x).Select(x => new Right(x.Key.PrincipalId, x.Key.ScopeName, x.Key.RightName, x.Key.IsExplicit, x.SelectMany(s => s.SourceAuthorizations))); //currentRights.Distinct();
+            this.principalRights[principalId][scopeId] = currentRights.GroupBy(x => x).Select(x => new Right(x.Key.PrincipalId, x.Key.ScopeName, x.Key.RightName, x.Key.IsExplicit, x.SelectMany(s => s.SourceAuthorizations)));
 
             return this.principalRights[principalId][scopeId];
         }

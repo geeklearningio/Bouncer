@@ -1,88 +1,87 @@
 ﻿namespace GeekLearning.Bouncer.Tests
 {
-    using Bouncer.EntityFrameworkCore;
-    using GeekLearning.Bouncer.EntityFrameworkCore.Data.Extensions;
+    using GeekLearning.Bouncer.EntityFrameworkCore.Data;
     using System;
     using System.Linq;
 
-    public abstract class AuthorizationsTestBase
+    public abstract class BouncerTestBase
     {
-        protected EntityFrameworkCore.Data.Right CreateRight(AuthorizationsTestContext context, string rightName)
+        protected Right CreateRight(BouncerTestContext context, string rightName)
         {
-            var right = new EntityFrameworkCore.Data.Right
+            var right = new Right
             {
                 Name = rightName,
                 CreationBy = context.CurrentUserId,
                 ModificationBy = context.CurrentUserId
             };
-            context.Rights().Add(right);
+            context.Rights.Add(right);
 
             return right;
         }
 
-        public EntityFrameworkCore.Data.Role CreateRole(AuthorizationsTestContext context, string roleName)
+        public Role CreateRole(BouncerTestContext context, string roleName)
         {
-            var role = new EntityFrameworkCore.Data.Role
+            var role = new Role
             {
                 Name = roleName,
                 CreationBy = context.CurrentUserId,
                 ModificationBy = context.CurrentUserId
             };
-            context.Roles().Add(role);
+            context.Roles.Add(role);
 
             return role;
         }
 
-        protected EntityFrameworkCore.Data.RoleRight AddRightToRole(AuthorizationsTestContext context, EntityFrameworkCore.Data.Right right, EntityFrameworkCore.Data.Role role)
+        protected RoleRight AddRightToRole(BouncerTestContext context, Right right, Role role)
         {
-            var roleRight = new EntityFrameworkCore.Data.RoleRight
+            var roleRight = new RoleRight
             {
                 Right = right,
                 Role = role
             };
-            context.RoleRights().Add(roleRight);
+            context.RoleRights.Add(roleRight);
 
             return roleRight;
         }
 
-        protected EntityFrameworkCore.Data.Group CreateGroup(AuthorizationsTestContext context, string groupName)
+        protected Group CreateGroup(BouncerTestContext context, string groupName)
         {
-            var principal = new EntityFrameworkCore.Data.Principal
+            var principal = new Principal
             {
                 Id = Guid.NewGuid(),
                 CreationBy = context.CurrentUserId,
                 ModificationBy = context.CurrentUserId
             };
-            context.Principals().Add(principal);
-            var group = new EntityFrameworkCore.Data.Group
+            context.Principals.Add(principal);
+            var group = new Group
             {
                 Id = principal.Id,
                 Name = groupName,
                 CreationBy = context.CurrentUserId,
                 ModificationBy = context.CurrentUserId
             };
-            context.Groups().Add(group);
+            context.Groups.Add(group);
 
             return group;
         }
 
-        protected EntityFrameworkCore.Data.Membership AddPrincipalToGroup(AuthorizationsTestContext context, Guid principalId, EntityFrameworkCore.Data.Group group)
+        protected Membership AddPrincipalToGroup(BouncerTestContext context, Guid principalId, Group group)
         {
-            var memberShip = new EntityFrameworkCore.Data.Membership
+            var memberShip = new Membership
             {
                 PrincipalId = principalId,
                 Group = group,
                 CreationBy = context.CurrentUserId,
                 ModificationBy = context.CurrentUserId
             };
-            context.Memberships().Add(memberShip);
+            context.Memberships.Add(memberShip);
 
             return memberShip;
         }
 
-        protected EntityFrameworkCore.Data.Authorization CreateAuthorization(AuthorizationsTestContext context, Guid principalId, EntityFrameworkCore.Data.Role role, EntityFrameworkCore.Data.Scope scope)
+        protected Authorization CreateAuthorization(BouncerTestContext context, Guid principalId, Role role, EntityFrameworkCore.Data.Scope scope)
         {
-            var authorization = new EntityFrameworkCore.Data.Authorization
+            var authorization = new Authorization
             {
                 PrincipalId = principalId,
                 Role = role,
@@ -90,31 +89,31 @@
                 CreationBy = context.CurrentUserId,
                 ModificationBy = context.CurrentUserId
             };
-            context.Authorizations().Add(authorization);
+            context.Authorizations.Add(authorization);
 
             return authorization;
         }
 
-        protected EntityFrameworkCore.Data.Scope CreateScope(AuthorizationsTestContext context, string scopeName, params string[] parentScopeNames)
+        protected Scope CreateScope(BouncerTestContext context, string scopeName, params string[] parentScopeNames)
         {
-            var scope = new EntityFrameworkCore.Data.Scope
+            var scope = new Scope
             {
                 Name = scopeName,
                 Description = scopeName,
                 CreationBy = context.CurrentUserId,
                 ModificationBy = context.CurrentUserId
             };
-            context.Scopes().Add(scope);
+            context.Scopes.Add(scope);
 
             foreach (var parentScopeName in parentScopeNames)
             {
                 var parentScope =
                     context.ChangeTracker
-                    .Entries<EntityFrameworkCore.Data.Scope>()
+                    .Entries<Scope>()
                     .Select(e => e.Entity)
                     .First(s => s.Name == parentScopeName);
 
-                context.ScopeHierarchies().Add(new EntityFrameworkCore.Data.ScopeHierarchy
+                context.ScopeHierarchies.Add(new ScopeHierarchy
                 {
                     Child = scope,
                     Parent = parentScope
