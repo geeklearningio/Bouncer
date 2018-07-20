@@ -2,6 +2,7 @@
 {
     public enum BouncerSupportedProviders
     {
-        SqlServer = 0
+        SqlServer = 0,
+        Sqlite = 1
     }
 }
