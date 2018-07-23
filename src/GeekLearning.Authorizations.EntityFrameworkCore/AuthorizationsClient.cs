@@ -26,8 +26,8 @@
         public async Task<PrincipalRights> GetRightsAsync(string scopeName, Guid? principalIdOverride = null, bool withChildren = false)
         {
             var principalId = principalIdOverride ?? this.principalIdProvider.PrincipalId;
-           
-            var scopesRights = await this.getScopeRightsQuery.ExecuteAsync(scopeName, principalId, withChildren);
+
+            var scopesRights = await this.getScopeRightsQuery.ExecuteAsync(scopeName, principalId, withChildren);            
 
             return new PrincipalRights(principalId, scopeName, scopesRights);
         }
