@@ -25,19 +25,19 @@
             var rolesCache = await this.GetOrCreateAsync(
                 RolesCache.GetCacheKey(),
                 () => this.QueryRolesAsync(),
-                mmd => mmd.Roles);
+                mmd => mmd.Roles).ConfigureAwait(false);
 
             return rolesCache.Compute();
         }
 
         public async Task<ScopesCache> GetScopesCacheAsync()
         {
-            return await this.GetOrCreateAsync(ScopesCache.GetCacheKey(), () => this.QueryScopesAsync(), mmd => mmd.Scopes);
+            return await this.GetOrCreateAsync(ScopesCache.GetCacheKey(), () => this.QueryScopesAsync(), mmd => mmd.Scopes).ConfigureAwait(false);
         }
 
         public async Task<IDictionary<TKey, Scope>> GetScopesAsync<TKey>(Func<Scope, TKey> keySelector)
         {
-            var scopesCache = await this.GetScopesCacheAsync();
+            var scopesCache = await this.GetScopesCacheAsync().ConfigureAwait(false);
 
             return scopesCache.Compute(keySelector);
         }
@@ -49,7 +49,8 @@
                 .Join(this.context.Rights(), j => j.RoleRights.RightId, r => r.Id, (j, r) => new { RoleId = j.Role.Id, RoleName = j.Role.Name, RightName = r.Name })
                 .GroupBy(j => j.RoleId)
                 .Select(g => new Role { Id = g.Key, Name = g.First().RoleName, Rights = g.Select(sg => sg.RightName).ToList() })
-                .ToListAsync();
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             return new RolesCache { Roles = roles };
         }
@@ -62,7 +63,8 @@
 
             var dataScopeHierarchies = await this.context.ScopeHierarchies()
                 .Select(s => new { s.ParentId, s.ChildId })
-                .ToListAsync();
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             var groupByParent = dataScopeHierarchies
                 .GroupBy(sh => sh.ParentId)
@@ -138,7 +140,7 @@
                     return cacheableObject;
                 }
                 
-                cacheableObject = await queryCacheableObject();
+                cacheableObject = await queryCacheableObject().ConfigureAwait(false);
                 cacheableObject.CacheValuesDateTime = modificationDate;
                 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
