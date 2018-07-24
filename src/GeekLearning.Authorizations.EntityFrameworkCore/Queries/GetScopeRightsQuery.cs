@@ -59,19 +59,13 @@
             }
             else
             {
-                System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
                 var principalIdsLink = new List<Guid>(await this.getParentGroupsIdQuery.ExecuteAsync(principalId).ConfigureAwait(false)) { principalId };
-                sw.Stop();
-                System.Diagnostics.Trace.TraceInformation("getParentGroupsIdQuery() -->  " + sw.ElapsedMilliseconds.ToString());
 
                 this.roles = await this.authorizationsCacheProvider.GetRolesAsync().ConfigureAwait(false);
 
-                System.Diagnostics.Stopwatch sw2 = System.Diagnostics.Stopwatch.StartNew();
                 var scopesCache = await this.authorizationsCacheProvider.GetScopesCacheAsync().ConfigureAwait(false);
                 this.scopesById = scopesCache.Compute(s => s.Id);
                 this.scopesByName = scopesCache.Compute(s => s.Name);
-                sw2.Stop();
-                System.Diagnostics.Trace.TraceInformation("GetScopesCacheAsync() -->  " + sw2.ElapsedMilliseconds.ToString());
 
                 var principalAuthorizations = await this.context.Authorizations()
                     .Where(a => principalIdsLink.Contains(a.PrincipalId))
@@ -87,12 +81,7 @@
                         .SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights.Select(r => (a.Id, r)) : Enumerable.Empty<(Guid, string)>())
                         .ToArray());
 
-                System.Diagnostics.Stopwatch sw5 = System.Diagnostics.Stopwatch.StartNew();
-                var res = await this.GetScopeRightsAsync(this.GetScope(scopeName), principalId, explicitRightsByScope, withChildren).ConfigureAwait(false);
-                sw5.Stop();
-                System.Diagnostics.Trace.TraceInformation("GetScopeRightsAsync() -->  " + sw5.ElapsedMilliseconds.ToString());
-
-                return res;
+                return await this.GetScopeRightsAsync(this.GetScope(scopeName), principalId, explicitRightsByScope, withChildren).ConfigureAwait(false);                
             }
 
             return principalScopeRightsCache;
