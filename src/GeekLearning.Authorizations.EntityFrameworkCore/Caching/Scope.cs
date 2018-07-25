@@ -13,6 +13,6 @@
 
         public IEnumerable<Guid> ParentIds { get; set; }
 
-        public IEnumerable<Guid> ChildIds { get; set; }
+        public IList<Guid> ChildIds { get; set; }
     }
 }
