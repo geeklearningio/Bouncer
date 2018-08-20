@@ -21,12 +21,13 @@
             var groupParentsId = await this.context.Memberships()
                 .Where(m => principalsId.Contains(m.PrincipalId))
                 .Select(m => m.GroupId)
-                .ToListAsync();
+                .ToListAsync()
+                .ConfigureAwait(false);
             groupIds.AddRange(groupParentsId);
 
             if (groupParentsId.Count > 0)
             {
-                groupIds.AddRange(await this.ExecuteAsync(groupParentsId.ToArray()));
+                groupIds.AddRange(await this.ExecuteAsync(groupParentsId.ToArray()).ConfigureAwait(false));
             }
 
             return groupIds;

@@ -11,35 +11,35 @@
             this.PrincipalId = principalId;
             this.ScopeName = scopeName;
 
-            this.RightsOnScope = ComputeRights(principalId, scopeName, rightsOnScope);
-            this.RightsUnderScope = ComputeRights(principalId, scopeName, rightsOnScope.Union(rightsUnderScope));
+            this.RightsOnScope = new Lazy<IReadOnlyDictionary<string, Right>>(() => ComputeRights(principalId, scopeName, rightsOnScope));
+            this.RightsUnderScope = new Lazy<IReadOnlyDictionary<string, Right>>(() => ComputeRights(principalId, scopeName, rightsOnScope.Union(rightsUnderScope)));
         }
 
         public Guid PrincipalId { get; set; }
 
         public string ScopeName { get; set; }
 
-        public IReadOnlyDictionary<string, Right> RightsOnScope { get; set; }
+        public Lazy<IReadOnlyDictionary<string, Right>> RightsOnScope { get; set; }
 
-        public IReadOnlyDictionary<string, Right> RightsUnderScope { get; set; }
+        public Lazy<IReadOnlyDictionary<string, Right>> RightsUnderScope { get; set; }
 
         public bool HasAnyExplicitRight
-            => this.RightsOnScope.Values.Any(r => r.IsExplicit);
+            => this.RightsOnScope.Value.Values.Any(r => r.IsExplicit);
 
         public bool HasAnyRightUnder
-            => this.RightsUnderScope.Values.Any();
+            => this.RightsUnderScope.Value.Values.Any();
 
         public bool HasRight(string right)
-            => this.RightsOnScope.ContainsKey(right);
+            => this.RightsOnScope.Value.ContainsKey(right);
 
         public bool HasInheritedRight(string right)
-            => this.RightsOnScope.ContainsKey(right) && !this.RightsOnScope[right].IsExplicit;
+            => this.RightsOnScope.Value.ContainsKey(right) && !this.RightsOnScope.Value[right].IsExplicit;
 
         public bool HasExplicitRight(string right)
-            => this.RightsOnScope.ContainsKey(right) && this.RightsOnScope[right].IsExplicit;
+            => this.RightsOnScope.Value.ContainsKey(right) && this.RightsOnScope.Value[right].IsExplicit;
 
         public bool HasRightUnder(string right)
-            => this.RightsUnderScope.ContainsKey(right);
+            => this.RightsUnderScope.Value.ContainsKey(right);
 
         public bool Equals(ScopeRights other)
         {
@@ -105,7 +105,9 @@
             {
                 return rights
                     .GroupBy(r => r.RightName)
-                    .ToDictionary(rg => rg.Key, rg => new Right(principalId, scopeName, rg.Key, rg.Any(r => r.IsExplicit), rg.SelectMany(x => x.SourceAuthorizations)));
+                    .ToDictionary(
+                        rg => rg.Key,
+                        rg => new Right(principalId, scopeName, rg.Key, rg.Any(r => r.IsExplicit), rg.SelectMany(x => x.SourceAuthorizations)));
 
             }
 

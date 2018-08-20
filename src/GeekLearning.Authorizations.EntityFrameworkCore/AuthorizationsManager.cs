@@ -254,19 +254,25 @@
                     await DeleteScopeAsync(childrenScope);
                 }
 
-                this.context.Set<Data.ScopeHierarchy>()
-                            .RemoveRange(
-                                await this.context.Set<Data.ScopeHierarchy>()
-                                                  .Where(sh => sh.ParentId == scope.Id)
-                                                  .ToListAsync());
+                this.context
+                    .ScopeHierarchies()
+                    .RemoveRange(await this.context.ScopeHierarchies()
+                        .Where(sh => sh.ParentId == scope.Id)
+                        .ToListAsync());
 
-                this.context.Set<Data.ScopeHierarchy>()
-                           .RemoveRange(
-                               await this.context.Set<Data.ScopeHierarchy>()
-                                                 .Where(sh => sh.ChildId == scope.Id)
-                                                 .ToListAsync());
+                this.context
+                    .ScopeHierarchies()
+                    .RemoveRange(await this.context.ScopeHierarchies()
+                        .Where(sh => sh.ChildId == scope.Id)
+                        .ToListAsync());
 
-                this.context.Set<Data.Scope>().Remove(scope);
+                this.context
+                    .Authorizations()
+                    .RemoveRange(await this.context.Authorizations()
+                        .Where(a => a.ScopeId == scope.Id)
+                        .ToListAsync());
+
+                this.context.Scopes().Remove(scope);
                 (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
             }
         }
