@@ -59,18 +59,20 @@
             }
             else
             {
-                var principalIdsLink = new List<Guid>(await this.getParentGroupsIdQuery.ExecuteAsync(principalId)) { principalId };
+                var principalIdsLink = new List<Guid>(await this.getParentGroupsIdQuery.ExecuteAsync(principalId).ConfigureAwait(false)) { principalId };
 
-                this.roles = await this.authorizationsCacheProvider.GetRolesAsync();
+                this.roles = await this.authorizationsCacheProvider.GetRolesAsync().ConfigureAwait(false);
 
-                var scopesCache = await this.authorizationsCacheProvider.GetScopesCacheAsync();
+                var scopesCache = await this.authorizationsCacheProvider.GetScopesCacheAsync().ConfigureAwait(false);
                 this.scopesById = scopesCache.Compute(s => s.Id);
                 this.scopesByName = scopesCache.Compute(s => s.Name);
 
                 var principalAuthorizations = await this.context.Authorizations()
                     .Where(a => principalIdsLink.Contains(a.PrincipalId))
                     .Select(a => new { a.ScopeId, a.RoleId, a.Id })
-                    .ToListAsync();
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
                 var explicitRightsByScope = principalAuthorizations
                     .GroupBy(a => a.ScopeId)
                     .ToDictionary(
@@ -79,7 +81,7 @@
                         .SelectMany(a => roles.ContainsKey(a.RoleId) ? roles[a.RoleId].Rights.Select(r => (a.Id, r)) : Enumerable.Empty<(Guid, string)>())
                         .ToArray());
 
-                return await this.GetScopeRightsAsync(this.GetScope(scopeName), principalId, explicitRightsByScope, withChildren, true);
+                return await this.GetScopeRightsAsync(this.GetScope(scopeName), principalId, explicitRightsByScope, withChildren).ConfigureAwait(false);                
             }
 
             return principalScopeRightsCache;
@@ -92,7 +94,7 @@
             this.principalScopeRightsWithChildren.Clear();
         }
 
-        private async Task<IEnumerable<ScopeRights>> GetScopeRightsAsync(Scope scope, Guid principalId, IDictionary<Guid, (Guid, string)[]> explicitRightsByScope, bool withChildren = false, bool rootChildLevel = false)
+        private async Task<IEnumerable<ScopeRights>> GetScopeRightsAsync(Scope scope, Guid principalId, IDictionary<Guid, (Guid, string)[]> explicitRightsByScope, bool withChildren = false)
         {
             if (scope == null)
             {
@@ -105,26 +107,16 @@
                 List<Task<IEnumerable<ScopeRights>>> tasks = new List<Task<IEnumerable<ScopeRights>>>();
                 foreach (var childScopeId in scope.ChildIds)
                 {
-                    var childScope = this.GetScope(childScopeId);
-                    if (rootChildLevel)
-                    {
-                        tasks.Add(Task.Run(async () => await this.GetScopeRightsAsync(childScope, principalId, explicitRightsByScope, withChildren)));
-                    }
-                    else
-                    {
-                        childrenScopesRights.AddRange(await this.GetScopeRightsAsync(childScope, principalId, explicitRightsByScope, withChildren));
-                    }
+                    tasks.Add(Task.Run(() => this.GetScopeRightsAsync(
+                        this.GetScope(childScopeId), principalId, explicitRightsByScope, withChildren)));
                 }
 
-                if (tasks.Count > 0)
-                {
-                    await Task.WhenAll(tasks.ToArray());
-                    childrenScopesRights.AddRange(tasks.SelectMany(t => t.Result));
-                }
+                await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
+                childrenScopesRights.AddRange(tasks.SelectMany(t => t.Result));
             }
 
             var rightsOnScope = this.DetectRightsOnScope(scope.Id, principalId, this.scopesById, explicitRightsByScope);
-            var rightsUnderScope = childrenScopesRights.SelectMany(sr => sr.RightsOnScope.Values).ToList();
+            var rightsUnderScope = childrenScopesRights.SelectMany(sr => sr.RightsOnScope.Value.Values).ToList();
 
             var scopeRights = new List<ScopeRights>(childrenScopesRights)
             {
@@ -166,10 +158,19 @@
 
             if (explicitRightsByScope.TryGetValue(scope.Id, out (Guid AuthorizationId, string rightName)[] explicitRightsForScope))
             {
-                currentRights.AddRange(explicitRightsForScope.Select(rightData => new Right(principalId, scope.Name, rightData.rightName, true, rightData.AuthorizationId)));
+                currentRights.AddRange(
+                    explicitRightsForScope.Select(rightData =>
+                        new Right(principalId, scope.Name, rightData.rightName, true, rightData.AuthorizationId)));
             }
-
-            this.principalRights[principalId][scopeId] = currentRights.GroupBy(x => x).Select(x => new Right(x.Key.PrincipalId, x.Key.ScopeName, x.Key.RightName, x.Key.IsExplicit, x.SelectMany(s => s.SourceAuthorizations))); //currentRights.Distinct();
+           
+            this.principalRights[principalId][scopeId] = currentRights                
+                .Select(x =>
+                    new Right(
+                        x.PrincipalId,
+                        x.ScopeName,
+                        x.RightName,
+                        x.IsExplicit, x.SourceAuthorizations))
+                .Distinct();
 
             return this.principalRights[principalId][scopeId];
         }
