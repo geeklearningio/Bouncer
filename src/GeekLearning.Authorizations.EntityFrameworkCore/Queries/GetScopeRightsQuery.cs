@@ -59,7 +59,7 @@
             }
             else
             {
-                var principalIdsLink = new List<Guid>(await this.getParentGroupsIdQuery.ExecuteAsync(principalId).ConfigureAwait(false)) { principalId };
+                var principalIdsLink = new List<Guid>(await this.getParentGroupsIdQuery.ExecuteAsync(principalId.Yield()).ConfigureAwait(false)) { principalId };
 
                 this.roles = await this.authorizationsCacheProvider.GetRolesAsync().ConfigureAwait(false);
 
@@ -111,7 +111,7 @@
                         this.GetScope(childScopeId), principalId, explicitRightsByScope, withChildren)));
                 }
 
-                await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
                 childrenScopesRights.AddRange(tasks.SelectMany(t => t.Result));
             }
 
