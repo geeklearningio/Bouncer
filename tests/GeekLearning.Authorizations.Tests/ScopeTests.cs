@@ -25,6 +25,14 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
+                await authorizationsFixture.AuthorizationsManager
+                                            .CreateScopeAsync(
+                                                "scope1",
+                                                "Description scope 1",
+                                                new string[] { "scopeParent1", "scopeParent2" });
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
                 var scope = authorizationsFixture.Context.Scopes()
                                                          .Include(r => r.Parents)
                                                          .Include(r => r.Children)
