@@ -25,14 +25,6 @@
 
                 await authorizationsFixture.Context.SaveChangesAsync();
 
-                await authorizationsFixture.AuthorizationsManager
-                                            .CreateScopeAsync(
-                                                "scope1",
-                                                "Description scope 1",
-                                                new string[] { "scopeParent1", "scopeParent2" });
-
-                await authorizationsFixture.Context.SaveChangesAsync();
-
                 var scope = authorizationsFixture.Context.Scopes()
                                                          .Include(r => r.Parents)
                                                          .Include(r => r.Children)
@@ -42,6 +34,65 @@
                 var parentKeys = scope.Parents.Select(r => r.Parent.Name);
                 Assert.True(parentKeys.Contains("scopeParent1"));
                 Assert.True(parentKeys.Contains("scopeParent2"));
+            }
+        }
+
+        [Fact]
+        public async Task UpsertScope_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                // Common execution
+                async Task<Scope> ExecuteUpsert(string description, string[] parents)
+                {
+                    await authorizationsFixture.AuthorizationsManager
+                                               .UpsertScopeAsync("scope1", description, parents);
+
+                    await authorizationsFixture.Context.SaveChangesAsync();
+
+                    return authorizationsFixture.Context.Scopes()
+                                                        .Include(r => r.Parents)
+                                                        .Include(r => r.Children)
+                                                        .FirstOrDefault(r => r.Name == "scope1");
+                }
+
+                // Common Assert
+                void TestAssertion(Scope scopeInTest, string description, string[] parents)
+                {
+                    Assert.NotNull(scopeInTest);
+                    Assert.Equal(scopeInTest.Description, description);
+
+                    var parentKeys = scopeInTest.Parents.Select(r => r.Parent.Name);
+                    foreach (var parent in parents)
+                    {
+                        Assert.True(parentKeys.Contains(parent));
+                    }
+                }
+
+                // Create the scope1
+                var scopeDescription = "Description scope 1";
+                var initialParents = new string[] { "scopeParent1", "scopeParent2" };
+
+                var scope = await ExecuteUpsert(scopeDescription, initialParents);
+                TestAssertion(scope, scopeDescription, initialParents);
+
+                // First update
+                scopeDescription = "Updated description scope 1";
+                var updatedParents = new string[] { "scopeParent1" };
+
+                scope = await ExecuteUpsert(scopeDescription, updatedParents);
+                TestAssertion(scope, scopeDescription, initialParents.Concat(updatedParents).ToArray());
+
+                // Second update
+                var secondParentUpdate = new string[] { "anotherParent" };
+
+                scope = await ExecuteUpsert(scopeDescription, secondParentUpdate);
+                TestAssertion(
+                    scope, 
+                    scopeDescription, 
+                    initialParents.Union(updatedParents)
+                                  .Union(secondParentUpdate)
+                                  .ToArray());
             }
         }
 
@@ -90,7 +141,7 @@
                     });
 
                 authorizationsFixture.Context.Scopes().Add(parentScope);
-                
+
                 var role = new Role
                 {
                     Id = Guid.NewGuid(),
@@ -110,7 +161,7 @@
                     CreationBy = authorizationsFixture.Context.CurrentUserId,
                     ModificationBy = authorizationsFixture.Context.CurrentUserId
                 };
-                
+
                 authorizationsFixture.Context.Roles().Add(role);
 
                 authorizationsFixture.Context.Authorizations().Add(new Authorization

@@ -229,6 +229,54 @@
             }
         }
 
+        public async Task UpsertScopeAsync(string scopeName, string description, params string[] parents)
+        {
+            var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
+
+            if (scope == null)
+            {
+                scope = new Data.Scope
+                {
+                    Name = scopeName,
+                    Description = description,
+                    CreationBy = this.principalIdProvider.PrincipalId,
+                    ModificationBy = this.principalIdProvider.PrincipalId
+                };
+
+                this.context.Set<Data.Scope>().Add(scope);
+            }
+            else
+            {
+                scope.Name = scopeName;
+                scope.Description = description;
+                scope.ModificationBy = this.principalIdProvider.PrincipalId;
+
+                this.context.Set<Data.Scope>().Update(scope);
+            }
+
+            (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
+
+            if (parents != null)
+            {
+                foreach (var parentName in parents)
+                {
+                    await this.UpsertScopeAsync(parentName, parentName);
+
+                    var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentName);
+
+                    var scopeHierarchy = await this.GetEntityAsync<Data.ScopeHierarchy>(sh => sh.ChildId == scope.Id && sh.ParentId == parentScope.Id);
+                    if (scopeHierarchy == null)
+                    {
+                        this.context.Set<Data.ScopeHierarchy>().Add(new Data.ScopeHierarchy
+                        {
+                            Child = scope,
+                            Parent = parentScope
+                        });
+                    }
+                }
+            }
+        }
+
         public async Task DeleteScopeAsync(string scopeName)
         {
             var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);

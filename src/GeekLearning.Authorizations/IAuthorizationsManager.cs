@@ -9,6 +9,8 @@
     {
         Task CreateScopeAsync(string scopeName, string description, params string[] parents);
 
+        Task UpsertScopeAsync(string scopeName, string description, params string[] parents);
+
         Task DeleteScopeAsync(string scopeName);
 
         Task LinkScopeAsync(string parentScopeName, string childScopeName);
