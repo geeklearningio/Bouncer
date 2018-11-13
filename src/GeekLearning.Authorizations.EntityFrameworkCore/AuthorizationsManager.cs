@@ -192,6 +192,11 @@
 
         public async Task CreateScopeAsync(string scopeName, string description, params string[] parents)
         {
+            await CreateScopeInternal(scopeName, description, parents);
+        }
+
+        private async Task<Data.Scope> CreateScopeInternal(string scopeName, string description, params string[] parents)
+        {
             var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
 
             if (scope == null)
@@ -212,9 +217,11 @@
             {
                 foreach (var parentName in parents)
                 {
-                    await this.CreateScopeAsync(parentName, parentName);
-
                     var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentName);
+                    if (parentScope == null)
+                    {
+                        parentScope = await this.CreateScopeInternal(parentName, parentName);
+                    }
 
                     var scopeHierarchy = await this.GetEntityAsync<Data.ScopeHierarchy>(sh => sh.ChildId == scope.Id && sh.ParentId == parentScope.Id);
                     if (scopeHierarchy == null)
@@ -227,9 +234,16 @@
                     }
                 }
             }
+
+            return scope;
         }
 
         public async Task UpsertScopeAsync(string scopeName, string description, params string[] parents)
+        {
+            await this.UpsertScopeInternal(scopeName, description, parents);
+        }
+
+        private async Task<Data.Scope> UpsertScopeInternal(string scopeName, string description, params string[] parents)
         {
             var scope = await this.GetEntityAsync<Data.Scope>(s => s.Name == scopeName);
 
@@ -251,7 +265,14 @@
                 scope.Description = description;
                 scope.ModificationBy = this.principalIdProvider.PrincipalId;
 
-                this.context.Set<Data.Scope>().Update(scope);
+                var entityState = this.context.ChangeTracker.Entries<Data.Scope>()
+                                                            .FirstOrDefault(x => x.Entity == scope)?
+                                                            .State;
+
+                if (entityState != null && entityState == EntityState.Unchanged)
+                {
+                    this.context.Set<Data.Scope>().Update(scope);
+                }
             }
 
             (await SharedQueries.GetModelModificationDateAsync(this.context)).Scopes = DateTime.UtcNow;
@@ -260,9 +281,11 @@
             {
                 foreach (var parentName in parents)
                 {
-                    await this.UpsertScopeAsync(parentName, parentName);
-
                     var parentScope = await this.GetEntityAsync<Data.Scope>(s => s.Name == parentName);
+                    if (parentScope == null)
+                    {
+                        parentScope = await this.UpsertScopeInternal(parentName, parentName);
+                    }
 
                     var scopeHierarchy = await this.GetEntityAsync<Data.ScopeHierarchy>(sh => sh.ChildId == scope.Id && sh.ParentId == parentScope.Id);
                     if (scopeHierarchy == null)
@@ -275,6 +298,8 @@
                     }
                 }
             }
+
+            return scope;
         }
 
         public async Task DeleteScopeAsync(string scopeName)
@@ -436,7 +461,7 @@
                 var principal = group.Principal;
                 if (principal == null)
                 {
-                    principal = await this.GetEntityAsync<Data.Principal>(x=> x.Id == group.Id);
+                    principal = await this.GetEntityAsync<Data.Principal>(x => x.Id == group.Id);
                 }
 
                 this.context.Set<Data.Principal>().Remove(principal);
@@ -455,7 +480,7 @@
                     GroupId = groupId,
                     CreationBy = this.principalIdProvider.PrincipalId,
                     ModificationBy = this.principalIdProvider.PrincipalId
-                });                
+                });
             }
             else
             {

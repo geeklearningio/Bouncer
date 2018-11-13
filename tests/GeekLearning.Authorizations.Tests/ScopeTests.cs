@@ -54,7 +54,7 @@
                 async Task<Scope> ExecuteUpsert(string description, string[] parents)
                 {
                     await authorizationsFixture.AuthorizationsManager
-                                               .UpsertScopeAsync("scope1", description, parents);
+                                            .UpsertScopeAsync("scope1", description, parents);
 
                     await authorizationsFixture.Context.SaveChangesAsync();
 
@@ -101,6 +101,39 @@
                     initialParents.Union(updatedParents)
                                   .Union(secondParentUpdate)
                                   .ToArray());
+            }
+        }
+
+        [Fact]
+        public async Task DuplicatedCallsOnUpsertScope_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var description = "Description scope 1";
+                var parents = new string[] { "scopeParent1", "scopeParent2" };
+
+                await authorizationsFixture.AuthorizationsManager
+                                            .UpsertScopeAsync("scope1", description, parents);
+
+                await authorizationsFixture.AuthorizationsManager
+                                        .UpsertScopeAsync("scope1", description, parents);
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var scope = authorizationsFixture.Context
+                                                 .Scopes()
+                                                 .Include(r => r.Parents)
+                                                 .Include(r => r.Children)
+                                                 .FirstOrDefault(r => r.Name == "scope1");
+
+                Assert.NotNull(scope);
+                Assert.Equal(scope.Description, description);
+
+                var parentKeys = scope.Parents.Select(r => r.Parent.Name);
+                foreach (var parent in parents)
+                {
+                    Assert.True(parentKeys.Contains(parent));
+                }
             }
         }
 
