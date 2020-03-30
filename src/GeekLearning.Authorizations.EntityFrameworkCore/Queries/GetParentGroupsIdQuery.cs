@@ -15,7 +15,7 @@
             this.context = context;
         }
 
-        public async Task<IList<Guid>> ExecuteAsync(params Guid[] principalsId)
+        public async Task<IList<Guid>> ExecuteAsync(IEnumerable<Guid> principalsId)
         {
             List<Guid> groupIds = new List<Guid>();
             var groupParentsId = await this.context.Memberships()
@@ -27,7 +27,7 @@
 
             if (groupParentsId.Count > 0)
             {
-                groupIds.AddRange(await this.ExecuteAsync(groupParentsId.ToArray()).ConfigureAwait(false));
+                groupIds.AddRange(await this.ExecuteAsync(groupParentsId).ConfigureAwait(false));
             }
 
             return groupIds;

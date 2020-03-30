@@ -6,6 +6,6 @@
 
     public interface IGetParentGroupsIdQuery
     {
-        Task<IList<Guid>> ExecuteAsync(params Guid[] principalsId);
+        Task<IList<Guid>> ExecuteAsync(IEnumerable<Guid> principalsId);
     }
 }

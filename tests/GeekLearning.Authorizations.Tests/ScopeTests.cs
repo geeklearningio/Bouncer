@@ -46,6 +46,98 @@
         }
 
         [Fact]
+        public async Task UpsertScope_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                // Common execution
+                async Task<Scope> ExecuteUpsert(string description, string[] parents)
+                {
+                    await authorizationsFixture.AuthorizationsManager
+                                            .UpsertScopeAsync("scope1", description, parents);
+
+                    await authorizationsFixture.Context.SaveChangesAsync();
+
+                    return authorizationsFixture.Context.Scopes()
+                                                        .Include(r => r.Parents)
+                                                        .Include(r => r.Children)
+                                                        .FirstOrDefault(r => r.Name == "scope1");
+                }
+
+                // Common Assert
+                void TestAssertion(Scope scopeInTest, string description, string[] parents)
+                {
+                    Assert.NotNull(scopeInTest);
+                    Assert.Equal(scopeInTest.Description, description);
+
+                    var parentKeys = scopeInTest.Parents.Select(r => r.Parent.Name);
+                    foreach (var parent in parents)
+                    {
+                        Assert.True(parentKeys.Contains(parent));
+                    }
+                }
+
+                // Create the scope1
+                var scopeDescription = "Description scope 1";
+                var initialParents = new string[] { "scopeParent1", "scopeParent2" };
+
+                var scope = await ExecuteUpsert(scopeDescription, initialParents);
+                TestAssertion(scope, scopeDescription, initialParents);
+
+                // First update
+                scopeDescription = "Updated description scope 1";
+                var updatedParents = new string[] { "scopeParent1" };
+
+                scope = await ExecuteUpsert(scopeDescription, updatedParents);
+                TestAssertion(scope, scopeDescription, initialParents.Concat(updatedParents).ToArray());
+
+                // Second update
+                var secondParentUpdate = new string[] { "anotherParent" };
+
+                scope = await ExecuteUpsert(scopeDescription, secondParentUpdate);
+                TestAssertion(
+                    scope, 
+                    scopeDescription, 
+                    initialParents.Union(updatedParents)
+                                  .Union(secondParentUpdate)
+                                  .ToArray());
+            }
+        }
+
+        [Fact]
+        public async Task DuplicatedCallsOnUpsertScope_ShouldBeOk()
+        {
+            using (var authorizationsFixture = new AuthorizationsFixture())
+            {
+                var description = "Description scope 1";
+                var parents = new string[] { "scopeParent1", "scopeParent2" };
+
+                await authorizationsFixture.AuthorizationsManager
+                                            .UpsertScopeAsync("scope1", description, parents);
+
+                await authorizationsFixture.AuthorizationsManager
+                                        .UpsertScopeAsync("scope1", description, parents);
+
+                await authorizationsFixture.Context.SaveChangesAsync();
+
+                var scope = authorizationsFixture.Context
+                                                 .Scopes()
+                                                 .Include(r => r.Parents)
+                                                 .Include(r => r.Children)
+                                                 .FirstOrDefault(r => r.Name == "scope1");
+
+                Assert.NotNull(scope);
+                Assert.Equal(scope.Description, description);
+
+                var parentKeys = scope.Parents.Select(r => r.Parent.Name);
+                foreach (var parent in parents)
+                {
+                    Assert.True(parentKeys.Contains(parent));
+                }
+            }
+        }
+
+        [Fact]
         public async Task DeleteScope_ShouldBeOk()
         {
             using (var authorizationsFixture = new AuthorizationsFixture())
@@ -90,7 +182,7 @@
                     });
 
                 authorizationsFixture.Context.Scopes().Add(parentScope);
-                
+
                 var role = new Role
                 {
                     Id = Guid.NewGuid(),
@@ -110,7 +202,7 @@
                     CreationBy = authorizationsFixture.Context.CurrentUserId,
                     ModificationBy = authorizationsFixture.Context.CurrentUserId
                 };
-                
+
                 authorizationsFixture.Context.Roles().Add(role);
 
                 authorizationsFixture.Context.Authorizations().Add(new Authorization
